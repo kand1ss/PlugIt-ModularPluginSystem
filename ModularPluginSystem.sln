@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginAPI", "PluginAPI\PluginAPI.csproj", "{2D775DA1-324D-4AC5-B613-CEA8FE88BD95}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginManager", "PluginManager\PluginManager.csproj", "{6015CBCA-5321-4E20-9CDB-EF75D78DF753}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PluginManagerTests", "PluginManagerTests\PluginManagerTests.csproj", "{B7E53AC7-EB29-4EB2-B6B0-15CC1C21264B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2D775DA1-324D-4AC5-B613-CEA8FE88BD95}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2D775DA1-324D-4AC5-B613-CEA8FE88BD95}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2D775DA1-324D-4AC5-B613-CEA8FE88BD95}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2D775DA1-324D-4AC5-B613-CEA8FE88BD95}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6015CBCA-5321-4E20-9CDB-EF75D78DF753}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6015CBCA-5321-4E20-9CDB-EF75D78DF753}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6015CBCA-5321-4E20-9CDB-EF75D78DF753}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6015CBCA-5321-4E20-9CDB-EF75D78DF753}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B7E53AC7-EB29-4EB2-B6B0-15CC1C21264B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7E53AC7-EB29-4EB2-B6B0-15CC1C21264B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7E53AC7-EB29-4EB2-B6B0-15CC1C21264B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7E53AC7-EB29-4EB2-B6B0-15CC1C21264B}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
