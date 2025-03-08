@@ -298,3 +298,4 @@ C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\obj\D
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\obj\Debug\net9.0\PluginManagerTests.pdb
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\obj\Debug\net9.0\PluginManagerTests.genruntimeconfig.cache
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\obj\Debug\net9.0\ref\PluginManagerTests.dll
+C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\obj\Debug\net9.0\PluginManagerTests.sourcelink.json

@@ -8,5 +8,5 @@ public interface IAssemblyExtractor
     Assembly GetAssembly(string assemblyName);
     IEnumerable<Assembly> GetAssemblies(IEnumerable<string> assemblyNames);
 
-    void Clear();
+    void ClearAssemblies();
 }

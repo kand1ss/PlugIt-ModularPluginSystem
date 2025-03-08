@@ -25,7 +25,7 @@ public class PluginRepositoryTests
         
         _repository.AddRange([networkPlugin, consolePlugin]);
         Assert.NotEmpty(_repository.GetAll());
-        Assert.Equal(2, _repository.GetAll().Count);
+        Assert.Equal(2, _repository.GetAll().Count());
     }
 
     [Fact]
@@ -69,6 +69,6 @@ public class PluginRepositoryTests
         _repository.Add(new ConsolePlugin());
         _repository.Add(new NetworkPlugin());
         
-        Assert.NotNull(_repository.GetByName("NetworkPlugin"));
+        Assert.NotNull(_repository.GetByName<INetworkPlugin>("NetworkPlugin"));
     }
 }

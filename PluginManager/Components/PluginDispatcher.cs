@@ -10,7 +10,7 @@ public class PluginDispatcher(IRepository repository, IAssemblyExtractor extract
         var extractedAssembly = extractor.GetAssembly(dllName);
         var plugins = handler.GetAllPlugins(extractedAssembly);
         repository.AddRange(plugins);
-        extractor.Clear();
+        extractor.ClearAssemblies();
     }
 
     public void ExtractAndSavePlugins(IEnumerable<string> dllNames)
@@ -18,6 +18,6 @@ public class PluginDispatcher(IRepository repository, IAssemblyExtractor extract
         var extractedAssemblies = extractor.GetAssemblies(dllNames);
         var plugins = handler.GetAllPlugins(extractedAssemblies);
         repository.AddRange(plugins);
-        extractor.Clear();
+        extractor.ClearAssemblies();
     }
 }

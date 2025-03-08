@@ -10,16 +10,22 @@ public class AssemblyExtractor : IAssemblyExtractor
     
     public AssemblyExtractor(string pluginsSource)
     {
-        if (string.IsNullOrWhiteSpace(pluginsSource))
-            throw new ArgumentException("Plugins path cannot be null or empty.", nameof(pluginsSource));
-        
+        if (string.IsNullOrWhiteSpace(pluginsSource) || !Directory.Exists(pluginsSource))
+            throw new ArgumentException("Invalid plugins path.", nameof(pluginsSource));
+
         _pluginsSource = pluginsSource;
         _context = new PluginLoadContext(pluginsSource);
     }
     
     private string ConcatPathAndName(string name)
-        => Path.Combine(_pluginsSource, name + ".dll");
-    
+    {
+        var fullPath = Path.Combine(_pluginsSource, name);
+        if(!fullPath.EndsWith(".dll"))
+            fullPath += ".dll";
+        
+        return fullPath;
+    }
+
     public IEnumerable<Assembly> GetAllFromDirectory()
     {
         var dllFiles = Directory.GetFiles(_pluginsSource, "*.dll");
@@ -29,16 +35,16 @@ public class AssemblyExtractor : IAssemblyExtractor
     public Assembly GetAssembly(string assemblyName)
     {
         var assemblyPath = ConcatPathAndName(assemblyName);
+        if(!File.Exists(assemblyPath))
+            throw new FileNotFoundException($"Assembly '{assemblyName}' does not exist.");
+        
         return _context.LoadAssembly(assemblyPath);
     }
 
     public IEnumerable<Assembly> GetAssemblies(IEnumerable<string> assemblyNames)
-    {
-        var assemblyPaths = assemblyNames.Select(ConcatPathAndName);
-        return _context.LoadAssemblies(assemblyPaths);
-    }
+        => assemblyNames.Select(GetAssembly);
 
-    public void Clear()
+    public void ClearAssemblies()
     {
         _context.Unload();
         _context = new PluginLoadContext(_pluginsSource);

@@ -14,12 +14,7 @@ public class PluginLoadContext(string path) : AssemblyLoadContext(isCollectible:
     }
     
     public Assembly LoadAssembly(string assemblyPath)
-    {
-        if (!File.Exists(assemblyPath))
-            throw new FileNotFoundException($"Assembly not found: {assemblyPath}");
-        
-        return LoadFromAssemblyPath(assemblyPath);
-    }
+        => LoadFromAssemblyPath(assemblyPath);
     
     public IEnumerable<Assembly> LoadAssemblies(IEnumerable<string> assemblyPaths)
         => assemblyPaths.Select(LoadFromAssemblyPath);

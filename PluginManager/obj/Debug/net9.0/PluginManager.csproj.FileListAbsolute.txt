@@ -43,3 +43,4 @@ C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManager\obj\Debug\
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManager\obj\Debug\net9.0\refint\PluginManager.dll
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManager\obj\Debug\net9.0\PluginManager.pdb
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManager\obj\Debug\net9.0\ref\PluginManager.dll
+C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManager\obj\Debug\net9.0\PluginManager.sourcelink.json

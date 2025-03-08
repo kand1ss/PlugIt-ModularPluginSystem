@@ -18,7 +18,7 @@ public class PluginRepository : IRepository
     public void Remove(string pluginName) => _plugins.Remove(pluginName);
 
 
-    public IReadOnlyCollection<IPlugin> GetAll()
+    public IEnumerable<IPlugin> GetAll()
         => _plugins.Values;
     public IEnumerable<T> GetAll<T>() where T : IPlugin
         => _plugins.Values.OfType<T>();

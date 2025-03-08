@@ -8,15 +8,23 @@ namespace PluginManagerTests;
 
 public class AssemblyHandlerTests
 {
+    private readonly string _assembliesPath =
+        "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\";
+    
     private readonly AssemblyHandler _handler = new();
+    private readonly PluginLoadContext _loadContext;
+
+    public AssemblyHandlerTests()
+    {
+        _loadContext = new PluginLoadContext(_assembliesPath);
+    }
 
     [Fact]
     public void GetAllPlugins_ReceivedAllPluginsFromAssembly()
     {
-        var assembly = Assembly.LoadFile(
-            "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\ConsolePlugin.dll");
-        
+        var assembly = _loadContext.LoadFromAssemblyPath(_assembliesPath + "ConsolePlugin.dll");
         var plugins = _handler.GetAllPlugins(assembly).ToList();
+        
         Assert.NotEmpty(plugins);
         Assert.Single(plugins);
     }
@@ -24,12 +32,10 @@ public class AssemblyHandlerTests
     [Fact]
     public void GetAllPlugins_ReceiverAllPluginsFromAssemblies()
     {
-        var assembly1 = Assembly.LoadFile(
-            "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\ConsolePlugin.dll");
-        var assembly2 = Assembly.LoadFile(
-            "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\ConsolePlugin2.dll");
-
+        var assembly1 = _loadContext.LoadFromAssemblyPath(_assembliesPath + "ConsolePlugin.dll");
+        var assembly2 = _loadContext.LoadFromAssemblyPath(_assembliesPath + "ConsolePlugin2.dll");
         var plugins = _handler.GetAllPlugins([assembly1, assembly2]).ToList();
+        
         Assert.NotEmpty(plugins);
         Assert.Equal(2, plugins.Count);
     }
@@ -37,10 +43,9 @@ public class AssemblyHandlerTests
     [Fact]
     public void GetPluginsWithGeneric_ReceivedAllPluginsFromAssemblyWithCorrectTypes()
     {
-        var assembly = Assembly.LoadFile(
-            "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\NetworkPlugin.dll");
-
+        var assembly = _loadContext.LoadFromAssemblyPath(_assembliesPath + "NetworkPlugin.dll");
         var plugins = _handler.GetPlugins<INetworkPlugin>(assembly).ToList();
+        
         Assert.NotEmpty(plugins);
         Assert.Single(plugins);
     }
@@ -48,10 +53,8 @@ public class AssemblyHandlerTests
     [Fact]
     public void GetPluginsWithGeneric_ReceivedAllPluginsFromAssembliesWithCorrectTypes()
     {
-        var assembly1 = Assembly.LoadFile(
-            "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\NetworkPlugin.dll");
-        var assembly2 = Assembly.LoadFile(
-            "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\Plugins.dll");
+        var assembly1 = _loadContext.LoadFromAssemblyPath(_assembliesPath + "NetworkPlugin.dll");
+        var assembly2 = _loadContext.LoadFromAssemblyPath(_assembliesPath + "Plugins.dll");
         
         var networkPlugins = _handler.GetPlugins<INetworkPlugin>([assembly1, assembly2]).ToList();
         Assert.NotEmpty(networkPlugins);

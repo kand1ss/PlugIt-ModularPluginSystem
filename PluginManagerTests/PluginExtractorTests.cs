@@ -9,9 +9,28 @@ public class PluginExtractorTests
         "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL");
 
     [Fact]
+    public void SetWrongDirectory_ThrowsException()
+    {
+        Assert.Throws<ArgumentException>(() =>
+        {
+            var extractorWrongDirectory = new AssemblyExtractor("E:\\SomeFolder");
+        });
+    }
+
+    [Fact]
     public void GetAllFromDirectory_ReceivedTwoAssemblies()
     {
         Assert.Equal(4 , _extractor.GetAllFromDirectory().Count());
+    }
+
+    [Fact]
+    public void GetAllFromDirectory_EmptyDirectory_EmptyList()
+    {
+        var extractor = new AssemblyExtractor(
+            "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\Empty");
+        var assemblies = extractor.GetAllFromDirectory();
+        
+        Assert.Empty(assemblies);
     }
 
     [Fact]
@@ -27,13 +46,11 @@ public class PluginExtractorTests
     }
     
     [Fact]
-    public void GetFromDirectory_ReceivedTwoAssemblies()
+    public void GetFromDirectory_NameWithExtension_ReceivedTwoAssemblies()
     {
-        Assert.Equal(2, _extractor.GetAssemblies([
-            "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\ConsolePlugin", 
-            "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\PluginManagerTests\\TestsDLL\\ConsolePlugin2"]).Count());
+        Assert.Equal(2, _extractor.GetAssemblies(["ConsolePlugin.dll", "ConsolePlugin2"]).Count());
     }
-    
+
     [Fact]
     public void GetFromDirectory_InvalidNames_TheListIsEmpty()
     {
