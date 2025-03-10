@@ -13,9 +13,6 @@ public class PluginLoadContext(string path) : AssemblyLoadContext(isCollectible:
         return assemblyPath is not null ? LoadFromAssemblyPath(assemblyPath) : null;
     }
     
-    public Assembly LoadAssembly(string assemblyPath)
-        => LoadFromAssemblyPath(assemblyPath);
-    
-    public IEnumerable<Assembly> LoadAssemblies(IEnumerable<string> assemblyPaths)
-        => assemblyPaths.Select(LoadFromAssemblyPath);
+    public Assembly LoadAssembly(string assemblyName)
+        => LoadFromAssemblyPath(Path.Combine(path, assemblyName));
 }

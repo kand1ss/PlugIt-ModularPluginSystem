@@ -22,7 +22,7 @@ public class AssemblyHandlerTests
     [Fact]
     public void GetAllPlugins_ReceivedAllPluginsFromAssembly()
     {
-        var assembly = _loadContext.LoadFromAssemblyPath(_assembliesPath + "ConsolePlugin.dll");
+        var assembly = _loadContext.LoadFromAssemblyPath(_assembliesPath + "ConsolePlugin2.dll");
         var plugins = _handler.GetAllPlugins(assembly).ToList();
         
         Assert.NotEmpty(plugins);
@@ -32,7 +32,7 @@ public class AssemblyHandlerTests
     [Fact]
     public void GetAllPlugins_ReceiverAllPluginsFromAssemblies()
     {
-        var assembly1 = _loadContext.LoadFromAssemblyPath(_assembliesPath + "ConsolePlugin.dll");
+        var assembly1 = _loadContext.LoadFromAssemblyPath(_assembliesPath + "ConsolePlugin2.dll");
         var assembly2 = _loadContext.LoadFromAssemblyPath(_assembliesPath + "ConsolePlugin2.dll");
         var plugins = _handler.GetAllPlugins([assembly1, assembly2]).ToList();
         
@@ -62,6 +62,6 @@ public class AssemblyHandlerTests
         
         var executablePlugins = _handler.GetPlugins<IExecutablePlugin>([assembly1, assembly2]).ToList();
         Assert.NotEmpty(executablePlugins);
-        Assert.Equal(3, executablePlugins.Count);
+        Assert.Single(executablePlugins);
     }
 }

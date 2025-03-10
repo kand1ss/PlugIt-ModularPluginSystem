@@ -4,26 +4,23 @@ namespace PluginManagerTests.PluginsForTests;
 
 public class ConsolePlugin : PluginBase
 {
-    public override string Name => "ConsolePlugin";
-    public override string Version => "1.0";
+    public override string Name => "ConsolePlugin2";
+    public override Version Version => new(1, 0, 0);
     public override string Description => "Console plugin";
     
     
-    public override Task Initialize()
+    public override void Initialize()
     {
         Console.WriteLine("Console plugin initialized");
-        return Task.CompletedTask;
     }
 
-    public override Task ExecuteAsync()
+    public override void Execute()
     {
         Console.WriteLine("Console plugin executed");
-        return Task.CompletedTask;
     }
 
-    public override Task FinalizeAsync()
+    public override void FinalizePlugin()
     {
         Console.WriteLine("Console plugin finalized");
-        return Task.CompletedTask;
     }
 }
