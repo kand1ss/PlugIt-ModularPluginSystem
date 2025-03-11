@@ -1,4 +1,5 @@
 ﻿using ModularPluginAPI.Components;
+using ModularPluginAPI.Exceptions;
 using Xunit;
 
 namespace PluginManagerTests;
@@ -42,7 +43,7 @@ public class AssemblyLoaderTests
     [Fact]
     public void GetAssembly_InvalidAssemblyName_ThrowsException()
     {
-        Assert.Throws<FileNotFoundException>(() => _extractor.GetAssembly("SomeAssembly"));
+        Assert.Throws<AssemblyNotFoundException>(() => _extractor.GetAssembly("SomeAssembly"));
     }
     
     [Fact]

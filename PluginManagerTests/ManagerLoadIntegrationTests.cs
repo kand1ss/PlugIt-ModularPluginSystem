@@ -24,7 +24,7 @@ public class ManagerLoadIntegrationTests
         var metadata = _metadataGenerator.Generate(assemblies);
         var allPlugins = _handler.GetAllPlugins(assemblies).ToList();
         
-        Assert.Equal(5, allPlugins.Count);
+        Assert.Equal(7, allPlugins.Count);
         
         _metadataRepository.AddRange(metadata);
         Assert.NotEmpty(_metadataRepository.GetAllMetadata());
@@ -37,7 +37,7 @@ public class ManagerLoadIntegrationTests
         var metadata = _metadataGenerator.Generate(assemblies);
         var networkPlugins = _handler.GetPlugins<INetworkPlugin>(assemblies).ToList();
         
-        Assert.Equal(2, networkPlugins.Count);
+        Assert.Equal(3, networkPlugins.Count);
         
         _metadataRepository.AddRange(metadata);
         Assert.NotEmpty(_metadataRepository.GetAllMetadata());

@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 using ModularPluginAPI.Context;
+using ModularPluginAPI.Exceptions;
 using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
@@ -23,8 +24,8 @@ public class AssemblyLoader : IAssemblyLoader
     }
     private static void CheckFileExists(string assemblyName, string assemblyPath)
     {
-        if(!File.Exists(assemblyPath))
-            throw new FileNotFoundException($"Assembly '{assemblyName}' does not exist.");
+        if (!File.Exists(assemblyPath))
+            throw new AssemblyNotFoundException(assemblyName);
     }
     
     private string ConcatPathAndName(string name)
@@ -41,8 +42,10 @@ public class AssemblyLoader : IAssemblyLoader
     public Assembly GetAssembly(string assemblyName)
     {
         var assemblyPath = ConcatPathAndName(assemblyName);
+        if (_pluginContexts.TryGetValue(assemblyName, out var pluginContext))
+            return pluginContext.LoadAssembly(assemblyPath);
+
         CheckFileExists(assemblyName, assemblyPath);
-        
         var context = new PluginLoadContext(assemblyPath);
         _pluginContexts.Add(assemblyName, context);
         

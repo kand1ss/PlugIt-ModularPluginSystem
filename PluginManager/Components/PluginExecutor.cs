@@ -12,16 +12,19 @@ public class PluginExecutor : IPluginExecutor
             executablePlugin.Execute();
         if(plugin is IFinalisablePlugin finalPlugin)
             finalPlugin.FinalizePlugin();
-        if (plugin is INetworkPlugin networkPlugin)
-        {
-            networkPlugin.SendData([]);
-            networkPlugin.ReceiveData();
-        }
     }
-    
     public void Execute(IEnumerable<IPlugin> plugins)
         => plugins.ToList().ForEach(Execute);
 
+    
     public void ExecuteExtensionPlugin<T>(ref T data, IExtensionPlugin<T> extension)
         => extension.Expand(ref data);
+    public void ExecuteExtensionPlugins<T>(ref T data, IEnumerable<IExtensionPlugin<T>> extensions)
+        => extensions.ToList().ForEach(Execute);
+
+
+    public byte[] ExecuteNetworkPluginReceive(INetworkPlugin plugin)
+        => plugin.ReceiveData();
+    public void ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin)
+        => plugin.SendData(data);
 }

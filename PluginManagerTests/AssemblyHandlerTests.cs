@@ -58,7 +58,7 @@ public class AssemblyHandlerTests
         
         var networkPlugins = _handler.GetPlugins<INetworkPlugin>([assembly1, assembly2]).ToList();
         Assert.NotEmpty(networkPlugins);
-        Assert.Equal(2, networkPlugins.Count);
+        Assert.Equal(3, networkPlugins.Count);
         
         var executablePlugins = _handler.GetPlugins<IExecutablePlugin>([assembly1, assembly2]).ToList();
         Assert.NotEmpty(executablePlugins);
