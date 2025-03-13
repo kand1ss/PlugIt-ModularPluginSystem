@@ -8,6 +8,7 @@ public class NetworkPlugin2 : INetworkPlugin
     public Version Version => new(1, 0, 0);
     public string Description => "Network plugin";
     public string Author => "kand1s";
+
     
     public void SendData(byte[] data)
     {

@@ -9,6 +9,7 @@ public class NetworkPlugin : INetworkPlugin
     public string Description => "Console plugin";
     public string Author => "kand2s";
     
+    
     public void SendData(byte[] data)
     {
         Console.WriteLine($"Sending data: {data.Length} bytes");

@@ -1,4 +1,6 @@
 
+using Microsoft.Extensions.Configuration;
+
 namespace PluginAPI;
 
 public interface IPlugin

@@ -9,6 +9,7 @@ public class NetworkPlugin : INetworkPlugin
     public string Description => "Network plugin";
     public string Author => "kand1s";
     
+    
     public void SendData(byte[] data)
     {
         Console.WriteLine("Network plugin sent");

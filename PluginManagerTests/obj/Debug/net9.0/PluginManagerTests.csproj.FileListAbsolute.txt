@@ -299,3 +299,6 @@ C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\obj\D
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\obj\Debug\net9.0\PluginManagerTests.genruntimeconfig.cache
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\obj\Debug\net9.0\ref\PluginManagerTests.dll
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\obj\Debug\net9.0\PluginManagerTests.sourcelink.json
+C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\bin\Debug\net9.0\Microsoft.Extensions.Configuration.dll
+C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\bin\Debug\net9.0\Microsoft.Extensions.Configuration.Abstractions.dll
+C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginManagerTests\bin\Debug\net9.0\Microsoft.Extensions.Primitives.dll

@@ -1,4 +1,5 @@
 using ModularPluginAPI.Components;
+using ModularPluginAPI.Components.Lifecycle;
 
 namespace ModularPluginAPI;
 
@@ -12,9 +13,11 @@ public class PluginManager : IDisposable
         var assemblyHandler = new AssemblyHandler();
         var pluginExtractor = new AssemblyLoader(pluginsSource);
         var repository = new AssemblyMetadataRepository();
-        var pluginExecutor = new PluginExecutor();
+        var pluginLifecycleManager = new PluginLifecycleManager();
+        var pluginExecutor = new PluginExecutor(pluginLifecycleManager);
 
-        _dispatcher = new(repository, pluginExtractor, assemblyHandler, pluginExecutor);
+        _dispatcher = new(repository, pluginExtractor, assemblyHandler, 
+            pluginExecutor, pluginLifecycleManager);
         _dispatcher.RebuildMetadata();
 
         InitializeFileWatcher(pluginsSource);
@@ -134,4 +137,19 @@ public class PluginManager : IDisposable
 
         return response;
     }
+    
+    /// <summary>
+    /// Retrieves the state of a specific plugin by its name.
+    /// </summary>
+    /// <param name="pluginName">The name of the plugin whose state is to be retrieved.</param>
+    /// <returns>The current state of the specified plugin as a string.</returns>
+    public string GetPluginState(string pluginName)
+        => _dispatcher.GetPluginState(pluginName);
+
+    /// <summary>
+    /// Retrieves the states of all plugins.
+    /// </summary>
+    /// <returns>An enumerable collection of PluginInfo objects representing the states of all plugins.</returns>
+    public IEnumerable<PluginInfo> GetPluginsStates()
+        => _dispatcher.GetPluginStates();
 }

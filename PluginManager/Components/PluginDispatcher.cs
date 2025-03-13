@@ -1,4 +1,5 @@
 using System.Reflection;
+using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Exceptions;
 using ModularPluginAPI.Models;
 using PluginAPI;
@@ -6,11 +7,19 @@ using PluginAPI;
 namespace ModularPluginAPI.Components;
 
 public class PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyLoader loader, IAssemblyHandler handler, 
-    IPluginExecutor pluginExecutor)
+    IPluginExecutor pluginExecutor, IPluginLifecycleManager lifecycleManager)
 {
     private readonly AssemblyMetadataGenerator _metadataGenerator = new(handler);
-    
-    
+
+    private AssemblyMetadata TryGetMetadata(string assemblyName)
+    {
+        var assemblyMetadata = repository.GetMetadataByAssemblyName(assemblyName);
+        if (assemblyMetadata is null)
+            throw new AssemblyNotFoundException(assemblyName);
+        
+        MetadataValidator.Validate(assemblyMetadata);
+        return assemblyMetadata;
+    }
     private AssemblyMetadata TryGetMetadataByPluginName(string pluginName)
     {
         var assemblyMetadata = repository.GetMetadataByPluginName(pluginName);
@@ -20,19 +29,18 @@ public class PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyL
         MetadataValidator.Validate(assemblyMetadata);
         return assemblyMetadata;
     }
-    private AssemblyMetadata TryGetMetadataByAssemblyName(string assemblyName)
+    private Assembly LoadAssembly(string assemblyName)
     {
-        var assemblyMetadata = repository.GetMetadataByAssemblyName(assemblyName);
-        if (assemblyMetadata is null)
-            throw new AssemblyNotFoundException(assemblyName);
+        var metadata = TryGetMetadata(assemblyName);
+        var pluginNames = metadata.Plugins.Select(x => x.Name).ToList();
         
-        MetadataValidator.Validate(assemblyMetadata);
-        return assemblyMetadata;
+        lifecycleManager.SetPluginsState(pluginNames, PluginState.Loaded);
+        return loader.GetAssembly(assemblyName);
     }
-    private Assembly GetAssemblyByPluginName(string pluginName)
+    private Assembly LoadAssemblyByPluginName(string pluginName)
     {
         var assemblyMetadata = TryGetMetadataByPluginName(pluginName);
-        return loader.GetAssembly(assemblyMetadata.Name);
+        return LoadAssembly(assemblyMetadata.Name);
     }
     private T TryGetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin
     {
@@ -42,33 +50,33 @@ public class PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyL
         
         return plugin;
     }
-    
 
 
     public void RebuildMetadata()
     {
         repository.Clear();
-        var assemblies = loader.GetAllAssemblies();
-        var metadata = _metadataGenerator.Generate(assemblies);
+        lifecycleManager.Clear();
         
-        repository.AddRange(metadata);
-        loader.UnloadAllAssemblies();
+        var assemblies = loader.GetAllAssemblies();
+        var assemblyMetadata = _metadataGenerator.Generate(assemblies).ToList();
+        
+        repository.AddRange(assemblyMetadata);
+        UnloadAllAssemblies();
     }
-    
     
     public void StartPlugin(string pluginName)
     {
-        var assembly = GetAssemblyByPluginName(pluginName);
+        var assembly = LoadAssemblyByPluginName(pluginName);
         var plugin = TryGetPlugin<IPlugin>(assembly, pluginName);
         
         pluginExecutor.Execute(plugin);
     }
     public void StartPlugins(IEnumerable<string> pluginNames)
         => pluginNames.ToList().ForEach(StartPlugin);
+    
     public void StartAllPluginsFromAssembly(string assemblyName)
     {
-        var metadata = TryGetMetadataByAssemblyName(assemblyName);
-        var assembly = loader.GetAssembly(metadata.Name);
+        var assembly = LoadAssembly(assemblyName);
         var plugins = handler.GetAllPlugins(assembly);
         
         pluginExecutor.Execute(plugins);
@@ -76,15 +84,17 @@ public class PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyL
     public void StartAllPlugins()
     {
         var assemblies = loader.GetAllAssemblies();
-        var plugins = handler.GetAllPlugins(assemblies);
+        var plugins = handler.GetAllPlugins(assemblies).ToList();
+        var pluginNames = plugins.Select(p => p.Name);
         
+        lifecycleManager.SetPluginsState(pluginNames, PluginState.Loaded);
         pluginExecutor.Execute(plugins);
     }
     
     
     public void StartExtensionPlugin<T>(ref T data, string pluginName)
     {
-        var assembly = GetAssemblyByPluginName(pluginName);
+        var assembly = LoadAssemblyByPluginName(pluginName);
         var extensionPlugin = TryGetPlugin<IExtensionPlugin<T>>(assembly, pluginName);
         
         pluginExecutor.ExecuteExtensionPlugin(ref data, extensionPlugin);
@@ -92,7 +102,7 @@ public class PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyL
 
     public byte[] ReceiveNetworkPlugin(string pluginName)
     {
-        var assembly = GetAssemblyByPluginName(pluginName);
+        var assembly = LoadAssemblyByPluginName(pluginName);
         var networkPlugin = TryGetPlugin<INetworkPlugin>(assembly, pluginName);
         
         return pluginExecutor.ExecuteNetworkPluginReceive(networkPlugin);
@@ -100,25 +110,42 @@ public class PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyL
 
     public void SendNetworkPlugin(string pluginName, byte[] data)
     {
-        var assembly = GetAssemblyByPluginName(pluginName);
+        var assembly = LoadAssemblyByPluginName(pluginName);
         var networkPlugin = TryGetPlugin<INetworkPlugin>(assembly, pluginName);
         
-        networkPlugin.SendData(data);
+        pluginExecutor.ExecuteNetworkPluginSend(data, networkPlugin);
     }
 
+
+    public void UnloadAssembly(string assemblyName)
+    {
+        var assemblyMetadata = TryGetMetadata(assemblyName);
+        var plugins = assemblyMetadata.Plugins;
+        var pluginNames = plugins.Select(p => p.Name);
+        
+        lifecycleManager.SetPluginsState(pluginNames, PluginState.Unloaded);
+        loader.UnloadAssembly(assemblyName);
+    }
 
     public void UnloadAssemblyByPluginName(string pluginName)
     {
         var assembly = TryGetMetadataByPluginName(pluginName);
-        loader.UnloadAssembly(assembly.Name);
+        UnloadAssembly(assembly.Name);
     }
-    
-    public void UnloadAssembly(string assemblyName)
-        => loader.UnloadAssembly(assemblyName);
 
     public void UnloadAssemblies(IEnumerable<string> assemblyNames)
         => assemblyNames.ToList().ForEach(UnloadAssembly);
     
     public void UnloadAllAssemblies()
-        => loader.UnloadAllAssemblies();
+    {
+        lifecycleManager.SetAllPluginsUnloaded();
+        loader.UnloadAllAssemblies();
+    }
+
+
+    public IEnumerable<PluginInfo> GetPluginStates()
+        => lifecycleManager.GetLifecycleStatistics();
+
+    public string GetPluginState(string pluginName)
+        => lifecycleManager.GetPluginState(pluginName).ToString();
 }

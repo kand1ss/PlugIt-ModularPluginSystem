@@ -9,7 +9,7 @@ namespace ModularPluginAPI.Components;
 public class AssemblyLoader : IAssemblyLoader
 {
     private readonly string _pluginsSource;
-    private readonly Dictionary<string, PluginLoadContext> _pluginContexts = new();
+    private readonly Dictionary<string, PluginLoadContext> _assemblyLoadContexts = new();
     
     public AssemblyLoader(string pluginsSource)
     {
@@ -42,12 +42,12 @@ public class AssemblyLoader : IAssemblyLoader
     public Assembly GetAssembly(string assemblyName)
     {
         var assemblyPath = ConcatPathAndName(assemblyName);
-        if (_pluginContexts.TryGetValue(assemblyName, out var pluginContext))
+        if (_assemblyLoadContexts.TryGetValue(assemblyName, out var pluginContext))
             return pluginContext.LoadAssembly(assemblyPath);
 
         CheckFileExists(assemblyName, assemblyPath);
         var context = new PluginLoadContext(assemblyPath);
-        _pluginContexts.Add(assemblyName, context);
+        _assemblyLoadContexts.Add(assemblyName, context);
         
         return context.LoadAssembly(assemblyPath);
     }
@@ -78,8 +78,8 @@ public class AssemblyLoader : IAssemblyLoader
     
     public void UnloadAssembly(string assemblyName)
     {
-        var context = _pluginContexts[assemblyName];
-        _pluginContexts.Remove(assemblyName);
+        if (!_assemblyLoadContexts.Remove(assemblyName, out var context))
+            return;
         Unload(context);
     }
 
@@ -88,7 +88,7 @@ public class AssemblyLoader : IAssemblyLoader
 
     public void UnloadAllAssemblies()
     {
-        var keys = _pluginContexts.Keys.ToList();
+        var keys = _assemblyLoadContexts.Keys.ToList();
         keys.ForEach(UnloadAssembly);
     }
 }

@@ -32,3 +32,4 @@ C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginAPI\obj\Debug\net9
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginAPI\obj\Debug\net9.0\refint\PluginAPI.dll
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginAPI\obj\Debug\net9.0\PluginAPI.pdb
 C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginAPI\obj\Debug\net9.0\ref\PluginAPI.dll
+C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\PluginAPI\obj\Debug\net9.0\PluginAPI.csproj.AssemblyReference.cache
