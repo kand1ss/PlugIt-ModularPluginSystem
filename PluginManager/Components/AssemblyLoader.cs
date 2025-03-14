@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Runtime.Loader;
+using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Context;
 using ModularPluginAPI.Exceptions;
 using ModularPluginAPI.Models;
@@ -39,7 +40,7 @@ public class AssemblyLoader : IAssemblyLoader
 
     
     
-    public Assembly GetAssembly(string assemblyName)
+    public Assembly LoadAssembly(string assemblyName)
     {
         var assemblyPath = ConcatPathAndName(assemblyName);
         if (_assemblyLoadContexts.TryGetValue(assemblyName, out var pluginContext))
@@ -52,16 +53,19 @@ public class AssemblyLoader : IAssemblyLoader
         return context.LoadAssembly(assemblyPath);
     }
 
-    public IEnumerable<Assembly> GetAssemblies(IEnumerable<string> assemblyNames)
-        => assemblyNames.Select(GetAssembly);
+    public IEnumerable<Assembly> LoadAssemblies(IEnumerable<string> assemblyNames)
+        => assemblyNames.Select(LoadAssembly);
 
-    public IEnumerable<Assembly> GetAllAssemblies()
+    public IEnumerable<Assembly> LoadAllAssemblies()
     {
-        var dllFiles = Directory.GetFiles(_pluginsSource, "*.dll");
-        return GetAssemblies(dllFiles);
+        var assemblies = Directory.GetFiles(_pluginsSource, "*.dll");
+        var assemblyNames = assemblies.Select(Path.GetFileNameWithoutExtension);
+        
+        return LoadAssemblies(assemblyNames!);
     }
 
-    
+
+    public string GetPluginPath() => _pluginsSource;
     
 
     private void Unload(AssemblyLoadContext context)
@@ -81,14 +85,5 @@ public class AssemblyLoader : IAssemblyLoader
         if (!_assemblyLoadContexts.Remove(assemblyName, out var context))
             return;
         Unload(context);
-    }
-
-    public void UnloadAssemblies(IEnumerable<string> assemblyNames)
-        => assemblyNames.ToList().ForEach(UnloadAssembly);
-
-    public void UnloadAllAssemblies()
-    {
-        var keys = _assemblyLoadContexts.Keys.ToList();
-        keys.ForEach(UnloadAssembly);
     }
 }

@@ -16,20 +16,15 @@ public class PluginLifecycleManager : IPluginLifecycleManager
         => pluginNames.ToList().ForEach(n => SetPluginState(n, state));
     
     
-    public void UnloadPlugin(string pluginName)
-        => _pluginStates.Remove(pluginName);
-    public void UnloadPlugins(IEnumerable<string> pluginNames)
-        => pluginNames.ToList().ForEach(UnloadPlugin);
-    public void SetAllPluginsUnloaded()
-        => _pluginStates.ToList()
-            .ForEach(p => SetPluginState(p.Key, PluginState.Unloaded));
+    public void RemovePlugin(string pluginName) => _pluginStates.Remove(pluginName);
+    public void RemovePlugins(IEnumerable<string> pluginNames) 
+        => pluginNames.ToList().ForEach(RemovePlugin);
     
     public void Clear() => _pluginStates.Clear();
 
 
-    public IEnumerable<PluginInfo> GetLifecycleStatistics()
+    public IEnumerable<PluginInfo> GetPluginStates()
         => PluginInfoMapper.Map(_pluginStates);
-    
-    public PluginState GetPluginState(string plugin)
-        => _pluginStates[plugin];
+    public PluginInfo GetPluginState(string plugin)
+        => PluginInfoMapper.Map(plugin, _pluginStates[plugin]);
 }

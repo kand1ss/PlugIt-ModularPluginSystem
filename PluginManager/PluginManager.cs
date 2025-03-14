@@ -1,5 +1,7 @@
 using ModularPluginAPI.Components;
 using ModularPluginAPI.Components.Lifecycle;
+using ModularPluginAPI.Components.Logger;
+using PluginAPI;
 
 namespace ModularPluginAPI;
 
@@ -7,18 +9,23 @@ public class PluginManager : IDisposable
 {
     private readonly PluginDispatcher _dispatcher;
     private readonly FileSystemWatcher _fileWatcher = new();
+    
+    private readonly ILoggerService _logger;
+    private readonly IPluginLifecycleManager _lifecycleManager;
 
     public PluginManager(string pluginsSource)
     {
+        _logger = new PluginLoggerService();
+        _lifecycleManager = new PluginLifecycleManager();
+        
         var assemblyHandler = new AssemblyHandler();
         var pluginExtractor = new AssemblyLoader(pluginsSource);
-        var repository = new AssemblyMetadataRepository();
-        var pluginLifecycleManager = new PluginLifecycleManager();
-        var pluginExecutor = new PluginExecutor(pluginLifecycleManager);
+        var repository = new AssemblyMetadataRepository(_logger);
+        var pluginExecutor = new PluginExecutor(_lifecycleManager, _logger);
 
         _dispatcher = new(repository, pluginExtractor, assemblyHandler, 
-            pluginExecutor, pluginLifecycleManager);
-        _dispatcher.RebuildMetadata();
+            pluginExecutor, _lifecycleManager, _logger);
+        _dispatcher.Metadata.RebuildMetadata();
 
         InitializeFileWatcher(pluginsSource);
     }
@@ -28,25 +35,38 @@ public class PluginManager : IDisposable
         _fileWatcher.Path = source;
         _fileWatcher.Filter = "*.dll";
 
-        _fileWatcher.Changed += DirectoryChanged;
-        _fileWatcher.Created += DirectoryChanged;
-        _fileWatcher.Deleted += DirectoryChanged;
+        _fileWatcher.Created += OnAssemblyAdded;
+        _fileWatcher.Deleted += OnAssemblyDeleted;
+        _fileWatcher.Changed += OnAssemblyUpdated;
 
         _fileWatcher.EnableRaisingEvents = true;
     }
 
     public void Dispose()
     {
-        _fileWatcher.Changed -= DirectoryChanged;
-        _fileWatcher.Created -= DirectoryChanged;
-        _fileWatcher.Deleted -= DirectoryChanged;
+        _fileWatcher.Created -= OnAssemblyAdded;
+        _fileWatcher.Deleted -= OnAssemblyDeleted;
+        _fileWatcher.Changed -= OnAssemblyUpdated;
 
         _fileWatcher.Dispose();
         GC.SuppressFinalize(this);
     }
+    
+    private void OnAssemblyAdded(object obj, FileSystemEventArgs e)
+    {
+        var name = Path.GetFileNameWithoutExtension(e.Name)!;
+        _dispatcher.Metadata.LoadMetadata(name);
+        _dispatcher.Unloader.UnloadAssembly(name);
+    }
+    private void OnAssemblyDeleted(object obj, FileSystemEventArgs e)
+        => _dispatcher.Metadata.RemoveMetadata(Path.GetFileNameWithoutExtension(e.Name)!);
+    private void OnAssemblyUpdated(object obj, FileSystemEventArgs e)
+    {
+        var name = Path.GetFileNameWithoutExtension(e.Name)!;
+        _dispatcher.Metadata.UpdateMetadata(name);
+        _dispatcher.Unloader.UnloadAssembly(name);
+    }
 
-    private void DirectoryChanged(object obj, FileSystemEventArgs e)
-        => _dispatcher.RebuildMetadata();
 
     /// <summary>
     /// Launches a standard plugin by its name. 
@@ -56,8 +76,8 @@ public class PluginManager : IDisposable
     /// <exception cref="PluginNotFoundException">Thrown if the specified plugin is not found.</exception>
     public void ExecutePlugin(string pluginName)
     {
-        _dispatcher.StartPlugin(pluginName);
-        _dispatcher.UnloadAssemblyByPluginName(pluginName);
+        _dispatcher.Starter.StartPlugin(pluginName);
+        _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
     }
     
     /// <summary>
@@ -68,8 +88,8 @@ public class PluginManager : IDisposable
     /// <exception cref="AssemblyNotFoundException">Thrown if the specified assembly is not found.</exception>
     public void ExecutePluginsFromAssembly(string assemblyName)
     {
-        _dispatcher.StartAllPluginsFromAssembly(assemblyName);
-        _dispatcher.UnloadAssembly(assemblyName);
+        _dispatcher.Starter.StartAllPluginsFromAssembly(assemblyName);
+        _dispatcher.Unloader.UnloadAssembly(assemblyName);
     }
 
     /// <summary>
@@ -78,8 +98,8 @@ public class PluginManager : IDisposable
     /// </summary>
     public void ExecuteAllPlugins()
     {
-        _dispatcher.StartAllPlugins();
-        _dispatcher.UnloadAllAssemblies();
+        _dispatcher.Starter.StartAllPlugins();
+        _dispatcher.Unloader.UnloadAllAssemblies();
     }
 
     /// <summary>
@@ -93,8 +113,8 @@ public class PluginManager : IDisposable
     /// <exception cref="PluginNotFoundException">Thrown if the specified plugin is not found.</exception>
     public void ExecuteExtensionPlugin<T>(ref T data, string pluginName)
     {
-        _dispatcher.StartExtensionPlugin(ref data, pluginName);
-        _dispatcher.UnloadAssemblyByPluginName(pluginName);
+        _dispatcher.Starter.StartExtensionPlugin(ref data, pluginName);
+        _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
     }
 
     /// <summary>
@@ -130,10 +150,10 @@ public class PluginManager : IDisposable
     public byte[]? ExecuteNetworkPlugin(string pluginName, bool expectResponse, byte[]? requestData = null)
     {
         if (requestData is not null)
-            _dispatcher.SendNetworkPlugin(pluginName, requestData);
+            _dispatcher.Starter.SendNetworkPlugin(pluginName, requestData);
 
-        var response = expectResponse ? _dispatcher.ReceiveNetworkPlugin(pluginName) : null;
-        _dispatcher.UnloadAssemblyByPluginName(pluginName);
+        var response = expectResponse ? _dispatcher.Starter.ReceiveNetworkPlugin(pluginName) : null;
+        _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
 
         return response;
     }
@@ -143,13 +163,27 @@ public class PluginManager : IDisposable
     /// </summary>
     /// <param name="pluginName">The name of the plugin whose state is to be retrieved.</param>
     /// <returns>The current state of the specified plugin as a string.</returns>
-    public string GetPluginState(string pluginName)
-        => _dispatcher.GetPluginState(pluginName);
+    public PluginInfo GetPluginState(string pluginName)
+        => _lifecycleManager.GetPluginState(pluginName);
 
     /// <summary>
     /// Retrieves the states of all plugins.
     /// </summary>
     /// <returns>An enumerable collection of PluginInfo objects representing the states of all plugins.</returns>
-    public IEnumerable<PluginInfo> GetPluginsStates()
-        => _dispatcher.GetPluginStates();
+    public IEnumerable<PluginInfo> GetPluginStates()
+        => _lifecycleManager.GetPluginStates();
+
+    /// <summary>
+    /// Retrieves a list of messages from the logger.
+    /// </summary>
+    /// <returns>A collection of strings containing logged messages.</returns>
+    public IEnumerable<string> GetMessagesFromLogger()
+        => _logger.GetLogMessages();
+    
+    /// <summary>
+    /// Writes the logger messages to a file in the specified directory.
+    /// </summary>
+    /// <param name="logDirectory">The directory where the log file will be saved.</param>
+    public void WriteLoggerMessagesToFile(string logDirectory)
+        => _logger.WriteMessagesToFile(logDirectory);
 }

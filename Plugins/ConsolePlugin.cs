@@ -18,7 +18,6 @@ public class ConsolePlugin : PluginBase
     public override void Execute()
     {
         Console.WriteLine("Console plugin: executing");
-        Thread.Sleep(50);
     }
 
     public override void FinalizePlugin()

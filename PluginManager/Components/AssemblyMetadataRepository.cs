@@ -1,9 +1,10 @@
 using System.Data;
+using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 
-public class AssemblyMetadataRepository : IAssemblyMetadataRepository
+public class AssemblyMetadataRepository(ILoggerService logger) : IAssemblyMetadataRepository
 {
     private readonly Dictionary<string, AssemblyMetadata> _assemblies = new();
 
@@ -19,7 +20,6 @@ public class AssemblyMetadataRepository : IAssemblyMetadataRepository
         throw new DuplicateNameException(
                 $"Assembly contains plugin names that are contained in another assembly: [{string.Join(',', duplicatePluginNames)}]");
     }
-
     
     public void Add(AssemblyMetadata metadata)
     {
@@ -30,21 +30,15 @@ public class AssemblyMetadataRepository : IAssemblyMetadataRepository
     }
     public void AddRange(IEnumerable<AssemblyMetadata> metadata)
         => metadata.ToList().ForEach(Add);
-    public void Remove(AssemblyMetadata metadata)
-    {
-        var assemblyName = metadata.Name;
-        _assemblies.Remove(assemblyName);
-    }
-    public void RemoveRange(IEnumerable<AssemblyMetadata> metadata)
-        => metadata.ToList().ForEach(Remove);
+    
+    
+    public void Remove(string assemblyName)
+        => _assemblies.Remove(assemblyName);
     public void Clear() => _assemblies.Clear();
-    
 
-    
+
     public AssemblyMetadata? GetMetadataByAssemblyName(string assemblyName)
         => _assemblies.GetValueOrDefault(assemblyName);
-    public IEnumerable<AssemblyMetadata> GetAllMetadata()
-        => _assemblies.Values.ToList();
     public AssemblyMetadata? GetMetadataByPluginName(string pluginName)
         => _assemblies.FirstOrDefault(x => x.Value.Plugins
             .Select(m => m.Name)
