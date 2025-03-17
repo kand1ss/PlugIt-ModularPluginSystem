@@ -7,7 +7,8 @@ using PluginAPI;
 namespace ModularPluginAPI.Components;
 
 public class PluginStartDispatcher(IAssemblyMetadataRepository repository, IAssemblyLoader loader,
-    IAssemblyHandler handler, IPluginExecutor pluginExecutor, ILoggerService logger)
+    IAssemblyHandler handler, IPluginExecutor pluginExecutor, ILoggerService logger, 
+    IPluginDependencyResolver dependencyResolver)
 {
     private AssemblyMetadata TryGetMetadataByPluginName(string pluginName)
     {
@@ -42,6 +43,7 @@ public class PluginStartDispatcher(IAssemblyMetadataRepository repository, IAsse
     {
         var assembly = LoadAssemblyByPluginName(pluginName);
         var plugin = TryGetPlugin<IPlugin>(assembly, pluginName);
+        dependencyResolver.LoadPlugin(plugin);
         
         pluginExecutor.Execute(plugin);
     }
@@ -76,6 +78,7 @@ public class PluginStartDispatcher(IAssemblyMetadataRepository repository, IAsse
     {
         var assembly = LoadAssemblyByPluginName(pluginName);
         var extensionPlugin = TryGetPlugin<IExtensionPlugin<T>>(assembly, pluginName);
+        dependencyResolver.LoadPlugin(extensionPlugin);
         
         pluginExecutor.ExecuteExtensionPlugin(ref data, extensionPlugin);
     }
@@ -85,6 +88,7 @@ public class PluginStartDispatcher(IAssemblyMetadataRepository repository, IAsse
     {
         var assembly = LoadAssemblyByPluginName(pluginName);
         var networkPlugin = TryGetPlugin<INetworkPlugin>(assembly, pluginName);
+        dependencyResolver.LoadPlugin(networkPlugin);
         
         return pluginExecutor.ExecuteNetworkPluginReceive(networkPlugin);
     }
@@ -93,6 +97,7 @@ public class PluginStartDispatcher(IAssemblyMetadataRepository repository, IAsse
     {
         var assembly = LoadAssemblyByPluginName(pluginName);
         var networkPlugin = TryGetPlugin<INetworkPlugin>(assembly, pluginName);
+        dependencyResolver.LoadPlugin(networkPlugin);
         
         pluginExecutor.ExecuteNetworkPluginSend(data, networkPlugin);
     }

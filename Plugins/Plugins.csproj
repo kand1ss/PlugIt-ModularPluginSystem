@@ -11,4 +11,11 @@
       <ProjectReference Include="..\PluginAPI\PluginAPI.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="config.json" />
+      <EmbeddedResource Include="config.json">
+        <DependentUpon>ConsolePlugin.cs</DependentUpon>
+      </EmbeddedResource>
+    </ItemGroup>
+
 </Project>

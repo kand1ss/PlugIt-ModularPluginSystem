@@ -15,7 +15,6 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IA
         if (metadata is null)
             throw new AssemblyNotFoundException(assemblyName);
         
-        MetadataValidator.Validate(metadata);
         return metadata;
     }
     
@@ -23,14 +22,13 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IA
     {
         repository.Clear();
         lifecycleManager.Clear();
-
-        var assemblies = loader.LoadAllAssemblies();
-        var metadataList = metadataGenerator.Generate(assemblies).ToList();
-        repository.AddRange(metadataList);
         
-        foreach (var metadata in metadataList)
-            logger.Log(LogSender.PluginManager, LogType.INFO, 
-                $"Metadata for assembly '{metadata.Name} v{metadata.Version}' created.");
+        var assemblies = loader.LoadAllAssemblies();
+        var assemblyNames = assemblies
+            .Select(assembly => assembly.GetName().Name ?? string.Empty);
+        
+        foreach (var assemblyName in assemblyNames)
+            LoadMetadata(assemblyName);
     }
 
     public void RemoveMetadata(string assemblyName)
@@ -50,6 +48,8 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IA
         var assembly = loader.LoadAssembly(assemblyName);
         var metadata = metadataGenerator.Generate(assembly);
         var plugins = metadata.Plugins.Select(x => x.Name);
+        
+        MetadataValidator.Validate(metadata);
         
         repository.Add(metadata);
         lifecycleManager.SetPluginsState(plugins, PluginState.Unloaded);

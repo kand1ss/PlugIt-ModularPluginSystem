@@ -3,6 +3,7 @@ using PluginAPI;
 
 namespace ModularPluginAPI.Components.Logger;
 
+// Улучшить логгирование
 public class PluginLoggerService : ILoggerService
 {
     private readonly List<string> _messages = new();
@@ -13,10 +14,6 @@ public class PluginLoggerService : ILoggerService
     
     public void Log(LogSender sender, LogType logType, string message)
         => _messages.Add(CreateMessage(sender, logType, message));
-    
-    public void LogState(string pluginName, PluginState state)
-        => Log(LogSender.Plugin, LogType.INFO, 
-            $"Plugin state changed | Plugin: {pluginName} | State: {state}");
     
     
     public IEnumerable<string> GetLogMessages()

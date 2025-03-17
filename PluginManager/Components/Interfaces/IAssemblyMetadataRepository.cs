@@ -11,4 +11,5 @@ public interface IAssemblyMetadataRepository
     
     AssemblyMetadata? GetMetadataByAssemblyName(string assemblyName);
     AssemblyMetadata? GetMetadataByPluginName(string pluginName);
+    IEnumerable<AssemblyMetadata> GetAllMetadata();
 }

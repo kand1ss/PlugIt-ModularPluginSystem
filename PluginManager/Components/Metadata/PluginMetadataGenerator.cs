@@ -7,11 +7,16 @@ public static class PluginMetadataGenerator
 {
     public static PluginMetadata Generate(IPlugin plugin)
     {
-        return new()
+        var metadata = new PluginMetadata()
         {
             Name = plugin.Name,
             Version = plugin.Version,
         };
+
+        if (plugin is IConfigurablePlugin configurable)
+            metadata.Dependencies = configurable.Configuration?.Dependencies ?? [];
+        
+        return metadata;
     }
     
     public static IEnumerable<PluginMetadata> Generate(IEnumerable<IPlugin> plugins)

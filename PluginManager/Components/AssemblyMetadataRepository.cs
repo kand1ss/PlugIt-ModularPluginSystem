@@ -4,7 +4,7 @@ using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 
-public class AssemblyMetadataRepository(ILoggerService logger) : IAssemblyMetadataRepository
+public class AssemblyMetadataRepository : IAssemblyMetadataRepository
 {
     private readonly Dictionary<string, AssemblyMetadata> _assemblies = new();
 
@@ -43,4 +43,6 @@ public class AssemblyMetadataRepository(ILoggerService logger) : IAssemblyMetada
         => _assemblies.FirstOrDefault(x => x.Value.Plugins
             .Select(m => m.Name)
             .Contains(pluginName)).Value;
+    public IEnumerable<AssemblyMetadata> GetAllMetadata()
+        => _assemblies.Values;
 }

@@ -41,6 +41,13 @@ public class PluginUnloadDispatcher(IAssemblyLoader loader, IAssemblyMetadataRep
     public void UnloadAssemblyByPluginName(string pluginName)
     {
         var metadata = TryGetMetadataByPluginName(pluginName);
+        var plugin = metadata.Plugins.FirstOrDefault(p => p.Name == pluginName);
+        
+        var pluginDependencies = plugin?.Dependencies ?? [];
+        var dependenciesMetadata = pluginDependencies
+            .Keys.Select(TryGetMetadataByPluginName);
+        
+        UnloadAssemblies(dependenciesMetadata.Select(p => p.Name));
         UnloadAssembly(metadata.Name);
     }
     
@@ -53,7 +60,7 @@ public class PluginUnloadDispatcher(IAssemblyLoader loader, IAssemblyMetadataRep
     public void UnloadAllAssemblies()
     {
         var assemblyPaths = Directory.GetFiles(loader.GetPluginPath(), "*.dll");
-        var assemblyNames = assemblyPaths.Select(Path.GetFileNameWithoutExtension);
+        var assemblyNames = assemblyPaths.Select(Path.GetFileNameWithoutExtension).OfType<string>();
         
         UnloadAssemblies(assemblyNames);
     }
