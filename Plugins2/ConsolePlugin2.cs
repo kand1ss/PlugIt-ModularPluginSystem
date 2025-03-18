@@ -1,6 +1,6 @@
 using PluginAPI;
 
-namespace Plugins2;
+namespace Plugins3;
 
 public class ConsolePlugin2 : PluginBase, IExecutablePlugin
 {

@@ -50,7 +50,7 @@ public class PluginDependencyResolver(IAssemblyMetadataRepository repository, IA
             $"Dependency '{loadedPlugin.Name} v{loadedPlugin.Version}' from assembly '{assemblyMetadata.Name} v{assemblyMetadata.Version}' loaded.");
     }
 
-    public void LoadPlugin(IPlugin plugin)
+    public void LoadDependencies(IPlugin plugin)
     {
         if (plugin is not IPluginWithDependencies configurable || configurable.Configuration is null)
             return;
@@ -59,6 +59,9 @@ public class PluginDependencyResolver(IAssemblyMetadataRepository repository, IA
         var loadedDependencies = FindDependencies(dependencies);
 
         foreach (var dependency in loadedDependencies)
+        {
+            LoadDependencies(dependency);
             configurable.LoadDependency(dependency);
+        }
     }
 }

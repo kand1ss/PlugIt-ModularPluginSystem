@@ -42,12 +42,11 @@ public class PluginUnloadDispatcher(IAssemblyLoader loader, IAssemblyMetadataRep
     {
         var metadata = TryGetMetadataByPluginName(pluginName);
         var plugin = metadata.Plugins.FirstOrDefault(p => p.Name == pluginName);
-        
         var pluginDependencies = plugin?.Dependencies ?? [];
-        var dependenciesMetadata = pluginDependencies
-            .Keys.Select(TryGetMetadataByPluginName);
         
-        UnloadAssemblies(dependenciesMetadata.Select(p => p.Name));
+        foreach (var dependency in pluginDependencies.Keys)
+            UnloadAssemblyByPluginName(dependency);
+        
         UnloadAssembly(metadata.Name);
     }
     

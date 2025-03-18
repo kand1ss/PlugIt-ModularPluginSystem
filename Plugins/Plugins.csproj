@@ -16,6 +16,10 @@
       <EmbeddedResource Include="config.json">
         <DependentUpon>ConsolePlugin.cs</DependentUpon>
       </EmbeddedResource>
+      <None Remove="config2.json" />
+      <EmbeddedResource Include="config2.json">
+        <DependentUpon>NetworkPlugin.cs</DependentUpon>
+      </EmbeddedResource>
     </ItemGroup>
 
 </Project>

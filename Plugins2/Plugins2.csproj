@@ -15,6 +15,10 @@
       <EmbeddedResource Include="config.json">
         <DependentUpon>ConsolePlugin4.cs</DependentUpon>
       </EmbeddedResource>
+      <None Remove="config2.json" />
+      <EmbeddedResource Include="config2.json">
+        <DependentUpon>IntExtensionPlugin.cs</DependentUpon>
+      </EmbeddedResource>
     </ItemGroup>
 
 </Project>
