@@ -17,7 +17,6 @@ public class ConsolePlugin3 : PluginBase, IExecutablePlugin
     public void Execute()
     {
         Console.WriteLine("Console plugin: start executing");
-        GetDependencyPlugin<IExecutablePlugin>("SomePlugin").Execute();
     }
     
     public override void FinalizePlugin()

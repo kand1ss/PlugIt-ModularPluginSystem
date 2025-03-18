@@ -20,6 +20,10 @@
       <EmbeddedResource Include="config2.json">
         <DependentUpon>NetworkPlugin.cs</DependentUpon>
       </EmbeddedResource>
+      <None Remove="config3.json" />
+      <EmbeddedResource Include="config3.json">
+        <DependentUpon>NetworkPlugin2.cs</DependentUpon>
+      </EmbeddedResource>
     </ItemGroup>
 
 </Project>
