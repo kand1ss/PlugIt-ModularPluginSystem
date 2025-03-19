@@ -17,8 +17,10 @@ public class PluginManager : IDisposable
         IPluginLifecycleManager lifecycleManager, ILoggerService logger, 
         IPluginDependencyResolver dependencyResolver)
     {
+        var loggerLayer = new PluginLoggerLayer(logger);
+        
         _dispatcher = new(repository, assemblyLoader, assemblyHandler, 
-            pluginExecutor, lifecycleManager, logger, dependencyResolver);
+            pluginExecutor, lifecycleManager, loggerLayer, dependencyResolver);
         _dispatcher.Metadata.RebuildMetadata();
         
         InitializeFileWatcher(pluginsSource);

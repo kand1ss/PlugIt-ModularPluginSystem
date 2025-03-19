@@ -64,9 +64,9 @@ public class AssemblyLoader : IAssemblyLoader
         return LoadAssemblies(assemblyNames!);
     }
 
-
-    public string GetPluginPath() => _pluginsSource;
-    
+    public IEnumerable<string> GetAllAssembliesNames()
+        => Directory.GetFiles(_pluginsSource, "*.dll")
+            .Select(Path.GetFileNameWithoutExtension!);
 
     private void Unload(AssemblyLoadContext context)
     {

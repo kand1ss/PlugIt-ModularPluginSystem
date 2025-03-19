@@ -1,49 +1,17 @@
-using System.Reflection;
-using ModularPluginAPI.Components.Logger;
-using ModularPluginAPI.Exceptions;
-using ModularPluginAPI.Models;
+using ModularPluginAPI.Components.Interfaces.Services;
 using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginStartDispatcher(IAssemblyMetadataRepository repository, IAssemblyLoader loader,
-    IAssemblyHandler handler, IPluginExecutor pluginExecutor, ILoggerService logger, 
-    IPluginDependencyResolver dependencyResolver)
+public class PluginStartDispatcher(IPluginMetadataService metadataService, IPluginLoaderService loaderService, 
+    IAssemblyLoader loader, IPluginExecutor pluginExecutor, IPluginDependencyResolver dependencyResolver)
 {
-    private AssemblyMetadata TryGetMetadataByPluginName(string pluginName)
-    {
-        var metadata = repository.GetMetadataByPluginName(pluginName);
-        if (metadata is null)
-            throw new PluginNotFoundException(pluginName);
-        
-        MetadataValidator.Validate(metadata);
-        return metadata;
-    }
-
-    private Assembly LoadAssemblyByPluginName(string pluginName)
-    {
-        var metadata = TryGetMetadataByPluginName(pluginName);
-        return loader.LoadAssembly(metadata.Name);
-    }
-
-    private T TryGetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin
-    {
-        var plugin = handler.GetPlugin<T>(assembly, pluginName);
-        if (plugin is null)
-            throw new PluginNotFoundException(pluginName);
-        
-        var assemblyName = assembly.GetName();
-        logger.Log(LogSender.PluginManager, LogType.INFO, 
-            $"Plugin '{pluginName}' from assembly '{assemblyName.Name} v{assemblyName.Version}' loaded.");
-        
-        return plugin;
-    }
     
     public void StartPlugin(string pluginName)
     {
-        var assembly = LoadAssemblyByPluginName(pluginName);
-        var plugin = TryGetPlugin<IPlugin>(assembly, pluginName);
-        dependencyResolver.LoadDependencies(plugin);
+        var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
+        var plugin = loaderService.TryGetPlugin<IPlugin>(assembly, pluginName);
+        dependencyResolver.Resolve(plugin);
         
         pluginExecutor.Execute(plugin);
     }
@@ -56,29 +24,24 @@ public class PluginStartDispatcher(IAssemblyMetadataRepository repository, IAsse
     
     public void StartAllPluginsFromAssembly(string assemblyName)
     {
-        var metadata = repository.GetMetadataByAssemblyName(assemblyName);
-        if (metadata is null)
-            throw new AssemblyNotFoundException(assemblyName);
-        
+        var metadata = metadataService.GetMetadata(assemblyName);
         MetadataValidator.Validate(metadata);
         
-        var plugins = metadata.Plugins.Select(x => x.Name).ToList();
+        var plugins = metadataService.GetPluginNamesFromMetadata(metadata);
         StartPlugins(plugins);
     }
     
     public void StartAllPlugins()
     {
-        var assembliesPath = Directory.GetFiles(loader.GetPluginPath(), "*.dll");
-        foreach (var assembly in assembliesPath)
-            StartAllPluginsFromAssembly(Path.GetFileNameWithoutExtension(assembly));
+        foreach (var assembly in loader.GetAllAssembliesNames())
+            StartAllPluginsFromAssembly(assembly);
     }
-    
     
     public void StartExtensionPlugin<T>(ref T data, string pluginName)
     {
-        var assembly = LoadAssemblyByPluginName(pluginName);
-        var extensionPlugin = TryGetPlugin<IExtensionPlugin<T>>(assembly, pluginName);
-        dependencyResolver.LoadDependencies(extensionPlugin);
+        var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
+        var extensionPlugin = loaderService.TryGetPlugin<IExtensionPlugin<T>>(assembly, pluginName);
+        dependencyResolver.Resolve(extensionPlugin);
         
         pluginExecutor.ExecuteExtensionPlugin(ref data, extensionPlugin);
     }
@@ -86,18 +49,18 @@ public class PluginStartDispatcher(IAssemblyMetadataRepository repository, IAsse
     
     public byte[] ReceiveNetworkPlugin(string pluginName)
     {
-        var assembly = LoadAssemblyByPluginName(pluginName);
-        var networkPlugin = TryGetPlugin<INetworkPlugin>(assembly, pluginName);
-        dependencyResolver.LoadDependencies(networkPlugin);
+        var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
+        var networkPlugin = loaderService.TryGetPlugin<INetworkPlugin>(assembly, pluginName);
+        dependencyResolver.Resolve(networkPlugin);
         
         return pluginExecutor.ExecuteNetworkPluginReceive(networkPlugin);
     }
     
     public void SendNetworkPlugin(string pluginName, byte[] data)
     {
-        var assembly = LoadAssemblyByPluginName(pluginName);
-        var networkPlugin = TryGetPlugin<INetworkPlugin>(assembly, pluginName);
-        dependencyResolver.LoadDependencies(networkPlugin);
+        var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
+        var networkPlugin = loaderService.TryGetPlugin<INetworkPlugin>(assembly, pluginName);
+        dependencyResolver.Resolve(networkPlugin);
         
         pluginExecutor.ExecuteNetworkPluginSend(data, networkPlugin);
     }

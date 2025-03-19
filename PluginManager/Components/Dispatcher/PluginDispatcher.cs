@@ -16,13 +16,15 @@ public class PluginDispatcher
 
     public PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyLoader loader, 
         IAssemblyHandler handler, IPluginExecutor pluginExecutor, IPluginLifecycleManager lifecycleManager, 
-        ILoggerService logger, IPluginDependencyResolver dependencyResolver)
+        PluginLoggerLayer logger, IPluginDependencyResolver dependencyResolver)
     {
-        var metadataGenerator = new AssemblyMetadataGenerator(handler);
+        var metadataService = new PluginMetadataService(repository);
+        var loaderService = new PluginLoaderService(metadataService, loader, handler, logger);
         
-        Metadata = new(repository, loader, lifecycleManager, metadataGenerator, logger);
-        Starter = new(repository, loader, handler, pluginExecutor, logger, 
+        Metadata = new(repository, metadataService, loader, handler, lifecycleManager, 
+            logger);
+        Starter = new(metadataService, loaderService, loader, pluginExecutor, 
             dependencyResolver);
-        Unloader = new(loader, repository, lifecycleManager);
+        Unloader = new(metadataService, loader, lifecycleManager);
     }
 }

@@ -7,7 +7,7 @@ public interface IAssemblyLoader
 {
     IEnumerable<Assembly> LoadAllAssemblies();
     Assembly LoadAssembly(string assemblyName);
-    string GetPluginPath();
+    IEnumerable<string> GetAllAssembliesNames();
     
     void UnloadAssembly(string assemblyName);
 }
