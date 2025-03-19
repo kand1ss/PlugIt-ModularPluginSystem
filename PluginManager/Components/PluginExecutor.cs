@@ -4,15 +4,14 @@ using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginExecutor(IPluginLifecycleManager lifecycleManager, ILoggerService logger) : IPluginExecutor
+public class PluginExecutor(IPluginLifecycleManager lifecycleManager, PluginLoggingFacade logger) : IPluginExecutor
 {
     private void TryInitializePlugin(IPlugin plugin)
     {
         if (plugin is IInitialisablePlugin initPlugin)
         {
             lifecycleManager.SetPluginState(plugin.Name, PluginState.Initializing);
-            logger.Log(LogSender.Plugin, LogType.INFO, 
-                $"Initializing plugin '{plugin.Name} v{plugin.Version}'.");
+            logger.PluginInitialized(plugin.Name, plugin.Version);
             
             initPlugin.Initialize();
         }
@@ -22,8 +21,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, ILoggerSer
         if (plugin is IExecutablePlugin executablePlugin)
         {
             lifecycleManager.SetPluginState(plugin.Name, PluginState.Running);
-            logger.Log(LogSender.Plugin, LogType.INFO, 
-                $"Executing plugin '{plugin.Name} v{plugin.Version}'.");
+            logger.PluginExecuted(plugin.Name, plugin.Version);
             
             executablePlugin.Execute();
         }
@@ -33,8 +31,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, ILoggerSer
         if (plugin is IFinalisablePlugin finalPlugin)
         {
             lifecycleManager.SetPluginState(plugin.Name, PluginState.Finalizing);
-            logger.Log(LogSender.Plugin, LogType.INFO, 
-                $"Finalizing plugin '{plugin.Name} v{plugin.Version}'.");
+            logger.PluginFinalized(plugin.Name, plugin.Version);
             
             finalPlugin.FinalizePlugin();
         }
@@ -55,8 +52,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, ILoggerSer
         TryInitializePlugin(extension);
         
         lifecycleManager.SetPluginState(extension.Name, PluginState.Running);
-        logger.Log(LogSender.Plugin, LogType.INFO, 
-            $"Executing extension plugin '{extension.Name} v{extension.Version}'.");
+        logger.ExtensionPluginExecuting(extension.Name, extension.Version);
         
         extension.Expand(ref data);
         
@@ -67,8 +63,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, ILoggerSer
         TryInitializePlugin(plugin);
         
         lifecycleManager.SetPluginState(plugin.Name, PluginState.Running);
-        logger.Log(LogSender.Plugin, LogType.INFO, 
-            $"Executing network plugin '{plugin.Name} v{plugin.Version}' | Mode: Receive.");
+        logger.NetworkPluginExecuting(plugin.Name, plugin.Version, false);
         
         var result = plugin.ReceiveData();
         
@@ -79,8 +74,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, ILoggerSer
         => ExecuteAction(addon =>
         {
             lifecycleManager.SetPluginState(plugin.Name, PluginState.Running);
-            logger.Log(LogSender.Plugin, LogType.INFO, 
-                $"Executing network plugin '{plugin.Name} v{plugin.Version}' | Mode: Send.");
+            logger.NetworkPluginExecuting(plugin.Name, plugin.Version, true);
             
             plugin.SendData(data);
         }, plugin);

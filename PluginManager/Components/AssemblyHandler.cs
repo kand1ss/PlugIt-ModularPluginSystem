@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using ModularPluginAPI.Exceptions;
 using PluginAPI;
 
 namespace ModularPluginAPI.Components;
@@ -27,9 +28,34 @@ public class AssemblyHandler : IAssemblyHandler
 
     private static T? HandleType<T>(Type type) where T : class, IPlugin
         => ValidateType<T>(type) ? CreateInstance<T>(type) : null;
+    private static IEnumerable<T> HandleTypes<T>(IEnumerable<Type> types) where T : class, IPlugin
+        => types.Select(HandleType<T>).OfType<T>();
 
-    
-    
+
+    private static string? GetConfigurationName(string[] allConfigurations, string configFileName)
+        => allConfigurations.FirstOrDefault(x => x.EndsWith(configFileName));
+
+    private static Stream? GetConfiguration(Assembly assembly, string? configFileName)
+    {
+        if (string.IsNullOrEmpty(configFileName))
+            return null;
+        
+        return assembly.GetManifestResourceStream(configFileName);
+    }
+
+    private static T FindPlugin<T>(IEnumerable<T> plugins, string pluginName) where T : class, IPlugin
+        => plugins.FirstOrDefault(p => p.Name == pluginName)
+            ?? throw new PluginNotFoundException(pluginName);
+
+    private static Stream? TryGetPluginConfiguration<T>(Assembly assembly, T plugin) where T : class, IPlugin
+    {
+        var allConfigurations = assembly.GetManifestResourceNames();
+        var pluginName = plugin.GetType().FullName ?? "null";
+        var configName = GetConfigurationName(allConfigurations, pluginName);
+
+        return GetConfiguration(assembly, configName);
+    }
+
     private static void TryLoadPluginConfiguration<T>(Stream? configurationStream, T plugin) where T : class, IPlugin
     {
         if (configurationStream is null || plugin is not IConfigurablePlugin configurable) 
@@ -37,46 +63,45 @@ public class AssemblyHandler : IAssemblyHandler
         
         using var reader = new StreamReader(configurationStream);
         var json = reader.ReadToEnd();
-        var config = JsonSerializer.Deserialize<PluginConfiguration>(json);
-        configurable.LoadConfiguration(config);
+        
+        try
+        {
+            var config = JsonSerializer.Deserialize<PluginConfiguration>(json);
+            configurable.LoadConfiguration(config);
+        }
+        catch (JsonException)
+        {
+            throw new InvalidOperationException($"Invalid JSON configuration for plugin {plugin.Name}.");
+        }
     }
-    
-    private static Stream? TryGetPluginConfiguration<T>(Assembly assembly, T plugin) where T : class, IPlugin
-    {
-        var allConfigurations = assembly.GetManifestResourceNames();
-        var configFileName = plugin.GetType().FullName ?? "Unknown";
-        var configResource = allConfigurations.SingleOrDefault(x => x.EndsWith(configFileName));
 
-        return configResource is not null ? assembly.GetManifestResourceStream(configResource) : null;
-    }
-    
-    
-    
-    public T? GetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin
+
+    private IEnumerable<T> GetPlugins<T>(Assembly assembly) where T : class, IPlugin
     {
         var assemblyTypes = assembly.DefinedTypes;
-        var pluginsFromAssembly = assemblyTypes.Select(HandleType<T>);
-        
-        var plugin = pluginsFromAssembly.FirstOrDefault(p => p is not null && p.Name == pluginName);
-        if (plugin is null)
-            return null;
+        return HandleTypes<T>(assemblyTypes);
+    }
 
-        var configurationStream = TryGetPluginConfiguration(assembly, plugin);
-        TryLoadPluginConfiguration(configurationStream, plugin);
+    private void GetAndLoadPluginConfiguration(Assembly assembly, IPlugin plugin)
+    {
+        var pluginConfiguration = TryGetPluginConfiguration(assembly, plugin);
+        TryLoadPluginConfiguration(pluginConfiguration, plugin);
+    }
+
+    public T GetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin
+    {
+        var pluginsFromAssembly = GetPlugins<T>(assembly);
+        var plugin = FindPlugin(pluginsFromAssembly, pluginName);
         
+        GetAndLoadPluginConfiguration(assembly, plugin);
         return plugin;
     }
 
     public IEnumerable<IPlugin> GetAllPlugins(Assembly assembly)
     {
-        var assemblyTypes = assembly.DefinedTypes;
-        var plugins = assemblyTypes.Select(HandleType<IPlugin>).OfType<IPlugin>().ToList();
-
+        var plugins = GetPlugins<IPlugin>(assembly).ToList();
         foreach (var plugin in plugins)
-        {
-            var pluginConfiguration = TryGetPluginConfiguration(assembly, plugin);
-            TryLoadPluginConfiguration(pluginConfiguration, plugin);
-        }
+            GetAndLoadPluginConfiguration(assembly, plugin);
         
         return plugins;
     }

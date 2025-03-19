@@ -53,20 +53,18 @@ public class AssemblyLoader : IAssemblyLoader
         return context.LoadAssembly(assemblyPath);
     }
 
+    public IEnumerable<string> GetAllAssembliesNames()
+        => Directory.GetFiles(_pluginsSource, "*.dll")
+            .Select(Path.GetFileNameWithoutExtension!);
+
     public IEnumerable<Assembly> LoadAssemblies(IEnumerable<string> assemblyNames)
         => assemblyNames.Select(LoadAssembly);
 
     public IEnumerable<Assembly> LoadAllAssemblies()
     {
-        var assemblies = Directory.GetFiles(_pluginsSource, "*.dll");
-        var assemblyNames = assemblies.Select(Path.GetFileNameWithoutExtension);
-        
-        return LoadAssemblies(assemblyNames!);
+        var assemblyNames = GetAllAssembliesNames();
+        return LoadAssemblies(assemblyNames);
     }
-
-    public IEnumerable<string> GetAllAssembliesNames()
-        => Directory.GetFiles(_pluginsSource, "*.dll")
-            .Select(Path.GetFileNameWithoutExtension!);
 
     private void Unload(AssemblyLoadContext context)
     {

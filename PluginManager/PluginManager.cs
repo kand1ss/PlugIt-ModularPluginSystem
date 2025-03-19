@@ -14,13 +14,11 @@ public class PluginManager : IDisposable
 
     private void Initialize(string pluginsSource, IAssemblyMetadataRepository repository, 
         IAssemblyLoader assemblyLoader, IAssemblyHandler assemblyHandler, IPluginExecutor pluginExecutor, 
-        IPluginLifecycleManager lifecycleManager, ILoggerService logger, 
+        IPluginLifecycleManager lifecycleManager, PluginLoggingFacade logger, 
         IPluginDependencyResolver dependencyResolver)
     {
-        var loggerLayer = new PluginLoggerLayer(logger);
-        
         _dispatcher = new(repository, assemblyLoader, assemblyHandler, 
-            pluginExecutor, lifecycleManager, loggerLayer, dependencyResolver);
+            pluginExecutor, lifecycleManager, logger, dependencyResolver);
         _dispatcher.Metadata.RebuildMetadata();
         
         InitializeFileWatcher(pluginsSource);
@@ -30,15 +28,17 @@ public class PluginManager : IDisposable
     {
         _logger = new PluginLoggerService();
         _lifecycleManager = new PluginLifecycleManager();
-        
+
         var assemblyHandler = new AssemblyHandler();
         var assemblyLoader = new AssemblyLoader(pluginsSource);
         var repository = new AssemblyMetadataRepository();
-        var pluginExecutor = new PluginExecutor(_lifecycleManager, _logger);
-        var dependencyResolver = new PluginDependencyResolver(repository, assemblyLoader, assemblyHandler, _logger);
+        var loggerFacade = new PluginLoggingFacade(_logger);
+        var pluginExecutor = new PluginExecutor(_lifecycleManager, loggerFacade);
+        var dependencyResolver = new PluginDependencyResolver(repository, assemblyLoader, assemblyHandler, 
+            loggerFacade);
 
         Initialize(pluginsSource, repository, assemblyLoader, assemblyHandler, pluginExecutor, 
-            _lifecycleManager, _logger, dependencyResolver);
+            _lifecycleManager, loggerFacade, dependencyResolver);
     }
 
     internal PluginManager(string pluginsSource, IPluginLifecycleManager lifecycleManager, 
@@ -48,7 +48,9 @@ public class PluginManager : IDisposable
         _logger = logger;
         _lifecycleManager = lifecycleManager;
         
-        Initialize(pluginsSource, repository, loader, handler, executor, lifecycleManager, logger, dependencyResolver);
+        var loggerFacade = new PluginLoggingFacade(_logger);
+        Initialize(pluginsSource, repository, loader, handler, executor, lifecycleManager, loggerFacade, 
+            dependencyResolver);
     }
 
     private void InitializeFileWatcher(string source)

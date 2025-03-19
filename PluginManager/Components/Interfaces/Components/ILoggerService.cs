@@ -1,6 +1,4 @@
-using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
-using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 

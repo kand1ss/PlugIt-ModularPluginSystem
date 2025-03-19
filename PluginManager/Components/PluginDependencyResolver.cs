@@ -5,8 +5,9 @@ using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
+// TODO - уменьшить связность с другими компонентами
 public class PluginDependencyResolver(IAssemblyMetadataRepository repository, IAssemblyLoader assemblyLoader,
-    IAssemblyHandler handler, ILoggerService logger) : IPluginDependencyResolver
+    IAssemblyHandler handler, PluginLoggingFacade logger) : IPluginDependencyResolver
 {
     private readonly HashSet<string> _loadingPlugins = new();
 
@@ -25,8 +26,8 @@ public class PluginDependencyResolver(IAssemblyMetadataRepository repository, IA
             throw new PluginNotFoundException(pluginName, assemblyMetadata.Name);
         
         loadedDependencies.Add(loadedPlugin);
-        logger.Log(LogSender.PluginManager, LogType.INFO, 
-            $"Dependency '{loadedPlugin.Name} v{loadedPlugin.Version}' from assembly '{assemblyMetadata.Name} v{assemblyMetadata.Version}' loaded.");
+        logger.DependencyLoaded(loadedPlugin.Name, loadedPlugin.Version, assemblyMetadata.Name, 
+            assemblyMetadata.Version);
     }
 
     private HashSet<PluginMetadata> GetAllPlugins()

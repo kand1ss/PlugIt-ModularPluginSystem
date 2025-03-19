@@ -7,7 +7,7 @@ namespace ModularPluginAPI.Components;
 
 public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IPluginMetadataService metadataService, 
     IAssemblyLoader loader, IAssemblyHandler handler, IPluginLifecycleManager lifecycleManager, 
-    PluginLoggerLayer logger)
+    PluginLoggingFacade logger)
 {
     private readonly AssemblyMetadataGenerator _metadataGenerator = new(handler);
     

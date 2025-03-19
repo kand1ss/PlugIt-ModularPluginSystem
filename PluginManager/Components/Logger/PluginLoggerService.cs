@@ -3,7 +3,7 @@ using PluginAPI;
 
 namespace ModularPluginAPI.Components.Logger;
 
-// Улучшить логгирование
+// TODO - Улучшить логирование
 public class PluginLoggerService : ILoggerService
 {
     private readonly List<string> _messages = new();

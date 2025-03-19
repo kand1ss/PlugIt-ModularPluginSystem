@@ -7,8 +7,12 @@ using PluginAPI;
 namespace ModularPluginAPI.Components;
 
 public class PluginLoaderService(PluginMetadataService metadataService, IAssemblyLoader loader, 
-    IAssemblyHandler handler, PluginLoggerLayer logger) : IPluginLoaderService
+    IAssemblyHandler handler, PluginLoggingFacade logger) : IPluginLoaderService
 {
+    public Assembly LoadAssembly(string assemblyName)
+        => loader.LoadAssembly(assemblyName)
+            ?? throw new AssemblyNotFoundException(assemblyName);
+    
     public Assembly LoadAssemblyByPluginName(string pluginName)
     {
         var metadata = metadataService.GetMetadataByPluginName(pluginName);
