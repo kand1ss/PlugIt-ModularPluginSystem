@@ -1,3 +1,5 @@
+using PluginAPI.Dependency;
+
 namespace PluginAPI;
 
 public interface IPluginWithDependencies : IConfigurablePlugin

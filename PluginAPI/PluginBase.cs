@@ -14,7 +14,7 @@ public abstract class PluginBase : IInitialisablePlugin, IFinalisablePlugin, IPl
     public abstract void Initialize();
     public abstract void FinalizePlugin();
 
-    public void LoadConfiguration(PluginConfiguration configuration)
+    public void LoadConfiguration(PluginConfiguration? configuration)
         => Configuration = configuration;
     
     

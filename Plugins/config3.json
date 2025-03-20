@@ -1,5 +1,8 @@
 {
-  "Dependencies": {
-    "ConsolePlugin3": "1.0.0"
-  }
+  "Dependencies": [
+    {
+      "Name": "ConsolePlugin3",
+      "Version": "1.0.0"
+    }
+  ]
 }

@@ -6,13 +6,18 @@ namespace ModularPluginAPI.Components;
 public class PluginStartDispatcher(IPluginMetadataService metadataService, IPluginLoaderService loaderService, 
     IAssemblyLoader loader, IPluginExecutor pluginExecutor, IPluginDependencyResolver dependencyResolver)
 {
-    
-    public void StartPlugin(string pluginName)
+    private T GetPluginFromAssembly<T>(string pluginName) where T : class, IPlugin
     {
         var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
-        var plugin = loaderService.TryGetPlugin<IPlugin>(assembly, pluginName);
+        var plugin = loaderService.TryGetPlugin<T>(assembly, pluginName);
         dependencyResolver.Resolve(plugin);
         
+        return plugin;
+    }
+
+    public void StartPlugin(string pluginName)
+    {
+        var plugin = GetPluginFromAssembly<IPlugin>(pluginName);
         pluginExecutor.Execute(plugin);
     }
 
@@ -39,29 +44,20 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
     
     public void StartExtensionPlugin<T>(ref T data, string pluginName)
     {
-        var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
-        var extensionPlugin = loaderService.TryGetPlugin<IExtensionPlugin<T>>(assembly, pluginName);
-        dependencyResolver.Resolve(extensionPlugin);
-        
-        pluginExecutor.ExecuteExtensionPlugin(ref data, extensionPlugin);
+        var plugin = GetPluginFromAssembly<IExtensionPlugin<T>>(pluginName);
+        pluginExecutor.ExecuteExtensionPlugin(ref data, plugin);
     }
     
     
     public byte[] ReceiveNetworkPlugin(string pluginName)
     {
-        var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
-        var networkPlugin = loaderService.TryGetPlugin<INetworkPlugin>(assembly, pluginName);
-        dependencyResolver.Resolve(networkPlugin);
-        
-        return pluginExecutor.ExecuteNetworkPluginReceive(networkPlugin);
+        var plugin = GetPluginFromAssembly<INetworkPlugin>(pluginName);
+        return pluginExecutor.ExecuteNetworkPluginReceive(plugin);
     }
     
     public void SendNetworkPlugin(string pluginName, byte[] data)
     {
-        var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
-        var networkPlugin = loaderService.TryGetPlugin<INetworkPlugin>(assembly, pluginName);
-        dependencyResolver.Resolve(networkPlugin);
-        
-        pluginExecutor.ExecuteNetworkPluginSend(data, networkPlugin);
+        var plugin = GetPluginFromAssembly<INetworkPlugin>(pluginName);
+        pluginExecutor.ExecuteNetworkPluginSend(data, plugin);
     }
 }

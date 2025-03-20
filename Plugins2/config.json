@@ -1,5 +1,8 @@
 {
-  "Dependencies": {
-    "SomePlugin": "1.0.0"
-  }
+  "Dependencies": [
+    {
+      "Name": "SomePlugin",
+      "Version": "1.0.0"
+    }
+  ]
 }

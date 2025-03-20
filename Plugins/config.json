@@ -1,6 +1,12 @@
 {
-  "Dependencies": {
-    "StringExtensionPlugin": "1.0.0",
-    "IntExtensionPlugin": "1.0.0"
-  }
+  "Dependencies": [
+    {
+      "Name": "StringExtensionPlugin",
+      "Version": "1.0.0"
+    },
+    {
+      "Name": "IntExtensionPlugin",
+      "Version": "1.0.0"
+    }
+  ]
 }

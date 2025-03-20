@@ -1,5 +1,8 @@
 {
-  "Dependencies": {
-    "NetworkPlugin2": "1.0.0"
-  }
+  "Dependencies": [
+    {
+      "Name": "NetworkPlugin2",
+      "Version": "1.0.0"
+    }
+  ]
 }
