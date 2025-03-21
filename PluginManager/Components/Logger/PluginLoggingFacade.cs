@@ -2,14 +2,23 @@ namespace ModularPluginAPI.Components.Logger;
 
 public class PluginLoggingFacade(ILoggerService logger)
 {
+    public void AssemblyLoaded(string assemblyName)
+    {
+        logger.Log(LogSender.PluginManager, LogType.TRACE, $"Assembly '{assemblyName}' loaded.");
+    }
+    public void AssemblyUnloaded(string assemblyName)
+    {
+        logger.Log(LogSender.PluginManager, LogType.TRACE, $"Assembly '{assemblyName}' unloaded.");
+    }
+    
     public void MetadataAdded(string assemblyName, Version assemblyVersion)
     {
-        logger.Log(LogSender.PluginManager, LogType.INFO, 
-            $"Metadata for assembly '{assemblyName} v{assemblyVersion}' added.");
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, 
+            $"Metadata for assembly '{assemblyName} v{assemblyVersion}' created.");
     }
     public void MetadataRemoved(string assemblyName, Version assemblyVersion)
     {
-        logger.Log(LogSender.PluginManager, LogType.INFO, 
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, 
             $"Metadata for assembly '{assemblyName} v{assemblyVersion}' removed.");
     }
 
@@ -54,7 +63,7 @@ public class PluginLoggingFacade(ILoggerService logger)
     public void DependencyLoaded(string dependencyName, Version dependencyVersion, string assemblyName,
         Version assemblyVersion)
     {
-        logger.Log(LogSender.PluginManager, LogType.INFO, 
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, 
             $"Dependency '{dependencyName} v{dependencyVersion}' from assembly '{assemblyName} v{assemblyVersion}' loaded.");
     }
 }

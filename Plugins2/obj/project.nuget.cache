@@ -1,12 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "U5Oedc8JSeQ=",
+  "dgSpecHash": "9fTZq0mj4d0=",
   "success": true,
   "projectFilePath": "C:\\Users\\kand1s\\Desktop\\C# Projects\\ModularPluginSystem\\Plugins2\\Plugins2.csproj",
-  "expectedPackageFiles": [
-    "C:\\Users\\kand1s\\.nuget\\packages\\microsoft.extensions.configuration\\9.0.3\\microsoft.extensions.configuration.9.0.3.nupkg.sha512",
-    "C:\\Users\\kand1s\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.3\\microsoft.extensions.configuration.abstractions.9.0.3.nupkg.sha512",
-    "C:\\Users\\kand1s\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.3\\microsoft.extensions.primitives.9.0.3.nupkg.sha512"
-  ],
+  "expectedPackageFiles": [],
   "logs": []
 }

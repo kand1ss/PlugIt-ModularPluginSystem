@@ -21,9 +21,12 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IP
         
         var assemblies = loader.LoadAllAssemblies();
         var assemblyNames = GetAssembliesNames(assemblies);
-        
+
         foreach (var assemblyName in assemblyNames)
+        {
             LoadMetadata(assemblyName);
+            loader.UnloadAssembly(assemblyName);
+        }
     }
 
     public void RemoveMetadata(string assemblyName)

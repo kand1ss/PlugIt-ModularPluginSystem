@@ -1,4 +1,3 @@
-using PluginAPI.Dependency;
 
 namespace PluginAPI;
 

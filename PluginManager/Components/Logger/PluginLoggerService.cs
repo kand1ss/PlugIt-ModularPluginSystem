@@ -1,30 +1,23 @@
-using ModularPluginAPI.Components.Lifecycle;
-using PluginAPI;
+using ModularPluginAPI.Components.Logger.Interfaces;
 
 namespace ModularPluginAPI.Components.Logger;
 
-// TODO - Улучшить логирование
-public class PluginLoggerService : ILoggerService
+public class PluginLoggerService(ILogRepository logRepository) : ILoggerService
 {
-    private readonly List<string> _messages = new();
-    
-    private string CreateMessage(LogSender sender, LogType logType, string message)
-        => $"({DateTime.Now}) > [{sender}] [{logType}] {message}";
-    
-    
     public void Log(LogSender sender, LogType logType, string message)
-        => _messages.Add(CreateMessage(sender, logType, message));
-    
-    
-    public IEnumerable<string> GetLogMessages()
-        => _messages;
+        => logRepository.Add(sender, logType, message);
 
-    public void WriteMessagesToFile(string path)
+    public IEnumerable<string> GetLogs()
+        => logRepository.GetLogs();
+
+    public void ExportLogs(ILogExporter exporter)
     {
-        var date = DateTime.Now;
-        var fileName = $"Log_{date:yyyy-MM-dd_HH-mm-ss}.log";
-        var fullPath = Path.Combine(path, fileName);
-        
-        File.AppendAllLines(fullPath, _messages);
+        var messages = logRepository.GetLogs();
+        exporter.Export(messages);
+    }
+    public void ExportLogs(ILogExporter exporter, IEnumerable<LogType> exceptLogTypes)
+    {
+        var messages = logRepository.GetLogsExceptByLogTypes(exceptLogTypes);
+        exporter.Export(messages);
     }
 }

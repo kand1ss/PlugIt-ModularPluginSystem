@@ -9,13 +9,16 @@ namespace ModularPluginAPI.Components;
 
 public class AssemblyLoader : IAssemblyLoader
 {
+    private readonly PluginLoggingFacade _logger;
+    
     private readonly string _pluginsSource;
     private readonly Dictionary<string, PluginLoadContext> _assemblyLoadContexts = new();
     
-    public AssemblyLoader(string pluginsSource)
+    public AssemblyLoader(PluginLoggingFacade logger, string pluginsSource)
     {
         CheckDirectoryPath(pluginsSource);
         _pluginsSource = pluginsSource;
+        _logger = logger;
     }
 
     private static void CheckDirectoryPath(string pluginsSource)
@@ -49,8 +52,10 @@ public class AssemblyLoader : IAssemblyLoader
         CheckFileExists(assemblyName, assemblyPath);
         var context = new PluginLoadContext(assemblyPath);
         _assemblyLoadContexts.Add(assemblyName, context);
-        
-        return context.LoadAssembly(assemblyPath);
+
+        var assembly = context.LoadAssembly(assemblyPath);
+        _logger.AssemblyLoaded(assemblyName);
+        return assembly;
     }
 
     public IEnumerable<string> GetAllAssembliesNames()
@@ -82,6 +87,8 @@ public class AssemblyLoader : IAssemblyLoader
     {
         if (!_assemblyLoadContexts.Remove(assemblyName, out var context))
             return;
-        Unload(context);
+        
+        Unload(context);    
+        _logger.AssemblyUnloaded(assemblyName);
     }
 }

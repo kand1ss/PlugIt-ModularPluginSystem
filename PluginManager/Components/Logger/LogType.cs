@@ -2,7 +2,9 @@ namespace ModularPluginAPI.Components.Logger;
 
 public enum LogType
 {
-    INFO, 
+    INFO,
+    DEBUG,
+    TRACE,
     WARNING, 
     ERROR
 }

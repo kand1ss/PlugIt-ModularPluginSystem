@@ -1,6 +1,8 @@
 using ModularPluginAPI.Components;
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
+using ModularPluginAPI.Components.Logger.Components;
+using ModularPluginAPI.Components.Logger.Interfaces;
 
 namespace ModularPluginAPI;
 
@@ -8,48 +10,49 @@ public class PluginManager : IDisposable
 {
     private PluginDispatcher _dispatcher;
     private readonly FileSystemWatcher _fileWatcher = new();
-    
+
     private readonly ILoggerService _logger;
     private readonly IPluginLifecycleManager _lifecycleManager;
 
-    private void Initialize(string pluginsSource, IAssemblyMetadataRepository repository, 
-        IAssemblyLoader assemblyLoader, IAssemblyHandler assemblyHandler, IPluginExecutor pluginExecutor, 
-        IPluginLifecycleManager lifecycleManager, PluginLoggingFacade logger, 
+    private void Initialize(string pluginsSource, IAssemblyMetadataRepository repository,
+        IAssemblyLoader assemblyLoader, IAssemblyHandler assemblyHandler, IPluginExecutor pluginExecutor,
+        IPluginLifecycleManager lifecycleManager, PluginLoggingFacade logger,
         IPluginDependencyResolver dependencyResolver)
     {
-        _dispatcher = new(repository, assemblyLoader, assemblyHandler, 
+        _dispatcher = new(repository, assemblyLoader, assemblyHandler,
             pluginExecutor, lifecycleManager, logger, dependencyResolver);
         _dispatcher.Metadata.RebuildMetadata();
-        
+
         InitializeFileWatcher(pluginsSource);
     }
 
     public PluginManager(string pluginsSource)
     {
-        _logger = new PluginLoggerService();
+        var logRepository = new LogRepository();
+        _logger = new PluginLoggerService(logRepository);
         _lifecycleManager = new PluginLifecycleManager();
 
-        var assemblyHandler = new AssemblyHandler();
-        var assemblyLoader = new AssemblyLoader(pluginsSource);
-        var repository = new AssemblyMetadataRepository();
         var loggerFacade = new PluginLoggingFacade(_logger);
+        var assemblyHandler = new AssemblyHandler();
+        var assemblyLoader = new AssemblyLoader(loggerFacade, pluginsSource);
+        var repository = new AssemblyMetadataRepository();
         var pluginExecutor = new PluginExecutor(_lifecycleManager, loggerFacade);
-        var dependencyResolver = new PluginDependencyResolver(repository, assemblyLoader, assemblyHandler, 
+        var dependencyResolver = new PluginDependencyResolver(repository, assemblyLoader, assemblyHandler,
             loggerFacade);
 
-        Initialize(pluginsSource, repository, assemblyLoader, assemblyHandler, pluginExecutor, 
+        Initialize(pluginsSource, repository, assemblyLoader, assemblyHandler, pluginExecutor,
             _lifecycleManager, loggerFacade, dependencyResolver);
     }
 
-    internal PluginManager(string pluginsSource, IPluginLifecycleManager lifecycleManager, 
-        IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository, 
+    internal PluginManager(string pluginsSource, IPluginLifecycleManager lifecycleManager,
+        IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository,
         IPluginExecutor executor, ILoggerService logger, IPluginDependencyResolver dependencyResolver)
     {
         _logger = logger;
         _lifecycleManager = lifecycleManager;
-        
+
         var loggerFacade = new PluginLoggingFacade(_logger);
-        Initialize(pluginsSource, repository, loader, handler, executor, lifecycleManager, loggerFacade, 
+        Initialize(pluginsSource, repository, loader, handler, executor, lifecycleManager, loggerFacade,
             dependencyResolver);
     }
 
@@ -74,15 +77,17 @@ public class PluginManager : IDisposable
         _fileWatcher.Dispose();
         GC.SuppressFinalize(this);
     }
-    
+
     private void OnAssemblyAdded(object obj, FileSystemEventArgs e)
     {
         var name = Path.GetFileNameWithoutExtension(e.Name)!;
         _dispatcher.Metadata.LoadMetadata(name);
         _dispatcher.Unloader.UnloadAssembly(name);
     }
+
     private void OnAssemblyDeleted(object obj, FileSystemEventArgs e)
         => _dispatcher.Metadata.RemoveMetadata(Path.GetFileNameWithoutExtension(e.Name)!);
+
     private void OnAssemblyUpdated(object obj, FileSystemEventArgs e)
     {
         var name = Path.GetFileNameWithoutExtension(e.Name)!;
@@ -102,7 +107,7 @@ public class PluginManager : IDisposable
         _dispatcher.Starter.StartPlugin(pluginName);
         _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
     }
-    
+
     /// <summary>
     /// Runs all standard plugins from the specified assembly. 
     /// After execution, the assembly is unloaded if no references remain.
@@ -180,7 +185,7 @@ public class PluginManager : IDisposable
 
         return response;
     }
-    
+
     /// <summary>
     /// Retrieves the state of a specific plugin by its name.
     /// </summary>
@@ -201,12 +206,60 @@ public class PluginManager : IDisposable
     /// </summary>
     /// <returns>A collection of strings containing logged messages.</returns>
     public IEnumerable<string> GetMessagesFromLogger()
-        => _logger.GetLogMessages();
+        => _logger.GetLogs();
+
     
+
     /// <summary>
-    /// Writes the logger messages to a file in the specified directory.
+    /// Exports logs with filtering, excluding specified log types.
     /// </summary>
-    /// <param name="logDirectory">The directory where the log file will be saved.</param>
-    public void WriteLoggerMessagesToFile(string logDirectory)
-        => _logger.WriteMessagesToFile(logDirectory);
+    /// <param name="exporter">
+    /// An instance implementing the <see cref="ILogExporter"/> interface, used for exporting logs.
+    /// </param>
+    /// <param name="exceptLogTypes">
+    /// A collection of log types to be excluded from the exported log.
+    /// </param>
+    /// <remarks>
+    /// This method delegates the log export task to the logging service while excluding all messages of the specified log types.
+    /// It provides flexibility in configuring which messages will be included in the exported log.
+    /// </remarks>
+    public void ExportFilteredLogs(ILogExporter exporter, IEnumerable<LogType> exceptLogTypes)
+        => _logger.ExportLogs(exporter, exceptLogTypes);
+
+    /// <summary>
+    /// Exports a user-friendly log, excluding debug (<see cref="LogType.DEBUG"/>) and trace (<see cref="LogType.TRACE"/>) messages.
+    /// </summary>
+    /// <param name="exporter">
+    /// An instance implementing the <see cref="ILogExporter"/> interface, responsible for exporting logs.
+    /// </param>
+    /// <remarks>
+    /// This method uses <see cref="ExportFilteredLogs(ILogExporter, IEnumerable{LogType})"/> to export logs with filtering.
+    /// Excluding debug and trace messages ensures that only essential log information is included, reducing noise for end users.
+    /// </remarks>
+    public void ExportLogs(ILogExporter exporter)
+        => ExportFilteredLogs(exporter, [LogType.DEBUG, LogType.TRACE]);
+
+    /// <summary>
+    /// Exports the full log using the specified log exporter, excluding TRACE-level messages.
+    /// </summary>
+    /// <param name="exporter">
+    /// An instance implementing the <see cref="ILogExporter"/> interface, responsible for exporting logs to a designated storage (e.g., a file or database).
+    /// </param>
+    /// <remarks>
+    /// This method exports all logs except TRACE-level messages, providing a comprehensive log without low-level trace details.
+    /// </remarks>
+    public void ExportDebugLogs(ILogExporter exporter)
+        => ExportFilteredLogs(exporter, [LogType.TRACE]);
+
+    /// <summary>
+    /// Exports the full detailed log, including all log levels such as TRACE.
+    /// </summary>
+    /// <param name="exporter">
+    /// An instance implementing the <see cref="ILogExporter"/> interface, responsible for exporting logs to a designated storage (e.g., a file or database).
+    /// </param>
+    /// <remarks>
+    /// This method exports all log entries without any filtering, including the most detailed TRACE-level logs.
+    /// </remarks>
+    public void ExportTraceLogs(ILogExporter exporter)
+        => _logger.ExportLogs(exporter);
 }
