@@ -20,6 +20,6 @@ public class PluginDispatcher
             logger);
         Starter = new(metadataService, loaderService, loader, pluginExecutor, 
             dependencyResolver);
-        Unloader = new(metadataService, loader, lifecycleManager);
+        Unloader = new(metadataService, loader, lifecycleManager, logger);
     }
 }

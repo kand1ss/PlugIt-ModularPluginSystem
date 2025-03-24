@@ -12,6 +12,7 @@ public class PluginManager : IDisposable
     private readonly FileSystemWatcher _fileWatcher = new();
 
     private readonly ILoggerService _logger;
+    private PluginLoggingFacade _loggerFacade;
     private readonly IPluginLifecycleManager _lifecycleManager;
 
     private void Initialize(string pluginsSource, IAssemblyMetadataRepository repository,
@@ -19,6 +20,7 @@ public class PluginManager : IDisposable
         IPluginLifecycleManager lifecycleManager, PluginLoggingFacade logger,
         IPluginDependencyResolver dependencyResolver)
     {
+        _loggerFacade = new(_logger);
         _dispatcher = new(repository, assemblyLoader, assemblyHandler,
             pluginExecutor, lifecycleManager, logger, dependencyResolver);
         _dispatcher.Metadata.RebuildMetadata();
@@ -80,17 +82,17 @@ public class PluginManager : IDisposable
 
     private void OnAssemblyAdded(object obj, FileSystemEventArgs e)
     {
-        var name = Path.GetFileNameWithoutExtension(e.Name)!;
+        var name = Path.GetFileNameWithoutExtension(e.Name) ?? "";
         _dispatcher.Metadata.LoadMetadata(name);
         _dispatcher.Unloader.UnloadAssembly(name);
     }
 
     private void OnAssemblyDeleted(object obj, FileSystemEventArgs e)
-        => _dispatcher.Metadata.RemoveMetadata(Path.GetFileNameWithoutExtension(e.Name)!);
+        => _dispatcher.Metadata.RemoveMetadata(Path.GetFileNameWithoutExtension(e.Name) ?? "");
 
     private void OnAssemblyUpdated(object obj, FileSystemEventArgs e)
     {
-        var name = Path.GetFileNameWithoutExtension(e.Name)!;
+        var name = Path.GetFileNameWithoutExtension(e.Name) ?? "";
         _dispatcher.Metadata.UpdateMetadata(name);
         _dispatcher.Unloader.UnloadAssembly(name);
     }
@@ -99,65 +101,117 @@ public class PluginManager : IDisposable
     /// <summary>
     /// Launches a standard plugin by its name. 
     /// After execution, the assembly containing the plugin is unloaded if it is no longer in use.
+    /// The operation result is encapsulated in an <see cref="ExecutionResult"/> instance.
     /// </summary>
     /// <param name="pluginName">The name of the standard plugin to be executed.</param>
-    /// <exception cref="PluginNotFoundException">Thrown if the specified plugin is not found.</exception>
-    public void ExecutePlugin(string pluginName)
+    /// <returns>An <see cref="ExecutionResult"/> containing the outcome of the plugin execution.</returns>
+    public ExecutionResult ExecutePlugin(string pluginName)
     {
-        _dispatcher.Starter.StartPlugin(pluginName);
-        _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
+        try
+        {
+            var result = _dispatcher.Starter.StartPlugin(pluginName);
+            _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
+            return result;
+        }
+        catch (Exception e)
+        {
+            _loggerFacade.LogError(e.Message);
+            return ExecutionResult.Failure(e.Message);
+        }
     }
 
     /// <summary>
     /// Runs all standard plugins from the specified assembly. 
     /// After execution, the assembly is unloaded if no references remain.
+    /// The operation result is encapsulated in an <see cref="ExecutionResult"/> instance.
     /// </summary>
     /// <param name="assemblyName">The name of the assembly containing the standard plugins.</param>
-    /// <exception cref="AssemblyNotFoundException">Thrown if the specified assembly is not found.</exception>
-    public void ExecutePluginsFromAssembly(string assemblyName)
+    /// <returns>An <see cref="ExecutionResult"/> containing the outcome of executing the plugins.</returns>
+    public ExecutionResult ExecutePluginsFromAssembly(string assemblyName)
     {
-        _dispatcher.Starter.StartAllPluginsFromAssembly(assemblyName);
-        _dispatcher.Unloader.UnloadAssembly(assemblyName);
+        try
+        {
+            var result = _dispatcher.Starter.StartAllPluginsFromAssembly(assemblyName);
+            _dispatcher.Unloader.UnloadAssembly(assemblyName);
+            return result;
+        }
+        catch (Exception e)
+        {
+            _loggerFacade.LogError(e.Message);
+            return ExecutionResult.Failure(e.Message);
+        }
     }
 
     /// <summary>
     /// Runs all standard plugins from all detected assemblies in the plugin directory. 
     /// After execution, each assembly is unloaded if it is no longer referenced.
+    /// The operation result is encapsulated in an <see cref="ExecutionResult"/> instance.
     /// </summary>
-    public void ExecuteAllPlugins()
+    /// <returns>An <see cref="ExecutionResult"/> containing the outcome of executing all plugins.</returns>
+    public ExecutionResult ExecuteAllPlugins()
     {
-        _dispatcher.Starter.StartAllPlugins();
-        _dispatcher.Unloader.UnloadAllAssemblies();
+        try
+        {
+            var result = _dispatcher.Starter.StartAllPlugins();
+            _dispatcher.Unloader.UnloadAllAssemblies();
+            return result;
+        }
+        catch (Exception e)
+        {
+            _loggerFacade.LogError(e.Message);
+            return ExecutionResult.Failure(e.Message);
+        }
     }
 
     /// <summary>
     /// Launches an extension plugin by its name and allows it to modify the provided data.
     /// Extension plugins are designed to process and modify external data objects.
     /// After execution, the assembly is unloaded if no references remain.
+    /// The operation result is encapsulated in an <see cref="ExecutionResult"/> instance.
     /// </summary>
     /// <typeparam name="T">The type of data being processed by the extension plugin.</typeparam>
     /// <param name="data">Reference to the data object to be modified by the plugin.</param>
     /// <param name="pluginName">The name of the extension plugin to be executed.</param>
-    /// <exception cref="PluginNotFoundException">Thrown if the specified plugin is not found.</exception>
-    public void ExecuteExtensionPlugin<T>(ref T data, string pluginName)
+    /// <returns>An <see cref="ExecutionResult"/> containing the outcome of the plugin execution.</returns>
+    public ExecutionResult ExecuteExtensionPlugin<T>(ref T data, string pluginName)
     {
-        _dispatcher.Starter.StartExtensionPlugin(ref data, pluginName);
-        _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
+        try
+        {
+            var result = _dispatcher.Starter.StartExtensionPlugin(ref data, pluginName);
+            _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
+            return result;
+        }
+        catch (Exception e)
+        {
+            _loggerFacade.LogError(e.Message);
+            return ExecutionResult.Failure(e.Message);
+        }
     }
 
     /// <summary>
     /// Launches multiple extension plugins by their names and allows them to modify the provided data. 
     /// Each plugin is executed sequentially, and the data may be modified by multiple plugins.
     /// After execution, the assembly is unloaded if no references remain.
+    /// The cumulative operation result is encapsulated in an <see cref="ExecutionResult"/> instance.
     /// </summary>
     /// <typeparam name="T">The type of data being processed by the extension plugins.</typeparam>
     /// <param name="data">Reference to the data object to be modified by the plugins.</param>
     /// <param name="pluginNames">The names of the extension plugins to be executed.</param>
-    /// <exception cref="PluginNotFoundException">Thrown if any of the specified plugins are not found.</exception>
-    public void ExecuteExtensionPlugin<T>(ref T data, IEnumerable<string> pluginNames)
+    /// <returns>An <see cref="ExecutionResult"/> representing the combined outcomes of the plugin executions.</returns>
+    public ExecutionResult ExecuteExtensionPlugin<T>(ref T data, IEnumerable<string> pluginNames)
     {
-        foreach (var pluginName in pluginNames)
-            ExecuteExtensionPlugin(ref data, pluginName);
+        try
+        {
+            var executionResults = new List<ExecutionResult>();
+            foreach (var pluginName in pluginNames)
+                executionResults.Add(ExecuteExtensionPlugin(ref data, pluginName));
+            return ExecutionResult.FromResults(executionResults);
+        }
+        catch (Exception e)
+        {
+            _loggerFacade.LogError(e.Message);
+            return ExecutionResult.Failure(e.Message);
+        }
     }
 
     /// <summary>
@@ -168,21 +222,25 @@ public class PluginManager : IDisposable
     /// <param name="pluginName">The name of the network plugin to be executed.</param>
     /// <param name="expectResponse">
     /// <para>
-    /// <c>true</c> if a response is expected from the plugin.  
-    /// <c>false</c> if no response is expected.
+    /// <c>true</c> if a response is expected from the plugin; otherwise, <c>false</c>.
     /// </para>
     /// </param>
-    /// <param name="requestData">The data to be sent to the plugin.
-    /// If no data should be sent, pass <c>null</c>.</param>
-    /// <returns>The response data received from the plugin, or <c>null</c> if no response is expected.</returns>
-    public byte[]? ExecuteNetworkPlugin(string pluginName, bool expectResponse, byte[]? requestData = null)
+    /// <param name="requestData">
+    /// The data to be sent to the plugin. If no data should be sent, pass <c>null</c>.
+    /// </param>
+    /// <returns>
+    /// The response data received from the plugin, or an empty array if no response is expected.
+    /// </returns>
+    public byte[] ExecuteNetworkPlugin(string pluginName, bool expectResponse, byte[]? requestData = null)
     {
+        var response = Array.Empty<byte>();
+
         if (requestData is not null)
             _dispatcher.Starter.SendNetworkPlugin(pluginName, requestData);
+        if (expectResponse)
+            _dispatcher.Starter.ReceiveNetworkPlugin(pluginName, out response);
 
-        var response = expectResponse ? _dispatcher.Starter.ReceiveNetworkPlugin(pluginName) : null;
         _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
-
         return response;
     }
 
@@ -190,25 +248,27 @@ public class PluginManager : IDisposable
     /// Retrieves the state of a specific plugin by its name.
     /// </summary>
     /// <param name="pluginName">The name of the plugin whose state is to be retrieved.</param>
-    /// <returns>The current state of the specified plugin as a string.</returns>
+    /// <returns>The current state of the specified plugin as a <see cref="PluginInfo"/> object.</returns>
     public PluginInfo GetPluginState(string pluginName)
         => _lifecycleManager.GetPluginState(pluginName);
 
     /// <summary>
     /// Retrieves the states of all plugins.
     /// </summary>
-    /// <returns>An enumerable collection of PluginInfo objects representing the states of all plugins.</returns>
+    /// <returns>
+    /// An enumerable collection of <see cref="PluginInfo"/> objects representing the states of all plugins.
+    /// </returns>
     public IEnumerable<PluginInfo> GetPluginStates()
         => _lifecycleManager.GetPluginStates();
 
     /// <summary>
     /// Retrieves a list of messages from the logger.
     /// </summary>
-    /// <returns>A collection of strings containing logged messages.</returns>
+    /// <returns>
+    /// A collection of strings containing logged messages.
+    /// </returns>
     public IEnumerable<string> GetMessagesFromLogger()
         => _logger.GetLogs();
-
-    
 
     /// <summary>
     /// Exports logs with filtering, excluding specified log types.
@@ -237,7 +297,7 @@ public class PluginManager : IDisposable
     /// Excluding debug and trace messages ensures that only essential log information is included, reducing noise for end users.
     /// </remarks>
     public void ExportLogs(ILogExporter exporter)
-        => ExportFilteredLogs(exporter, [LogType.DEBUG, LogType.TRACE]);
+        => ExportFilteredLogs(exporter, new[] { LogType.DEBUG, LogType.TRACE });
 
     /// <summary>
     /// Exports the full log using the specified log exporter, excluding TRACE-level messages.
@@ -249,7 +309,7 @@ public class PluginManager : IDisposable
     /// This method exports all logs except TRACE-level messages, providing a comprehensive log without low-level trace details.
     /// </remarks>
     public void ExportDebugLogs(ILogExporter exporter)
-        => ExportFilteredLogs(exporter, [LogType.TRACE]);
+        => ExportFilteredLogs(exporter, new[] { LogType.TRACE });
 
     /// <summary>
     /// Exports the full detailed log, including all log levels such as TRACE.

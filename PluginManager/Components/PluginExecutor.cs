@@ -36,18 +36,19 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, PluginLogg
             finalPlugin.FinalizePlugin();
         }
     }
-    private void ExecuteAction(Action<IPlugin> action, IPlugin plugin)
+    private ExecutionResult ExecuteAction(Action<IPlugin> action, IPlugin plugin)
     {
         TryInitializePlugin(plugin);
         action(plugin);
         TryFinalizePlugin(plugin);
+        return ExecutionResult.Success();
     }
     
     
-    public void Execute(IPlugin plugin)
+    public ExecutionResult Execute(IPlugin plugin)
         => ExecuteAction(TryExecutePlugin, plugin);
 
-    public void ExecuteExtensionPlugin<T>(ref T data, IExtensionPlugin<T> extension)
+    public ExecutionResult ExecuteExtensionPlugin<T>(ref T data, IExtensionPlugin<T> extension)
     {
         TryInitializePlugin(extension);
         
@@ -57,20 +58,21 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, PluginLogg
         extension.Expand(ref data);
         
         TryFinalizePlugin(extension);
+        return ExecutionResult.Success();
     }
-    public byte[] ExecuteNetworkPluginReceive(INetworkPlugin plugin)
+    public ExecutionResult ExecuteNetworkPluginReceive(INetworkPlugin plugin, out byte[] response)
     {
         TryInitializePlugin(plugin);
         
         lifecycleManager.SetPluginState(plugin.Name, PluginState.Running);
         logger.NetworkPluginExecuting(plugin.Name, plugin.Version, false);
         
-        var result = plugin.ReceiveData();
+        response = plugin.ReceiveData();
         
         TryFinalizePlugin(plugin);
-        return result;
+        return ExecutionResult.Success();
     }
-    public void ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin)
+    public ExecutionResult ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin)
         => ExecuteAction(addon =>
         {
             lifecycleManager.SetPluginState(plugin.Name, PluginState.Running);

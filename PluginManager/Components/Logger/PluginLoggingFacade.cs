@@ -2,6 +2,11 @@ namespace ModularPluginAPI.Components.Logger;
 
 public class PluginLoggingFacade(ILoggerService logger)
 {
+    public void LogError(string errorMessage)
+    {
+        logger.Log(LogSender.PluginManager, LogType.ERROR, errorMessage);
+    }
+    
     public void AssemblyLoaded(string assemblyName)
     {
         logger.Log(LogSender.PluginManager, LogType.TRACE, $"Assembly '{assemblyName}' loaded.");
@@ -21,7 +26,6 @@ public class PluginLoggingFacade(ILoggerService logger)
         logger.Log(LogSender.PluginManager, LogType.DEBUG, 
             $"Metadata for assembly '{assemblyName} v{assemblyVersion}' removed.");
     }
-
 
     public void PluginLoaded(string pluginName, string assemblyName, Version assemblyVersion)
     {
