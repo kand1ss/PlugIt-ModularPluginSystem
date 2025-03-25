@@ -7,10 +7,12 @@ public static class PluginMetadataGenerator
 {
     public static PluginMetadata Generate(IPlugin plugin)
     {
-        var metadata = new PluginMetadata()
+        var metadata = new PluginMetadata
         {
             Name = plugin.Name,
             Version = plugin.Version,
+            Author = plugin.Author,
+            Description = plugin.Description
         };
 
         if (plugin is IConfigurablePlugin configurable)

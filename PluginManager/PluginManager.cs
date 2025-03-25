@@ -3,6 +3,7 @@ using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Logger.Components;
 using ModularPluginAPI.Components.Logger.Interfaces;
+using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI;
 
@@ -322,4 +323,24 @@ public class PluginManager : IDisposable
     /// </remarks>
     public void ExportTraceLogs(ILogExporter exporter)
         => _logger.ExportLogs(exporter);
+
+
+    /// <summary>
+    /// Changes the tracked plugin directory. 
+    /// When the directory is changed, all assembly metadata is completely rebuilt.
+    /// Returns the execution result, which may indicate failure if the specified directory does not exist.
+    /// </summary>
+    /// <param name="pluginDirectory">The new plugin directory to be tracked.</param>
+    /// <returns>
+    /// An <see cref="ExecutionResult"/> representing the outcome of the operation.
+    /// The result may indicate failure if the specified directory does not exist.
+    /// </returns>
+    public ExecutionResult ChangePluginDirectory(string pluginDirectory)
+    {
+        var result = _dispatcher.ChangePluginDirectory(pluginDirectory);
+        if (result.IsSuccess)
+            _fileWatcher.Path = pluginDirectory;
+
+        return result;
+    }
 }

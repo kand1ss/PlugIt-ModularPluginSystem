@@ -4,6 +4,8 @@ namespace ModularPluginAPI.Components;
 
 public class PluginDispatcher
 {
+    private readonly IAssemblyLoader _loader;
+    
     public PluginMetadataDispatcher Metadata { get; }
     public PluginStartDispatcher Starter { get; }
     public PluginUnloadDispatcher Unloader { get; }
@@ -15,11 +17,21 @@ public class PluginDispatcher
     {
         var metadataService = new PluginMetadataService(repository);
         var loaderService = new PluginLoaderService(metadataService, loader, handler, logger);
+        _loader = loader;
         
         Metadata = new(repository, metadataService, loader, handler, lifecycleManager, 
             logger);
         Starter = new(metadataService, loaderService, loader, pluginExecutor, 
             dependencyResolver);
         Unloader = new(metadataService, loader, lifecycleManager, logger);
+    }
+    
+    public ExecutionResult ChangePluginDirectory(string pluginDirectory)
+    {
+        var result = _loader.ChangeSource(pluginDirectory);
+        if (result.IsSuccess)
+            Metadata.RebuildMetadata();
+        
+        return result;
     }
 }

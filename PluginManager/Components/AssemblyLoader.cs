@@ -10,10 +10,10 @@ namespace ModularPluginAPI.Components;
 public class AssemblyLoader : IAssemblyLoader
 {
     private readonly PluginLoggingFacade _logger;
-    
-    private readonly string _pluginsSource;
     private readonly Dictionary<string, PluginLoadContext> _assemblyLoadContexts = new();
     
+    private string _pluginsSource;
+
     public AssemblyLoader(PluginLoggingFacade logger, string pluginsSource)
     {
         CheckDirectoryPath(pluginsSource);
@@ -41,8 +41,19 @@ public class AssemblyLoader : IAssemblyLoader
         return fullPath;
     }
 
-    
-    
+
+    public ExecutionResult ChangeSource(string pluginDirectory)
+    {
+        if (!Directory.Exists(pluginDirectory))
+            return ExecutionResult.Failure($"Directory '{pluginDirectory}' does not exist.");
+        
+        _pluginsSource = pluginDirectory;
+        _logger.DirectoryChanged(pluginDirectory);
+        
+        return ExecutionResult.Success();
+    }
+
+
     public Assembly LoadAssembly(string assemblyName)
     {
         var assemblyPath = ConcatPathAndName(assemblyName);

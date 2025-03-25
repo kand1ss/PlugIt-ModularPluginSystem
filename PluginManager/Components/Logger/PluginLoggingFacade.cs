@@ -70,4 +70,10 @@ public class PluginLoggingFacade(ILoggerService logger)
         logger.Log(LogSender.PluginManager, LogType.DEBUG, 
             $"Dependency '{dependencyName} v{dependencyVersion}' from assembly '{assemblyName} v{assemblyVersion}' loaded.");
     }
+
+
+    public void DirectoryChanged(string directory)
+    {
+        logger.Log(LogSender.PluginManager, LogType.INFO, $"Plugin directory changed to: '{directory}'.");
+    }
 }

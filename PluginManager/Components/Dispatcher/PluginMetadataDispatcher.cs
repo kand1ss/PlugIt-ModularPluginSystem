@@ -2,6 +2,7 @@ using System.Reflection;
 using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
+using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 
