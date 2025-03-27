@@ -2,7 +2,7 @@ using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
-public interface IPluginDependencyResolver
+public interface IDependencyResolverService
 {
     void Resolve(IPlugin plugin);
 }
