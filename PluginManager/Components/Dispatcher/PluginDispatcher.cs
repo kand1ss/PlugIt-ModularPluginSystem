@@ -23,15 +23,12 @@ public class PluginDispatcher
             logger);
         Starter = new(metadataService, loaderService, loader, pluginExecutor, 
             dependencyResolver);
-        Unloader = new(metadataService, loader, lifecycleManager, logger);
+        Unloader = new(metadataService, loader, lifecycleManager);
     }
     
-    public ExecutionResult ChangePluginDirectory(string pluginDirectory)
-    {
-        var result = _loader.ChangeSource(pluginDirectory);
-        if (result.IsSuccess)
-            Metadata.RebuildMetadata();
-        
-        return result;
+    public void ChangePluginDirectory(string pluginDirectory)
+    { 
+        _loader.ChangeSource(pluginDirectory);
+        Metadata.RebuildMetadata();
     }
 }

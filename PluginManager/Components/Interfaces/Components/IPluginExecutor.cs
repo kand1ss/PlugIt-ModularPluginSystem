@@ -4,8 +4,8 @@ namespace ModularPluginAPI.Components;
 
 public interface IPluginExecutor
 {
-    ExecutionResult Execute(IPlugin plugin);
-    ExecutionResult ExecuteExtensionPlugin<T>(ref T data, IExtensionPlugin<T> extension);
-    ExecutionResult ExecuteNetworkPluginReceive(INetworkPlugin plugin, out byte[] response);
-    ExecutionResult ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin);
+    void Execute(IPlugin plugin);
+    void ExecuteExtensionPlugin<T>(ref T data, IExtensionPlugin<T> extension);
+    byte[] ExecuteNetworkPluginReceive(INetworkPlugin plugin);
+    void ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin);
 }

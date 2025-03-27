@@ -1,7 +1,4 @@
-using System.Collections;
 using ModularPluginAPI.Components.Interfaces.Services;
-using ModularPluginAPI.Components.Logger;
-using ModularPluginAPI.Exceptions;
 using PluginAPI;
 
 namespace ModularPluginAPI.Components;
@@ -18,61 +15,49 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
         return plugin;
     }
 
-    private IEnumerable<string> GetPluginNamesFromAssembly(string assemblyName)
+    public void StartPlugin(string pluginName)
+    {
+        var plugin = GetPluginFromAssembly<IPlugin>(pluginName);
+        pluginExecutor.Execute(plugin);
+    }
+
+    public void StartPlugins(IEnumerable<string> pluginNames)
+    {
+        foreach (var pluginName in pluginNames)
+            StartPlugin(pluginName);
+    }
+    
+    public void StartAllPluginsFromAssembly(string assemblyName)
     {
         var metadata = metadataService.GetMetadata(assemblyName);
         MetadataValidator.Validate(metadata);
-        return metadataService.GetPluginNamesFromMetadata(metadata);
-    }
-
-    
-    public ExecutionResult StartPlugin(string pluginName)
-    {
-        var plugin = GetPluginFromAssembly<IPlugin>(pluginName);
-        return pluginExecutor.Execute(plugin);
-    }
-
-    public ExecutionResult StartPlugins(IEnumerable<string> pluginNames)
-    {
-        var executionResults = new List<ExecutionResult>();
-        foreach (var pluginName in pluginNames)
-            executionResults.Add(StartPlugin(pluginName));
         
-        return ExecutionResult.FromResults(executionResults);
+        var plugins = metadataService.GetPluginNamesFromMetadata(metadata);
+        StartPlugins(plugins);
     }
     
-    public ExecutionResult StartAllPluginsFromAssembly(string assemblyName)
+    public void StartAllPlugins()
     {
-        var plugins = GetPluginNamesFromAssembly(assemblyName);
-        return StartPlugins(plugins);
-    }
-    
-    public ExecutionResult StartAllPlugins()
-    {
-        var executionResults = new List<ExecutionResult>();
         foreach (var assembly in loader.GetAllAssembliesNames())
-            executionResults.AddRange(StartAllPluginsFromAssembly(assembly));
-        
-        return ExecutionResult.FromResults(executionResults);
+            StartAllPluginsFromAssembly(assembly);
     }
     
-    public ExecutionResult StartExtensionPlugin<T>(ref T data, string pluginName)
+    public void StartExtensionPlugin<T>(ref T data, string pluginName)
     {
         var plugin = GetPluginFromAssembly<IExtensionPlugin<T>>(pluginName);
-        return pluginExecutor.ExecuteExtensionPlugin(ref data, plugin);
+        pluginExecutor.ExecuteExtensionPlugin(ref data, plugin);
     }
     
     
-    public ExecutionResult ReceiveNetworkPlugin(string pluginName, out byte[] response)
+    public byte[] ReceiveNetworkPlugin(string pluginName)
     {
-        response = [];
         var plugin = GetPluginFromAssembly<INetworkPlugin>(pluginName);
-        return pluginExecutor.ExecuteNetworkPluginReceive(plugin, out response);
+        return pluginExecutor.ExecuteNetworkPluginReceive(plugin);
     }
     
-    public ExecutionResult SendNetworkPlugin(string pluginName, byte[] data)
+    public void SendNetworkPlugin(string pluginName, byte[] data)
     {
         var plugin = GetPluginFromAssembly<INetworkPlugin>(pluginName);
-        return pluginExecutor.ExecuteNetworkPluginSend(data, plugin);
+        pluginExecutor.ExecuteNetworkPluginSend(data, plugin);
     }
 }
