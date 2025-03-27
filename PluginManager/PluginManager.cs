@@ -1,9 +1,10 @@
 using ModularPluginAPI.Components;
+using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Logger.Components;
 using ModularPluginAPI.Components.Logger.Interfaces;
-using ModularPluginAPI.Models;
+using ModularPluginAPI.Exceptions;
 
 namespace ModularPluginAPI;
 
@@ -17,11 +18,11 @@ public class PluginManager : IDisposable
 
     private void Initialize(string pluginsSource, IAssemblyMetadataRepository repository,
         IAssemblyLoader assemblyLoader, IAssemblyHandler assemblyHandler, IPluginExecutor pluginExecutor,
-        IPluginLifecycleManager lifecycleManager, PluginLoggingFacade logger,
-        IPluginDependencyResolver dependencyResolver)
+        IPluginLifecycleManager lifecycleManager, PluginLoggingFacade logger, IPluginLoaderService loaderService, 
+        IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver)
     {
         _dispatcher = new(repository, assemblyLoader, assemblyHandler,
-            pluginExecutor, lifecycleManager, logger, dependencyResolver);
+            pluginExecutor, lifecycleManager, logger, loaderService, metadataService, dependencyResolver);
         _dispatcher.Metadata.RebuildMetadata();
 
         InitializeFileWatcher(pluginsSource);
@@ -38,23 +39,26 @@ public class PluginManager : IDisposable
         var assemblyLoader = new AssemblyLoader(loggerFacade, pluginsSource);
         var repository = new AssemblyMetadataRepository();
         var pluginExecutor = new PluginExecutor(_lifecycleManager, loggerFacade);
-        var dependencyResolver = new PluginDependencyResolver(repository, assemblyLoader, assemblyHandler,
-            loggerFacade);
+        
+        var metadataService = new PluginMetadataService(repository);
+        var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);
+        var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
 
         Initialize(pluginsSource, repository, assemblyLoader, assemblyHandler, pluginExecutor,
-            _lifecycleManager, loggerFacade, dependencyResolver);
+            _lifecycleManager, loggerFacade, loaderService, metadataService, dependencyResolver);
     }
 
     internal PluginManager(string pluginsSource, IPluginLifecycleManager lifecycleManager,
         IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository,
-        IPluginExecutor executor, ILoggerService logger, IPluginDependencyResolver dependencyResolver)
+        IPluginExecutor executor, ILoggerService logger, IPluginLoaderService loaderService, 
+        IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver)
     {
         _logger = logger;
         _lifecycleManager = lifecycleManager;
 
         var loggerFacade = new PluginLoggingFacade(_logger);
-        Initialize(pluginsSource, repository, loader, handler, executor, lifecycleManager, loggerFacade,
-            dependencyResolver);
+        Initialize(pluginsSource, repository, loader, handler, executor, lifecycleManager, loggerFacade, 
+            loaderService, metadataService, dependencyResolver);
     }
 
     private void InitializeFileWatcher(string source)

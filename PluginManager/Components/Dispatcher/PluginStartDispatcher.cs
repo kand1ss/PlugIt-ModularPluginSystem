@@ -4,7 +4,7 @@ using PluginAPI;
 namespace ModularPluginAPI.Components;
 
 public class PluginStartDispatcher(IPluginMetadataService metadataService, IPluginLoaderService loaderService, 
-    IAssemblyLoader loader, IPluginExecutor pluginExecutor, IPluginDependencyResolver dependencyResolver)
+    IAssemblyLoader loader, IPluginExecutor pluginExecutor, IDependencyResolverService dependencyResolver)
 {
     private T GetPluginFromAssembly<T>(string pluginName) where T : class, IPlugin
     {
