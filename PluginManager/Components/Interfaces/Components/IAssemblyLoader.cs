@@ -5,7 +5,7 @@ namespace ModularPluginAPI.Components;
 
 public interface IAssemblyLoader
 {
-    ExecutionResult ChangeSource(string pluginDirectory);
+    void ChangeSource(string pluginDirectory);
     
     IEnumerable<Assembly> LoadAllAssemblies();
     Assembly LoadAssembly(string assemblyName);

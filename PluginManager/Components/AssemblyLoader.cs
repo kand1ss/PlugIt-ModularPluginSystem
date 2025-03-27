@@ -42,15 +42,13 @@ public class AssemblyLoader : IAssemblyLoader
     }
 
 
-    public ExecutionResult ChangeSource(string pluginDirectory)
+    public void ChangeSource(string pluginDirectory)
     {
         if (!Directory.Exists(pluginDirectory))
-            return ExecutionResult.Failure($"Directory '{pluginDirectory}' does not exist.");
+            throw new ArgumentException($"Invalid plugin directory: {pluginDirectory}");
         
         _pluginsSource = pluginDirectory;
         _logger.DirectoryChanged(pluginDirectory);
-        
-        return ExecutionResult.Success();
     }
 
 

@@ -1,3 +1,4 @@
+using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Exceptions;
 using ModularPluginAPI.Models;
@@ -6,31 +7,20 @@ using PluginAPI.Dependency;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginDependencyResolver(IAssemblyMetadataRepository repository, IAssemblyLoader assemblyLoader,
-    IAssemblyHandler handler, PluginLoggingFacade logger) : IPluginDependencyResolver
+public class DependencyResolverService(IPluginLoaderService loader, IPluginMetadataService metadataService,
+    PluginLoggingFacade logger) : IDependencyResolverService
 {
     private readonly HashSet<string> _loadingPlugins = new();
 
     private void TryGetDependency(string pluginName, List<IPlugin> loadedDependencies)
     {
-        var assemblyMetadata = repository.GetMetadataByPluginName(pluginName)
-            ?? throw new ResolvingDependencyException(pluginName);
+        var metadata = metadataService.GetMetadataByPluginName(pluginName);
+        var assembly = loader.LoadAssemblyByPluginName(pluginName);
+        var plugin = loader.TryGetPlugin<IPlugin>(assembly, pluginName);
         
-        var assembly = assemblyLoader.LoadAssembly(assemblyMetadata.Name)
-            ?? throw new AssemblyNotFoundException(assemblyMetadata.Name);
-                    
-        var loadedPlugin = handler.GetPlugin<IPlugin>(assembly, pluginName)
-            ?? throw new PluginNotFoundException(pluginName, assemblyMetadata.Name);
-        
-        loadedDependencies.Add(loadedPlugin);
-        logger.DependencyLoaded(loadedPlugin.Name, loadedPlugin.Version, assemblyMetadata.Name, 
-            assemblyMetadata.Version);
+        loadedDependencies.Add(plugin);
+        logger.DependencyLoaded(plugin.Name, plugin.Version, metadata.Name, metadata.Version);
     }
-
-    private HashSet<PluginMetadata> GetAllPlugins()
-        => repository.GetAllMetadata()
-            .SelectMany(m => m.Plugins)
-            .ToHashSet();
     
     private static PluginMetadata? GetPlugin(IEnumerable<PluginMetadata> allPlugins, string pluginName)
         => allPlugins.FirstOrDefault(p => p.Name == pluginName);
@@ -40,7 +30,7 @@ public class PluginDependencyResolver(IAssemblyMetadataRepository repository, IA
 
     private List<IPlugin> FindDependencies(IEnumerable<DependencyInfo> requiredDependencies)
     {
-        var allPlugins = GetAllPlugins();
+        var allPlugins = metadataService.GetAllPluginsMetadata();
         var loadedDependencies = new List<IPlugin>();
         
         foreach (var dependency in requiredDependencies)

@@ -12,6 +12,11 @@ public class PluginMetadataService(IAssemblyMetadataRepository repository) : IPl
     public AssemblyMetadata GetMetadataByPluginName(string pluginName)
         => repository.GetMetadataByPluginName(pluginName)
            ?? throw new PluginNotFoundException(pluginName);
+    public IEnumerable<PluginMetadata> GetAllPluginsMetadata()
+        => repository.GetAllMetadata()
+            .SelectMany(m => m.Plugins)
+            .ToHashSet();
+    
     public IEnumerable<string> GetPluginNamesFromMetadata(AssemblyMetadata metadata)
         => metadata.Plugins.Select(x => x.Name);
     public PluginMetadata GetPluginMetadataFromAssembly(AssemblyMetadata metadata, string pluginName)

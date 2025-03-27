@@ -1,3 +1,4 @@
+using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Logger;
 
 namespace ModularPluginAPI.Components;
@@ -13,25 +14,21 @@ public class PluginDispatcher
 
     public PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyLoader loader, 
         IAssemblyHandler handler, IPluginExecutor pluginExecutor, IPluginLifecycleManager lifecycleManager, 
-        PluginLoggingFacade logger, IPluginDependencyResolver dependencyResolver)
+        PluginLoggingFacade logger, IPluginLoaderService loaderService, IPluginMetadataService metadataService, 
+        IDependencyResolverService dependencyResolver)
     {
-        var metadataService = new PluginMetadataService(repository);
-        var loaderService = new PluginLoaderService(metadataService, loader, handler, logger);
         _loader = loader;
         
         Metadata = new(repository, metadataService, loader, handler, lifecycleManager, 
             logger);
         Starter = new(metadataService, loaderService, loader, pluginExecutor, 
             dependencyResolver);
-        Unloader = new(metadataService, loader, lifecycleManager, logger);
+        Unloader = new(metadataService, loader, lifecycleManager);
     }
     
-    public ExecutionResult ChangePluginDirectory(string pluginDirectory)
-    {
-        var result = _loader.ChangeSource(pluginDirectory);
-        if (result.IsSuccess)
-            Metadata.RebuildMetadata();
-        
-        return result;
+    public void ChangePluginDirectory(string pluginDirectory)
+    { 
+        _loader.ChangeSource(pluginDirectory);
+        Metadata.RebuildMetadata();
     }
 }
