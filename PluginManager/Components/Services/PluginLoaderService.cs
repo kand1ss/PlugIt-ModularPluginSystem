@@ -19,18 +19,7 @@ public class PluginLoaderService(PluginMetadataService metadataService, IAssembl
         return loader.LoadAssembly(metadata.Name);
     }
 
-    private T LoadPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin
+    public T TryGetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin
         => handler.GetPlugin<T>(assembly, pluginName)
            ?? throw new PluginNotFoundException(pluginName);
-
-    public T TryGetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin
-    {
-        var plugin = LoadPlugin<T>(assembly, pluginName);
-        
-        var assemblyName = assembly.GetName().Name ?? "null";
-        var assemblyVersion = assembly.GetName().Version ?? new Version(0, 0, 0);
-        
-        logger.PluginLoaded(plugin.Name, assemblyName, assemblyVersion);
-        return plugin;
-    }
 }

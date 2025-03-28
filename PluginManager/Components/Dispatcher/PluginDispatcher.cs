@@ -22,7 +22,7 @@ public class PluginDispatcher
         Metadata = new(repository, metadataService, loader, handler, lifecycleManager, 
             logger);
         Starter = new(metadataService, loaderService, loader, pluginExecutor, 
-            dependencyResolver);
+            dependencyResolver, logger);
         Unloader = new(metadataService, loader, lifecycleManager);
     }
     
