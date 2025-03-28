@@ -1,17 +1,23 @@
 using ModularPluginAPI.Components.Interfaces.Services;
+using ModularPluginAPI.Components.Logger;
 using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
 public class PluginStartDispatcher(IPluginMetadataService metadataService, IPluginLoaderService loaderService, 
-    IAssemblyLoader loader, IPluginExecutor pluginExecutor, IDependencyResolverService dependencyResolver)
+    IAssemblyLoader loader, IPluginExecutor pluginExecutor, IDependencyResolverService dependencyResolver,
+    PluginLoggingFacade logger)
 {
     private T GetPluginFromAssembly<T>(string pluginName) where T : class, IPlugin
     {
         var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
         var plugin = loaderService.TryGetPlugin<T>(assembly, pluginName);
-        dependencyResolver.Resolve(plugin);
         
+        var assemblyName = assembly.GetName().Name ?? "null";
+        var assemblyVersion = assembly.GetName().Version ?? new Version(0, 0, 0);
+        logger.PluginLoaded(plugin.Name, assemblyName, assemblyVersion);
+        
+        dependencyResolver.Resolve(plugin);
         return plugin;
     }
 
