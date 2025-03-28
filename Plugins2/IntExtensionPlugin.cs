@@ -9,17 +9,9 @@ public class IntExtensionPlugin : PluginBase, IExtensionPlugin<int>
     public override string Description => "IntExtensionPluginDescription";
     public override string Author => "kand1s";
     
-    public override void Initialize()
-    {
-    }
-    
     public void Expand(ref int data)
     {
         data *= 10;
         GetDependencyPlugin<INetworkPlugin>("NetworkPlugin").SendData([101, 43, 42]);
-    }
-
-    public override void FinalizePlugin()
-    {
     }
 }
