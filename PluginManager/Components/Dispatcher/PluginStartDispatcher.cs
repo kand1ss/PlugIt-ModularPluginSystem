@@ -1,4 +1,5 @@
 using ModularPluginAPI.Components.Interfaces.Services;
+using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using PluginAPI;
 
@@ -15,7 +16,9 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
         
         var assemblyName = assembly.GetName().Name ?? "null";
         var assemblyVersion = assembly.GetName().Version ?? new Version(0, 0, 0);
+        
         logger.PluginLoaded(plugin.Name, assemblyName, assemblyVersion);
+        logger.PluginStateChanged(pluginName, PluginState.Loaded);
         
         dependencyResolver.Resolve(plugin);
         return plugin;

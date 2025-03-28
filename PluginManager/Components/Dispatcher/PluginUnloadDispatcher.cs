@@ -4,15 +4,15 @@ using ModularPluginAPI.Components.Lifecycle;
 namespace ModularPluginAPI.Components;
 
 public class PluginUnloadDispatcher(IPluginMetadataService metadataService, IAssemblyLoader loader, 
-    IPluginLifecycleManager lifecycleManager)
+    IPluginTracker tracker)
 {
     public void UnloadAssembly(string assemblyName)
     {
         var metadata = metadataService.GetMetadata(assemblyName);
         var pluginNames = metadataService.GetPluginNamesFromMetadata(metadata);
-
+        
         loader.UnloadAssembly(assemblyName);
-        lifecycleManager.SetPluginsState(pluginNames, PluginState.Unloaded);
+        tracker.SetPluginsState(pluginNames, PluginState.Unloaded);
     }
     
     public void UnloadAssemblyByPluginName(string pluginName)

@@ -7,7 +7,7 @@ using ModularPluginAPI.Models;
 namespace ModularPluginAPI.Components;
 
 public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IPluginMetadataService metadataService, 
-    IAssemblyLoader loader, IAssemblyHandler handler, IPluginLifecycleManager lifecycleManager, 
+    IAssemblyLoader loader, IAssemblyHandler handler, IPluginTracker tracker, 
     PluginLoggingFacade logger)
 {
     private readonly AssemblyMetadataGenerator _metadataGenerator = new(handler);
@@ -18,7 +18,7 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IP
     public void RebuildMetadata()
     {
         repository.Clear();
-        lifecycleManager.Clear();
+        tracker.Clear();
         
         var assemblies = loader.LoadAllAssemblies();
         var assemblyNames = GetAssembliesNames(assemblies);
@@ -36,7 +36,7 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IP
         var plugins = metadataService.GetPluginNamesFromMetadata(metadata);
         
         repository.Remove(assemblyName);
-        lifecycleManager.RemovePlugins(plugins);
+        tracker.RemovePlugins(plugins);
         logger.MetadataRemoved(assemblyName, metadata.Version);
     }
     
@@ -47,10 +47,9 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IP
 
         MetadataValidator.Validate(metadata);
         repository.Add(metadata);
+        
         logger.MetadataAdded(assemblyName, metadata.Version);
-
-        var plugins = metadataService.GetPluginNamesFromMetadata(metadata);
-        lifecycleManager.SetPluginsState(plugins, PluginState.Unloaded);
+        tracker.RegisterPlugins(metadata.Plugins);
     }
     
     public void UpdateMetadata(string assemblyName)
