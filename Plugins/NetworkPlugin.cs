@@ -8,15 +8,6 @@ public class NetworkPlugin : PluginBase, INetworkPlugin
     public override Version Version => new(1, 0, 1);
     public override string Description => "Console plugin";
     public override string Author => "kand2s";
-    
-    
-    public override void Initialize()
-    {
-    }
-
-    public override void FinalizePlugin()
-    {
-    }
 
 
     public void SendData(byte[] data)

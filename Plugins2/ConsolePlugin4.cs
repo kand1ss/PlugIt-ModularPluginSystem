@@ -2,14 +2,14 @@ using PluginAPI;
 
 namespace Plugins2;
 
-public class ConsolePlugin4 : PluginBase, IExecutablePlugin
+public class ConsolePlugin4 : PluginBase, IInitialisablePlugin, IExecutablePlugin, IFinalisablePlugin
 {
     public override string Name => "ConsolePlugin4";
     public override Version Version => new(1, 0, 2);
     public override string Description => "Console plugin";
     public override string Author => "kand1s";
 
-    public override void Initialize()
+    public void Initialize()
     {
         Console.WriteLine("Console plugin: initialization");
     }
@@ -19,7 +19,7 @@ public class ConsolePlugin4 : PluginBase, IExecutablePlugin
         Console.WriteLine("Console plugin: start executing");
     }
     
-    public override void FinalizePlugin()
+    public void FinalizePlugin()
     {
         Console.WriteLine("Console plugin: finalizing");
     }
