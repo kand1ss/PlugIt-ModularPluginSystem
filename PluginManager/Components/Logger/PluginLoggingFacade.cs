@@ -1,4 +1,5 @@
 using ModularPluginAPI.Components.Lifecycle;
+using ModularPluginAPI.Components.Lifecycle.Observer;
 
 namespace ModularPluginAPI.Components.Logger;
 
@@ -79,5 +80,14 @@ public class PluginLoggingFacade(ILoggerService logger)
     public void DirectoryChanged(string directory)
     {
         logger.Log(LogSender.PluginManager, LogType.INFO, $"Plugin directory changed to: '{directory}'.");
+    }
+
+    public void TrackerComponentRegistered(IPluginTrackerObserver component)
+    {
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, $"(PluginTracker) - Custom component '{component.GetType().Name}' registered.");
+    }
+    public void TrackerComponentRemoved(IPluginTrackerObserver component)
+    {
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, $"(PluginTracker) - Custom component '{component.GetType().Name}' removed.");
     }
 }

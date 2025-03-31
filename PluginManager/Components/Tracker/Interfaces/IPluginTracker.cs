@@ -1,10 +1,9 @@
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Models;
-using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
-public interface IPluginTracker
+public interface IPluginTracker : IPluginTrackerPublic
 {
     void RegisterPlugin(PluginMetadata plugin);
     void RegisterPlugins(IEnumerable<PluginMetadata> plugins);
@@ -14,8 +13,4 @@ public interface IPluginTracker
     
     void SetPluginState(string pluginName, PluginState state);
     void SetPluginsState(IEnumerable<string> pluginNames, PluginState state);
-
-
-    IEnumerable<PluginInfo> GetPluginsStatus();
-    PluginInfo GetPluginStatus(string plugin);  
 }
