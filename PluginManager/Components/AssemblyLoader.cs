@@ -3,7 +3,6 @@ using System.Runtime.Loader;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Context;
 using ModularPluginAPI.Exceptions;
-using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 

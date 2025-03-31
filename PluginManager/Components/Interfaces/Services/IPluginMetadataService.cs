@@ -1,4 +1,3 @@
-using ModularPluginAPI.Exceptions;
 using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components.Interfaces.Services;

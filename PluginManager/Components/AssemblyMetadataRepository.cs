@@ -1,5 +1,4 @@
 using System.Data;
-using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;

@@ -1,5 +1,3 @@
-using ModularPluginAPI.Context;
-
 namespace ModularPluginAPI.Models;
 
 public class AssemblyMetadata
