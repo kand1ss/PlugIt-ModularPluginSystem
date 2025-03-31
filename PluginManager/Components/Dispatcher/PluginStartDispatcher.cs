@@ -36,9 +36,10 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
             StartPlugin(pluginName);
     }
     
-    public void StartAllPluginsFromAssembly(string assemblyName)
+    public void StartAllPluginsFromAssembly(string assemblyPath)
     {
-        var metadata = metadataService.GetMetadata(assemblyName);
+        var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
+        var metadata = metadataService.GetMetadata(assemblyPath);
         MetadataValidator.Validate(metadata);
         
         var plugins = metadataService.GetPluginNamesFromMetadata(metadata);
@@ -47,7 +48,7 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
     
     public void StartAllPlugins()
     {
-        foreach (var assembly in loader.GetAllAssembliesNames())
+        foreach (var assembly in metadataService.GetAllAssembliesPaths())
             StartAllPluginsFromAssembly(assembly);
     }
     
