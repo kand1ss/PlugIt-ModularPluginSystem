@@ -3,82 +3,35 @@ using System.Runtime.Loader;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Context;
 using ModularPluginAPI.Exceptions;
-using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 
-public class AssemblyLoader : IAssemblyLoader
+public class AssemblyLoader(PluginLoggingFacade logger) : IAssemblyLoader
 {
-    private readonly PluginLoggingFacade _logger;
     private readonly Dictionary<string, PluginLoadContext> _assemblyLoadContexts = new();
     
-    private string _pluginsSource;
-
-    public AssemblyLoader(PluginLoggingFacade logger, string pluginsSource)
-    {
-        CheckDirectoryPath(pluginsSource);
-        _pluginsSource = pluginsSource;
-        _logger = logger;
-    }
-
-    private static void CheckDirectoryPath(string pluginsSource)
-    {
-        if (string.IsNullOrWhiteSpace(pluginsSource) || !Directory.Exists(pluginsSource))
-            throw new ArgumentException("Invalid plugins path.", nameof(pluginsSource));
-    }
-    private static void CheckFileExists(string assemblyName, string assemblyPath)
+    private static void CheckFileExists(string assemblyPath)
     {
         if (!File.Exists(assemblyPath))
-            throw new AssemblyNotFoundException(assemblyName);
-    }
-    
-    private string ConcatPathAndName(string name)
-    {
-        var fullPath = Path.Combine(_pluginsSource, name);
-        if(!fullPath.EndsWith(".dll"))
-            fullPath += ".dll";
-        
-        return fullPath;
+            throw new AssemblyNotFoundException(assemblyPath);
     }
 
-
-    public void ChangeSource(string pluginDirectory)
+    public Assembly LoadAssembly(string assemblyPath)
     {
-        if (!Directory.Exists(pluginDirectory))
-            throw new ArgumentException($"Invalid plugin directory: {pluginDirectory}");
-        
-        _pluginsSource = pluginDirectory;
-        _logger.DirectoryChanged(pluginDirectory);
-    }
-
-
-    public Assembly LoadAssembly(string assemblyName)
-    {
-        var assemblyPath = ConcatPathAndName(assemblyName);
-        if (_assemblyLoadContexts.TryGetValue(assemblyName, out var pluginContext))
+        if (_assemblyLoadContexts.TryGetValue(assemblyPath, out var pluginContext))
             return pluginContext.LoadAssembly(assemblyPath);
 
-        CheckFileExists(assemblyName, assemblyPath);
+        CheckFileExists(assemblyPath);
         var context = new PluginLoadContext(assemblyPath);
-        _assemblyLoadContexts.Add(assemblyName, context);
+        _assemblyLoadContexts.Add(assemblyPath, context);
 
         var assembly = context.LoadAssembly(assemblyPath);
-        _logger.AssemblyLoaded(assemblyName);
+        logger.AssemblyLoaded(assemblyPath);
         return assembly;
     }
 
-    public IEnumerable<string> GetAllAssembliesNames()
-        => Directory.GetFiles(_pluginsSource, "*.dll")
-            .Select(Path.GetFileNameWithoutExtension!);
-
-    public IEnumerable<Assembly> LoadAssemblies(IEnumerable<string> assemblyNames)
-        => assemblyNames.Select(LoadAssembly);
-
-    public IEnumerable<Assembly> LoadAllAssemblies()
-    {
-        var assemblyNames = GetAllAssembliesNames();
-        return LoadAssemblies(assemblyNames);
-    }
+    public IEnumerable<Assembly> LoadAssemblies(IEnumerable<string> assemblyPaths)
+        => assemblyPaths.Select(LoadAssembly);
 
     private void Unload(AssemblyLoadContext context)
     {
@@ -98,6 +51,6 @@ public class AssemblyLoader : IAssemblyLoader
             return;
         
         Unload(context);    
-        _logger.AssemblyUnloaded(assemblyName);
+        logger.AssemblyUnloaded(assemblyName);
     }
 }

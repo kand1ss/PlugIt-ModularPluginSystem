@@ -1,5 +1,4 @@
 using System.Data;
-using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
@@ -24,9 +23,7 @@ public class AssemblyMetadataRepository : IAssemblyMetadataRepository
     public void Add(AssemblyMetadata metadata)
     {
         CheckPluginsForDuplicate(metadata);
-
-        var assemblyName = metadata.Name;
-        _assemblies.TryAdd(assemblyName, metadata);
+        _assemblies.TryAdd(metadata.Path, metadata);
     }
     public void AddRange(IEnumerable<AssemblyMetadata> metadata)
         => metadata.ToList().ForEach(Add);
@@ -37,8 +34,8 @@ public class AssemblyMetadataRepository : IAssemblyMetadataRepository
     public void Clear() => _assemblies.Clear();
 
 
-    public AssemblyMetadata? GetMetadataByAssemblyName(string assemblyName)
-        => _assemblies.GetValueOrDefault(assemblyName);
+    public AssemblyMetadata? GetMetadataByAssemblyPath(string assemblyPath)
+        => _assemblies.GetValueOrDefault(assemblyPath);
     public AssemblyMetadata? GetMetadataByPluginName(string pluginName)
         => _assemblies.FirstOrDefault(x => x.Value.Plugins
             .Select(m => m.Name)

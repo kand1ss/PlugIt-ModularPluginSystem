@@ -25,10 +25,4 @@ public class PluginDispatcher
             dependencyResolver, logger);
         Unloader = new(metadataService, loader, tracker);
     }
-    
-    public void ChangePluginDirectory(string pluginDirectory)
-    { 
-        _loader.ChangeSource(pluginDirectory);
-        Metadata.RebuildMetadata();
-    }
 }

@@ -1,15 +1,11 @@
 using System.Reflection;
-using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 
 public interface IAssemblyLoader
 {
-    void ChangeSource(string pluginDirectory);
-    
-    IEnumerable<Assembly> LoadAllAssemblies();
-    Assembly LoadAssembly(string assemblyName);
-    IEnumerable<string> GetAllAssembliesNames();
+    Assembly LoadAssembly(string assemblyPath);
+    IEnumerable<Assembly> LoadAssemblies(IEnumerable<string> assemblyPaths);
     
     void UnloadAssembly(string assemblyName);
 }

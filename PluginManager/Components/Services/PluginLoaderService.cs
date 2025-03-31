@@ -16,7 +16,7 @@ public class PluginLoaderService(PluginMetadataService metadataService, IAssembl
     public Assembly LoadAssemblyByPluginName(string pluginName)
     {
         var metadata = metadataService.GetMetadataByPluginName(pluginName);
-        return loader.LoadAssembly(metadata.Name);
+        return loader.LoadAssembly(metadata.Path);
     }
 
     public T TryGetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin

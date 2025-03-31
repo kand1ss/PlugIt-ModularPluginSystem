@@ -8,11 +8,9 @@ using ModularPluginAPI.Exceptions;
 
 namespace ModularPluginAPI;
 
-public class PluginManager : IDisposable
+public class PluginManager
 {
     private PluginDispatcher _dispatcher;
-    private readonly FileSystemWatcher _fileWatcher = new();
-
     private readonly ILoggerService _logger;
 
     /// <summary>
@@ -27,19 +25,16 @@ public class PluginManager : IDisposable
     private readonly IPluginTracker _tracker;
 
 
-    private void Initialize(string pluginsSource, IAssemblyMetadataRepository repository,
+    private void Initialize(IAssemblyMetadataRepository repository,
         IAssemblyLoader assemblyLoader, IAssemblyHandler assemblyHandler, IPluginExecutor pluginExecutor,
         IPluginTracker tracker, PluginLoggingFacade logger, IPluginLoaderService loaderService, 
         IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver)
     {
         _dispatcher = new(repository, assemblyLoader, assemblyHandler,
             pluginExecutor, tracker, logger, loaderService, metadataService, dependencyResolver);
-        _dispatcher.Metadata.RebuildMetadata();
-
-        InitializeFileWatcher(pluginsSource);
     }
 
-    public PluginManager(string pluginsSource)
+    public PluginManager()
     {
         var logRepository = new LogRepository();
         _logger = new PluginLoggerService(logRepository);
@@ -47,7 +42,7 @@ public class PluginManager : IDisposable
         _tracker = new PluginTracker(loggerFacade);
 
         var assemblyHandler = new AssemblyHandler();
-        var assemblyLoader = new AssemblyLoader(loggerFacade, pluginsSource);
+        var assemblyLoader = new AssemblyLoader(loggerFacade);
         var repository = new AssemblyMetadataRepository();
         var pluginExecutor = new PluginExecutor(_tracker, loggerFacade);
         
@@ -55,11 +50,11 @@ public class PluginManager : IDisposable
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
 
-        Initialize(pluginsSource, repository, assemblyLoader, assemblyHandler, pluginExecutor,
+        Initialize(repository, assemblyLoader, assemblyHandler, pluginExecutor,
             _tracker, loggerFacade, loaderService, metadataService, dependencyResolver);
     }
 
-    internal PluginManager(string pluginsSource, IPluginTracker tracker,
+    internal PluginManager(IPluginTracker tracker,
         IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository,
         IPluginExecutor executor, ILoggerService logger, IPluginLoaderService loaderService, 
         IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver)
@@ -68,49 +63,73 @@ public class PluginManager : IDisposable
         _tracker = tracker;
 
         var loggerFacade = new PluginLoggingFacade(_logger);
-        Initialize(pluginsSource, repository, loader, handler, executor, tracker, loggerFacade, 
+        Initialize(repository, loader, handler, executor, tracker, loggerFacade, 
             loaderService, metadataService, dependencyResolver);
     }
 
-    private void InitializeFileWatcher(string source)
+    /// <summary>
+    /// Registers the assembly metadata from the specified assembly file.
+    /// </summary>
+    /// <param name="assemblyPath">
+    /// The full path of the assembly whose metadata should be loaded and registered.
+    /// </param>
+    /// <remarks>
+    /// This method loads metadata for the specified assembly into the manager's repository,
+    /// thereby making the contained plugins discoverable. Once the metadata is loaded,
+    /// the corresponding assembly is unloaded if it is no longer in use.
+    /// </remarks>
+    public void RegisterAssembly(string assemblyPath)
     {
-        _fileWatcher.Path = source;
-        _fileWatcher.Filter = "*.dll";
-
-        _fileWatcher.Created += OnAssemblyAdded;
-        _fileWatcher.Deleted += OnAssemblyDeleted;
-        _fileWatcher.Changed += OnAssemblyUpdated;
-
-        _fileWatcher.EnableRaisingEvents = true;
+        _dispatcher.Metadata.LoadMetadata(assemblyPath);
+        _dispatcher.Unloader.UnloadAssembly(assemblyPath);
     }
 
-    public void Dispose()
+    /// <summary>
+    /// Registers the assembly metadata for all assemblies found in the specified directory.
+    /// </summary>
+    /// <param name="directoryPath">
+    /// The path to the directory containing assemblies to load metadata from.
+    /// </param>
+    /// <remarks>
+    /// This method loads metadata for each assembly found in the given directory,
+    /// enabling the manager to discover the plugins contained within those assemblies.
+    /// After loading the metadata, any assemblies that are not in use will be unloaded.
+    /// </remarks>
+    public void RegisterAssembliesFromDirectory(string directoryPath)
     {
-        _fileWatcher.Created -= OnAssemblyAdded;
-        _fileWatcher.Deleted -= OnAssemblyDeleted;
-        _fileWatcher.Changed -= OnAssemblyUpdated;
-
-        _fileWatcher.Dispose();
-        GC.SuppressFinalize(this);
+        _dispatcher.Metadata.LoadMetadataFromDirectory(directoryPath);
+        _dispatcher.Unloader.UnloadAssembliesFromDirectory(directoryPath);
     }
 
-    private void OnAssemblyAdded(object obj, FileSystemEventArgs e)
+    /// <summary>
+    /// Unregisters the assembly metadata for the specified assembly.
+    /// </summary>
+    /// <param name="assemblyPath">
+    /// The full path of the assembly whose metadata should be removed from the repository.
+    /// </param>
+    /// <remarks>
+    /// This method removes the metadata for the specified assembly from the manager's repository,
+    /// effectively marking the plugins contained in that assembly as no longer available.
+    /// </remarks>
+    public void UnloadAssembly(string assemblyPath)
     {
-        var name = Path.GetFileNameWithoutExtension(e.Name)!;
-        _dispatcher.Metadata.LoadMetadata(name);
-        _dispatcher.Unloader.UnloadAssembly(name);
+        _dispatcher.Metadata.RemoveMetadata(assemblyPath);
     }
 
-    private void OnAssemblyDeleted(object obj, FileSystemEventArgs e)
-        => _dispatcher.Metadata.RemoveMetadata(Path.GetFileNameWithoutExtension(e.Name)!);
-
-    private void OnAssemblyUpdated(object obj, FileSystemEventArgs e)
+    /// <summary>
+    /// Unregisters the assembly metadata for all assemblies in the specified directory.
+    /// </summary>
+    /// <param name="directoryPath">
+    /// The path to the directory containing assemblies whose metadata should be removed.
+    /// </param>
+    /// <remarks>
+    /// This method removes the metadata for all assemblies found in the specified directory from the manager's repository,
+    /// effectively making the plugins contained in those assemblies undiscoverable.
+    /// </remarks>
+    public void UnloadAssembliesFromDirectory(string directoryPath)
     {
-        var name = Path.GetFileNameWithoutExtension(e.Name)!;
-        _dispatcher.Metadata.UpdateMetadata(name);
-        _dispatcher.Unloader.UnloadAssembly(name);
+        _dispatcher.Metadata.RemoveMetadataFromDirectory(directoryPath);
     }
-
 
     /// <summary>
     /// Launches a standard plugin by its name. 
@@ -261,21 +280,4 @@ public class PluginManager : IDisposable
     /// </remarks>
     public void ExportTraceLogs(ILogExporter exporter)
         => _logger.ExportLogs(exporter);
-
-
-    /// <summary>
-    /// Changes the tracked plugin directory. 
-    /// When the directory is changed, all assembly metadata is completely rebuilt.
-    /// Returns the execution result, which may indicate failure if the specified directory does not exist.
-    /// </summary>
-    /// <param name="pluginDirectory">The new plugin directory to be tracked.</param>
-    /// <returns>
-    /// An <see cref="ExecutionResult"/> representing the outcome of the operation.
-    /// The result may indicate failure if the specified directory does not exist.
-    /// </returns>
-    public void ChangePluginDirectory(string pluginDirectory)
-    {
-        _dispatcher.ChangePluginDirectory(pluginDirectory);
-        _fileWatcher.Path = pluginDirectory;
-    }
 }

@@ -6,12 +6,12 @@ namespace ModularPluginAPI.Components;
 public class PluginUnloadDispatcher(IPluginMetadataService metadataService, IAssemblyLoader loader, 
     IPluginTracker tracker)
 {
-    public void UnloadAssembly(string assemblyName)
+    public void UnloadAssembly(string assemblyPath)
     {
-        var metadata = metadataService.GetMetadata(assemblyName);
+        var metadata = metadataService.GetMetadata(assemblyPath);
         var pluginNames = metadataService.GetPluginNamesFromMetadata(metadata);
         
-        loader.UnloadAssembly(assemblyName);
+        loader.UnloadAssembly(assemblyPath);
         tracker.SetPluginsState(pluginNames, PluginState.Unloaded);
     }
     
@@ -23,7 +23,7 @@ public class PluginUnloadDispatcher(IPluginMetadataService metadataService, IAss
         foreach (var dependency in plugin.Dependencies)
             UnloadAssemblyByPluginName(dependency.Name);
         
-        UnloadAssembly(metadata.Name);
+        UnloadAssembly(metadata.Path);
     }
     
     public void UnloadAssemblies(IEnumerable<string> assemblyNames)
@@ -31,10 +31,17 @@ public class PluginUnloadDispatcher(IPluginMetadataService metadataService, IAss
         foreach (var assemblyName in assemblyNames)
             UnloadAssembly(assemblyName);
     }
+
+    public void UnloadAssembliesFromDirectory(string directoryPath)
+    {
+        var assemblies = Directory.GetFiles(directoryPath, "*.dll", SearchOption.AllDirectories);
+        foreach(var assembly in assemblies)
+            UnloadAssembly(assembly);
+    }
     
     public void UnloadAllAssemblies()
     {
-        var assemblyNames = loader.GetAllAssembliesNames();
-        UnloadAssemblies(assemblyNames);
+        var assemblyPaths = metadataService.GetAllAssembliesPaths();
+        UnloadAssemblies(assemblyPaths);
     }
 }

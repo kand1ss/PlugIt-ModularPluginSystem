@@ -6,10 +6,10 @@ public interface IAssemblyMetadataRepository
 {
     void Add(AssemblyMetadata metadata);
     void AddRange(IEnumerable<AssemblyMetadata> metadata);
-    void Remove(string assemblyName);
+    void Remove(string assemblyPath);
     void Clear();
     
-    AssemblyMetadata? GetMetadataByAssemblyName(string assemblyName);
+    AssemblyMetadata? GetMetadataByAssemblyPath(string assemblyPath);
     AssemblyMetadata? GetMetadataByPluginName(string pluginName);
     IEnumerable<AssemblyMetadata> GetAllMetadata();
 }

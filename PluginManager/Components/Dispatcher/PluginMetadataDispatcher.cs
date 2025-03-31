@@ -1,8 +1,5 @@
-using System.Reflection;
 using ModularPluginAPI.Components.Interfaces.Services;
-using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
-using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 
@@ -11,50 +8,40 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IP
     PluginLoggingFacade logger)
 {
     private readonly AssemblyMetadataGenerator _metadataGenerator = new(handler);
-    
-    private IEnumerable<string> GetAssembliesNames(IEnumerable<Assembly> assemblies)
-        => assemblies.Select(assembly => assembly.GetName().Name ?? string.Empty);
-    
-    public void RebuildMetadata()
-    {
-        repository.Clear();
-        tracker.Clear();
-        
-        var assemblies = loader.LoadAllAssemblies();
-        var assemblyNames = GetAssembliesNames(assemblies);
 
-        foreach (var assemblyName in assemblyNames)
-        {
-            LoadMetadata(assemblyName);
-            loader.UnloadAssembly(assemblyName);
-        }
-    }
-
-    public void RemoveMetadata(string assemblyName)
+    public void RemoveMetadata(string assemblyPath)
     {
-        var metadata = metadataService.GetMetadata(assemblyName);
+        var metadata = metadataService.GetMetadata(assemblyPath);
         var plugins = metadataService.GetPluginNamesFromMetadata(metadata);
         
-        repository.Remove(assemblyName);
+        repository.Remove(assemblyPath);
         tracker.RemovePlugins(plugins);
-        logger.MetadataRemoved(assemblyName, metadata.Version);
+        logger.MetadataRemoved(assemblyPath, metadata.Version);
+    }
+
+    public void RemoveMetadataFromDirectory(string directoryPath)
+    {
+        var assemblies = Directory.GetFiles(directoryPath, "*.dll", SearchOption.AllDirectories);
+        foreach(var assembly in assemblies)
+            RemoveMetadata(assembly);
     }
     
-    public void LoadMetadata(string assemblyName)
+    public void LoadMetadata(string assemblyPath)
     {
-        var assembly = loader.LoadAssembly(assemblyName);
+        var assembly = loader.LoadAssembly(assemblyPath);
         var metadata = _metadataGenerator.Generate(assembly);
 
         MetadataValidator.Validate(metadata);
         repository.Add(metadata);
         
-        logger.MetadataAdded(assemblyName, metadata.Version);
+        logger.MetadataAdded(assemblyPath, metadata.Version);
         tracker.RegisterPlugins(metadata.Plugins);
     }
-    
-    public void UpdateMetadata(string assemblyName)
+
+    public void LoadMetadataFromDirectory(string directoryPath)
     {
-        RemoveMetadata(assemblyName);
-        LoadMetadata(assemblyName);
+        var assemblies = Directory.GetFiles(directoryPath, "*.dll", SearchOption.AllDirectories);
+        foreach(var assembly in assemblies)
+            LoadMetadata(assembly);
     }
 }
