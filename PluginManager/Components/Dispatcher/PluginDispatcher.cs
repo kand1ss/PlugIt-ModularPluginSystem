@@ -13,17 +13,17 @@ public class PluginDispatcher
     
 
     public PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyLoader loader, 
-        IAssemblyHandler handler, IPluginExecutor pluginExecutor, IPluginLifecycleManager lifecycleManager, 
+        IAssemblyHandler handler, IPluginExecutor pluginExecutor, IPluginTracker tracker, 
         PluginLoggingFacade logger, IPluginLoaderService loaderService, IPluginMetadataService metadataService, 
         IDependencyResolverService dependencyResolver)
     {
         _loader = loader;
         
-        Metadata = new(repository, metadataService, loader, handler, lifecycleManager, 
+        Metadata = new(repository, metadataService, loader, handler, tracker, 
             logger);
         Starter = new(metadataService, loaderService, loader, pluginExecutor, 
-            dependencyResolver);
-        Unloader = new(metadataService, loader, lifecycleManager);
+            dependencyResolver, logger);
+        Unloader = new(metadataService, loader, tracker);
     }
     
     public void ChangePluginDirectory(string pluginDirectory)

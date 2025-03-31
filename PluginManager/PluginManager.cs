@@ -14,15 +14,26 @@ public class PluginManager : IDisposable
     private readonly FileSystemWatcher _fileWatcher = new();
 
     private readonly ILoggerService _logger;
-    private readonly IPluginLifecycleManager _lifecycleManager;
+
+    /// <summary>
+    /// Provides access to the plugin tracking API, allowing integration with custom components 
+    /// that respond to plugin registration, removal, and state changes.
+    /// </summary>
+    /// <remarks>
+    /// External components can subscribe to plugin events through this tracker, enabling 
+    /// real-time monitoring and custom reactions to plugin lifecycle changes.
+    /// </remarks>
+    public IPluginTrackerPublic Tracker => _tracker;
+    private readonly IPluginTracker _tracker;
+
 
     private void Initialize(string pluginsSource, IAssemblyMetadataRepository repository,
         IAssemblyLoader assemblyLoader, IAssemblyHandler assemblyHandler, IPluginExecutor pluginExecutor,
-        IPluginLifecycleManager lifecycleManager, PluginLoggingFacade logger, IPluginLoaderService loaderService, 
+        IPluginTracker tracker, PluginLoggingFacade logger, IPluginLoaderService loaderService, 
         IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver)
     {
         _dispatcher = new(repository, assemblyLoader, assemblyHandler,
-            pluginExecutor, lifecycleManager, logger, loaderService, metadataService, dependencyResolver);
+            pluginExecutor, tracker, logger, loaderService, metadataService, dependencyResolver);
         _dispatcher.Metadata.RebuildMetadata();
 
         InitializeFileWatcher(pluginsSource);
@@ -32,32 +43,32 @@ public class PluginManager : IDisposable
     {
         var logRepository = new LogRepository();
         _logger = new PluginLoggerService(logRepository);
-        _lifecycleManager = new PluginLifecycleManager();
-
         var loggerFacade = new PluginLoggingFacade(_logger);
+        _tracker = new PluginTracker(loggerFacade);
+
         var assemblyHandler = new AssemblyHandler();
         var assemblyLoader = new AssemblyLoader(loggerFacade, pluginsSource);
         var repository = new AssemblyMetadataRepository();
-        var pluginExecutor = new PluginExecutor(_lifecycleManager, loggerFacade);
+        var pluginExecutor = new PluginExecutor(_tracker, loggerFacade);
         
         var metadataService = new PluginMetadataService(repository);
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
 
         Initialize(pluginsSource, repository, assemblyLoader, assemblyHandler, pluginExecutor,
-            _lifecycleManager, loggerFacade, loaderService, metadataService, dependencyResolver);
+            _tracker, loggerFacade, loaderService, metadataService, dependencyResolver);
     }
 
-    internal PluginManager(string pluginsSource, IPluginLifecycleManager lifecycleManager,
+    internal PluginManager(string pluginsSource, IPluginTracker tracker,
         IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository,
         IPluginExecutor executor, ILoggerService logger, IPluginLoaderService loaderService, 
         IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver)
     {
         _logger = logger;
-        _lifecycleManager = lifecycleManager;
+        _tracker = tracker;
 
         var loggerFacade = new PluginLoggingFacade(_logger);
-        Initialize(pluginsSource, repository, loader, handler, executor, lifecycleManager, loggerFacade, 
+        Initialize(pluginsSource, repository, loader, handler, executor, tracker, loggerFacade, 
             loaderService, metadataService, dependencyResolver);
     }
 
@@ -192,28 +203,11 @@ public class PluginManager : IDisposable
     }
 
     /// <summary>
-    /// Retrieves the state of a specific plugin by its name.
-    /// </summary>
-    /// <param name="pluginName">The name of the plugin whose state is to be retrieved.</param>
-    /// <returns>The current state of the specified plugin as a string.</returns>
-    public PluginInfo GetPluginState(string pluginName)
-        => _lifecycleManager.GetPluginState(pluginName);
-
-    /// <summary>
-    /// Retrieves the states of all plugins.
-    /// </summary>
-    /// <returns>An enumerable collection of PluginInfo objects representing the states of all plugins.</returns>
-    public IEnumerable<PluginInfo> GetPluginStates()
-        => _lifecycleManager.GetPluginStates();
-
-    /// <summary>
     /// Retrieves a list of messages from the logger.
     /// </summary>
     /// <returns>A collection of strings containing logged messages.</returns>
     public IEnumerable<string> GetMessagesFromLogger()
         => _logger.GetLogs();
-
-    
 
     /// <summary>
     /// Exports logs with filtering, excluding specified log types.

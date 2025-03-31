@@ -4,13 +4,13 @@ using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginExecutor(IPluginLifecycleManager lifecycleManager, PluginLoggingFacade logger) : IPluginExecutor
+public class PluginExecutor(IPluginTracker tracker, PluginLoggingFacade logger) : IPluginExecutor
 {
     private void TryInitializePlugin(IPlugin plugin)
     {
         if (plugin is IInitialisablePlugin initPlugin)
         {
-            lifecycleManager.SetPluginState(plugin.Name, PluginState.Initializing);
+            tracker.SetPluginState(plugin.Name, PluginState.Initializing);
             logger.PluginInitialized(plugin.Name, plugin.Version);
             
             initPlugin.Initialize();
@@ -20,7 +20,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, PluginLogg
     {
         if (plugin is IExecutablePlugin executablePlugin)
         {
-            lifecycleManager.SetPluginState(plugin.Name, PluginState.Running);
+            tracker.SetPluginState(plugin.Name, PluginState.Running);
             logger.PluginExecuted(plugin.Name, plugin.Version);
             
             executablePlugin.Execute();
@@ -30,7 +30,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, PluginLogg
     {
         if (plugin is IFinalisablePlugin finalPlugin)
         {
-            lifecycleManager.SetPluginState(plugin.Name, PluginState.Finalizing);
+            tracker.SetPluginState(plugin.Name, PluginState.Finalizing);
             logger.PluginFinalized(plugin.Name, plugin.Version);
             
             finalPlugin.FinalizePlugin();
@@ -51,7 +51,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, PluginLogg
     {
         TryInitializePlugin(extension);
         
-        lifecycleManager.SetPluginState(extension.Name, PluginState.Running);
+        tracker.SetPluginState(extension.Name, PluginState.Running);
         logger.ExtensionPluginExecuting(extension.Name, extension.Version);
         
         extension.Expand(ref data);
@@ -62,7 +62,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, PluginLogg
     {
         TryInitializePlugin(plugin);
         
-        lifecycleManager.SetPluginState(plugin.Name, PluginState.Running);
+        tracker.SetPluginState(plugin.Name, PluginState.Running);
         logger.NetworkPluginExecuting(plugin.Name, plugin.Version, false);
         
         var result = plugin.ReceiveData();
@@ -73,7 +73,7 @@ public class PluginExecutor(IPluginLifecycleManager lifecycleManager, PluginLogg
     public void ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin)
         => ExecuteAction(addon =>
         {
-            lifecycleManager.SetPluginState(plugin.Name, PluginState.Running);
+            tracker.SetPluginState(plugin.Name, PluginState.Running);
             logger.NetworkPluginExecuting(plugin.Name, plugin.Version, true);
             
             plugin.SendData(data);

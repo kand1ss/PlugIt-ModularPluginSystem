@@ -1,7 +1,7 @@
 
 namespace PluginAPI;
 
-public abstract class PluginBase : IInitialisablePlugin, IFinalisablePlugin, IPluginWithDependencies
+public abstract class PluginBase : IPluginWithDependencies
 {
     public Dictionary<string, IPlugin> LoadedDependencies { get; } = new();
     
@@ -11,12 +11,8 @@ public abstract class PluginBase : IInitialisablePlugin, IFinalisablePlugin, IPl
     public abstract string Description { get; }
     public abstract string Author { get; }
 
-    public abstract void Initialize();
-    public abstract void FinalizePlugin();
-
     public void LoadConfiguration(PluginConfiguration? configuration)
         => Configuration = configuration;
-    
     
     public void LoadDependency(IPlugin plugin)
         => LoadedDependencies.Add(plugin.Name, plugin);

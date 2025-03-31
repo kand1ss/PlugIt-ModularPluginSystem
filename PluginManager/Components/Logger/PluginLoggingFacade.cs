@@ -1,14 +1,17 @@
+using ModularPluginAPI.Components.Lifecycle;
+using ModularPluginAPI.Components.Lifecycle.Observer;
+
 namespace ModularPluginAPI.Components.Logger;
 
 public class PluginLoggingFacade(ILoggerService logger)
 {
     public void AssemblyLoaded(string assemblyName)
     {
-        logger.Log(LogSender.PluginManager, LogType.TRACE, $"Assembly '{assemblyName}' loaded.");
+        logger.Log(LogSender.PluginManager, LogType.TRACE, $"(AssemblyLoader) - Assembly '{assemblyName}' loaded.");
     }
     public void AssemblyUnloaded(string assemblyName)
     {
-        logger.Log(LogSender.PluginManager, LogType.TRACE, $"Assembly '{assemblyName}' unloaded.");
+        logger.Log(LogSender.PluginManager, LogType.TRACE, $"(AssemblyLoader) - Assembly '{assemblyName}' unloaded.");
     }
     
     public void MetadataAdded(string assemblyName, Version assemblyVersion)
@@ -60,6 +63,12 @@ public class PluginLoggingFacade(ILoggerService logger)
             $"Finalizing plugin '{pluginName} v{pluginVersion}'.");
     }
 
+    public void PluginStateChanged(string pluginName, PluginState pluginState)
+    {
+        logger.Log(LogSender.PluginManager, LogType.TRACE, 
+            $"(PluginTracker) - Plugin '{pluginName}' state changed: '{pluginState}'");
+    }
+
     public void DependencyLoaded(string dependencyName, Version dependencyVersion, string assemblyName,
         Version assemblyVersion)
     {
@@ -71,5 +80,14 @@ public class PluginLoggingFacade(ILoggerService logger)
     public void DirectoryChanged(string directory)
     {
         logger.Log(LogSender.PluginManager, LogType.INFO, $"Plugin directory changed to: '{directory}'.");
+    }
+
+    public void TrackerComponentRegistered(IPluginTrackerObserver component)
+    {
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, $"(PluginTracker) - Custom component '{component.GetType().Name}' registered.");
+    }
+    public void TrackerComponentRemoved(IPluginTrackerObserver component)
+    {
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, $"(PluginTracker) - Custom component '{component.GetType().Name}' removed.");
     }
 }
