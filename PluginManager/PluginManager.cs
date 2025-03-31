@@ -14,7 +14,18 @@ public class PluginManager : IDisposable
     private readonly FileSystemWatcher _fileWatcher = new();
 
     private readonly ILoggerService _logger;
+
+    /// <summary>
+    /// Provides access to the plugin tracking API, allowing integration with custom components 
+    /// that respond to plugin registration, removal, and state changes.
+    /// </summary>
+    /// <remarks>
+    /// External components can subscribe to plugin events through this tracker, enabling 
+    /// real-time monitoring and custom reactions to plugin lifecycle changes.
+    /// </remarks>
+    public IPluginTrackerPublic Tracker => _tracker;
     private readonly IPluginTracker _tracker;
+
 
     private void Initialize(string pluginsSource, IAssemblyMetadataRepository repository,
         IAssemblyLoader assemblyLoader, IAssemblyHandler assemblyHandler, IPluginExecutor pluginExecutor,
@@ -192,28 +203,11 @@ public class PluginManager : IDisposable
     }
 
     /// <summary>
-    /// Retrieves the state of a specific plugin by its name.
-    /// </summary>
-    /// <param name="pluginName">The name of the plugin whose state is to be retrieved.</param>
-    /// <returns>The current state of the specified plugin as a string.</returns>
-    public PluginInfo GetPluginStatus(string pluginName)
-        => _tracker.GetPluginStatus(pluginName);
-
-    /// <summary>
-    /// Retrieves the states of all plugins.
-    /// </summary>
-    /// <returns>An enumerable collection of PluginInfo objects representing the states of all plugins.</returns>
-    public IEnumerable<PluginInfo> GetPluginsStatus()
-        => _tracker.GetPluginsStatus();
-
-    /// <summary>
     /// Retrieves a list of messages from the logger.
     /// </summary>
     /// <returns>A collection of strings containing logged messages.</returns>
     public IEnumerable<string> GetMessagesFromLogger()
         => _logger.GetLogs();
-
-    
 
     /// <summary>
     /// Exports logs with filtering, excluding specified log types.
