@@ -9,23 +9,6 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IP
 {
     private readonly AssemblyMetadataGenerator _metadataGenerator = new(handler);
 
-    public void RemoveMetadata(string assemblyPath)
-    {
-        var metadata = metadataService.GetMetadata(assemblyPath);
-        var plugins = metadataService.GetPluginNamesFromMetadata(metadata);
-        
-        repository.Remove(assemblyPath);
-        tracker.RemovePlugins(plugins);
-        logger.MetadataRemoved(assemblyPath, metadata.Version);
-    }
-
-    public void RemoveMetadataFromDirectory(string directoryPath)
-    {
-        var assemblies = Directory.GetFiles(directoryPath, "*.dll", SearchOption.AllDirectories);
-        foreach(var assembly in assemblies)
-            RemoveMetadata(assembly);
-    }
-    
     public void LoadMetadata(string assemblyPath)
     {
         var assembly = loader.LoadAssembly(assemblyPath);
@@ -35,7 +18,6 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IP
         repository.Add(metadata);
         
         logger.MetadataAdded(assemblyPath, metadata.Version);
-        tracker.RegisterPlugins(metadata.Plugins);
     }
 
     public void LoadMetadataFromDirectory(string directoryPath)
@@ -43,5 +25,20 @@ public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IP
         var assemblies = Directory.GetFiles(directoryPath, "*.dll", SearchOption.AllDirectories);
         foreach(var assembly in assemblies)
             LoadMetadata(assembly);
+    }
+
+    public void RemoveMetadata(string assemblyPath)
+    {
+        var metadata = metadataService.GetMetadata(assemblyPath);
+        
+        repository.Remove(assemblyPath);
+        logger.MetadataRemoved(assemblyPath, metadata.Version);
+    }
+
+    public void RemoveMetadataFromDirectory(string directoryPath)
+    {
+        var assemblies = Directory.GetFiles(directoryPath, "*.dll", SearchOption.AllDirectories);
+        foreach(var assembly in assemblies)
+            RemoveMetadata(assembly);
     }
 }
