@@ -1,8 +1,9 @@
+using ModularPluginAPI.Components.Interfaces;
 using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 
-public interface IAssemblyMetadataRepository
+public interface IAssemblyMetadataRepository : IObservableMetadataRepository
 {
     void Add(AssemblyMetadata metadata);
     void AddRange(IEnumerable<AssemblyMetadata> metadata);

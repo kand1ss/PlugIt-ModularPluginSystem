@@ -10,7 +10,7 @@ namespace ModularPluginAPI;
 
 public class PluginManager
 {
-    private PluginDispatcher _dispatcher;
+    private readonly PluginDispatcher _dispatcher;
     private readonly ILoggerService _logger;
 
     /// <summary>
@@ -24,34 +24,26 @@ public class PluginManager
     public IPluginTrackerPublic Tracker => _tracker;
     private readonly IPluginTracker _tracker;
 
-
-    private void Initialize(IAssemblyMetadataRepository repository,
-        IAssemblyLoader assemblyLoader, IAssemblyHandler assemblyHandler, IPluginExecutor pluginExecutor,
-        IPluginTracker tracker, PluginLoggingFacade logger, IPluginLoaderService loaderService, 
-        IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver)
-    {
-        _dispatcher = new(repository, assemblyLoader, assemblyHandler,
-            pluginExecutor, tracker, logger, loaderService, metadataService, dependencyResolver);
-    }
-
     public PluginManager()
     {
         var logRepository = new LogRepository();
         _logger = new PluginLoggerService(logRepository);
         var loggerFacade = new PluginLoggingFacade(_logger);
-        _tracker = new PluginTracker(loggerFacade);
+        var pluginTracker = new PluginTracker(loggerFacade);
+        _tracker = pluginTracker;
 
         var assemblyHandler = new AssemblyHandler();
         var assemblyLoader = new AssemblyLoader(loggerFacade);
         var repository = new AssemblyMetadataRepository();
+        repository.AddObserver(pluginTracker);
         var pluginExecutor = new PluginExecutor(_tracker, loggerFacade);
         
         var metadataService = new PluginMetadataService(repository);
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
 
-        Initialize(repository, assemblyLoader, assemblyHandler, pluginExecutor,
-            _tracker, loggerFacade, loaderService, metadataService, dependencyResolver);
+        _dispatcher = new(repository, assemblyLoader, assemblyHandler,
+            pluginExecutor, _tracker,loggerFacade, loaderService, metadataService, dependencyResolver);
     }
 
     internal PluginManager(IPluginTracker tracker,
@@ -61,10 +53,11 @@ public class PluginManager
     {
         _logger = logger;
         _tracker = tracker;
+        repository.AddObserver(tracker);
 
         var loggerFacade = new PluginLoggingFacade(_logger);
-        Initialize(repository, loader, handler, executor, tracker, loggerFacade, 
-            loaderService, metadataService, dependencyResolver);
+        _dispatcher = new(repository, loader, handler,
+            executor, _tracker,loggerFacade, loaderService, metadataService, dependencyResolver);
     }
 
     /// <summary>
@@ -111,7 +104,7 @@ public class PluginManager
     /// This method removes the metadata for the specified assembly from the manager's repository,
     /// effectively marking the plugins contained in that assembly as no longer available.
     /// </remarks>
-    public void UnloadAssembly(string assemblyPath)
+    public void UnregisterAssembly(string assemblyPath)
     {
         _dispatcher.Metadata.RemoveMetadata(assemblyPath);
     }
@@ -126,7 +119,7 @@ public class PluginManager
     /// This method removes the metadata for all assemblies found in the specified directory from the manager's repository,
     /// effectively making the plugins contained in those assemblies undiscoverable.
     /// </remarks>
-    public void UnloadAssembliesFromDirectory(string directoryPath)
+    public void UnregisterAssembliesFromDirectory(string directoryPath)
     {
         _dispatcher.Metadata.RemoveMetadataFromDirectory(directoryPath);
     }

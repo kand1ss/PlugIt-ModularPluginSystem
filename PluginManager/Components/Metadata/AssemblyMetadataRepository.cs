@@ -1,11 +1,24 @@
 using System.Data;
+using ModularPluginAPI.Components.Observer;
 using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 
 public class AssemblyMetadataRepository : IAssemblyMetadataRepository
 {
+    private readonly List<IMetadataRepositoryObserver> _observers = new();
     private readonly Dictionary<string, AssemblyMetadata> _assemblies = new();
+
+
+    private void NotifyObservers(Action<IMetadataRepositoryObserver> action)
+    {
+        foreach(var observer in _observers)
+            action(observer);
+    }
+    public void AddObserver(IMetadataRepositoryObserver observer)
+        => _observers.Add(observer);
+    public void RemoveObserver(IMetadataRepositoryObserver observer)
+        => _observers.Remove(observer);
 
     private void CheckPluginsForDuplicate(AssemblyMetadata metadata)
     {
@@ -23,15 +36,26 @@ public class AssemblyMetadataRepository : IAssemblyMetadataRepository
     public void Add(AssemblyMetadata metadata)
     {
         CheckPluginsForDuplicate(metadata);
-        _assemblies.TryAdd(metadata.Path, metadata);
+        if(_assemblies.TryAdd(metadata.Path, metadata))
+            NotifyObservers(o => o.OnMetadataAdded(metadata));
+            
     }
     public void AddRange(IEnumerable<AssemblyMetadata> metadata)
         => metadata.ToList().ForEach(Add);
     
     
     public void Remove(string assemblyName)
-        => _assemblies.Remove(assemblyName);
-    public void Clear() => _assemblies.Clear();
+    {
+        var metadata = _assemblies[assemblyName];
+        if(_assemblies.Remove(assemblyName))
+            NotifyObservers(o => o.OnMetadataRemoved(metadata));
+    }
+
+    public void Clear()
+    {
+        _assemblies.Clear();
+        NotifyObservers(o => o.OnMetadataCleared());
+    }
 
 
     public AssemblyMetadata? GetMetadataByAssemblyPath(string assemblyPath)
