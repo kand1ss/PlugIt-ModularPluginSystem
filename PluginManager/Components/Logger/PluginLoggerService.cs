@@ -10,14 +10,19 @@ public class PluginLoggerService(ILogRepository logRepository) : ILoggerService
     public IEnumerable<string> GetLogs()
         => logRepository.GetLogs();
 
+    private void ExportMessages(ILogExporter exporter, IEnumerable<string> messages)
+    {
+        exporter.Export(messages);
+        logRepository.ClearLogs();
+    }
     public void ExportLogs(ILogExporter exporter)
     {
         var messages = logRepository.GetLogs();
-        exporter.Export(messages);
+        ExportMessages(exporter, messages);
     }
     public void ExportLogs(ILogExporter exporter, IEnumerable<LogType> exceptLogTypes)
     {
         var messages = logRepository.GetLogsExceptByLogTypes(exceptLogTypes);
-        exporter.Export(messages);
+        ExportMessages(exporter, messages);
     }
 }

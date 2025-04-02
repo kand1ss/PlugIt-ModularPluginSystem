@@ -8,17 +8,20 @@ public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker
 {
     private readonly List<IPluginTrackerObserver> _observers = new();
     private readonly Dictionary<string, PluginInfo> _plugins = new();
+
     
     private void NotifyObservers(Action<IPluginTrackerObserver> action)
     {
         foreach(var observer in _observers)
             action(observer);
     }
+
     public void AddObserver(IPluginTrackerObserver observer)
     {
         _observers.Add(observer);
         logger.TrackerComponentRegistered(observer);
     }
+
     public void RemoveObserver(IPluginTrackerObserver observer)
     {
         _observers.Remove(observer);
@@ -38,16 +41,18 @@ public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker
     }
 
     public void OnMetadataCleared()
-    {
-        Clear();
-    }
+        => Clear();
+
+    public void OnPluginStateChanged(PluginInfo plugin)
+        => SetPluginState(plugin.Name, plugin.State);
+
+    
     
     public void RegisterPlugin(PluginMetadata plugin)
     {
         var pluginInfo = PluginInfoMapper.Map(plugin);
         if(_plugins.TryAdd(plugin.Name, pluginInfo))
             NotifyObservers(o => o.OnPluginRegistered(pluginInfo));
-            
     }
 
     public void RegisterPlugins(IEnumerable<PluginMetadata> plugins)

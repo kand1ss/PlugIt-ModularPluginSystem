@@ -6,8 +6,7 @@ using PluginAPI;
 namespace ModularPluginAPI.Components;
 
 public class PluginStartDispatcher(IPluginMetadataService metadataService, IPluginLoaderService loaderService, 
-    IAssemblyLoader loader, IPluginExecutor pluginExecutor, IDependencyResolverService dependencyResolver,
-    PluginLoggingFacade logger)
+    IPluginExecutor pluginExecutor, IDependencyResolverService dependencyResolver, PluginLoggingFacade logger)
 {
     private T GetPluginFromAssembly<T>(string pluginName) where T : class, IPlugin
     {
@@ -38,7 +37,6 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
     
     public void StartAllPluginsFromAssembly(string assemblyPath)
     {
-        var assemblyName = Path.GetFileNameWithoutExtension(assemblyPath);
         var metadata = metadataService.GetMetadata(assemblyPath);
         MetadataValidator.Validate(metadata);
         

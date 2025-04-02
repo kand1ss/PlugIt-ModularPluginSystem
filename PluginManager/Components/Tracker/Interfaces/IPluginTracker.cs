@@ -4,7 +4,7 @@ using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components;
 
-public interface IPluginTracker : IPluginTrackerPublic, IMetadataRepositoryObserver
+public interface IPluginTracker : IPluginTrackerPublic, IMetadataRepositoryObserver, IPluginExecutorObserver
 {
     void RegisterPlugin(PluginMetadata plugin);
     void RegisterPlugins(IEnumerable<PluginMetadata> plugins);

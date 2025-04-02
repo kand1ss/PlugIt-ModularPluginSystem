@@ -21,7 +21,7 @@ public class PluginDispatcher
         
         Metadata = new(repository, metadataService, loader, handler, tracker, 
             logger);
-        Starter = new(metadataService, loaderService, loader, pluginExecutor, 
+        Starter = new(metadataService, loaderService, pluginExecutor, 
             dependencyResolver, logger);
         Unloader = new(metadataService, loader, tracker);
     }
