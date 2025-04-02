@@ -36,7 +36,8 @@ public class PluginManager
         var assemblyLoader = new AssemblyLoader(loggerFacade);
         var repository = new AssemblyMetadataRepository();
         repository.AddObserver(pluginTracker);
-        var pluginExecutor = new PluginExecutor(_tracker, loggerFacade);
+        var pluginExecutor = new PluginExecutor(loggerFacade);
+        pluginExecutor.AddObserver(pluginTracker);
         
         var metadataService = new PluginMetadataService(repository);
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);

@@ -1,49 +1,71 @@
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
+using ModularPluginAPI.Components.Observer;
 using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginExecutor(IPluginTracker tracker, PluginLoggingFacade logger) : IPluginExecutor
+public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
 {
+    private readonly List<IPluginExecutorObserver> _observers = new();
+    
+    public void AddObserver(IPluginExecutorObserver observer)
+        => _observers.Add(observer);
+
+    public void RemoveObserver(IPluginExecutorObserver observer)
+        => _observers.Remove(observer);
+
+    private void NotifyObservers(IPlugin plugin, PluginState state)
+    {
+        var metadata = PluginMetadataGenerator.Generate(plugin);
+        var pluginInfo = PluginInfoMapper.Map(metadata);
+        pluginInfo.State = state;
+        
+        foreach(var observer in _observers)
+            observer.OnPluginStateChanged(pluginInfo);
+    }
+
     private void TryInitializePlugin(IPlugin plugin)
     {
         if (plugin is IInitialisablePlugin initPlugin)
         {
-            tracker.SetPluginState(plugin.Name, PluginState.Initializing);
+            NotifyObservers(plugin, PluginState.Initializing);
             logger.PluginInitialized(plugin.Name, plugin.Version);
             
             initPlugin.Initialize();
         }
     }
+
     private void TryExecutePlugin(IPlugin plugin)
     {
         if (plugin is IExecutablePlugin executablePlugin)
         {
-            tracker.SetPluginState(plugin.Name, PluginState.Running);
+            NotifyObservers(plugin, PluginState.Running);
             logger.PluginExecuted(plugin.Name, plugin.Version);
             
             executablePlugin.Execute();
         }
     }
+
     private void TryFinalizePlugin(IPlugin plugin)
     {
         if (plugin is IFinalisablePlugin finalPlugin)
         {
-            tracker.SetPluginState(plugin.Name, PluginState.Finalizing);
+            NotifyObservers(plugin, PluginState.Finalizing);
             logger.PluginFinalized(plugin.Name, plugin.Version);
             
             finalPlugin.FinalizePlugin();
         }
     }
+
     private void ExecuteAction(Action<IPlugin> action, IPlugin plugin)
     {
         TryInitializePlugin(plugin);
         action(plugin);
         TryFinalizePlugin(plugin);
     }
-    
-    
+
+
     public void Execute(IPlugin plugin)
         => ExecuteAction(TryExecutePlugin, plugin);
 
@@ -51,18 +73,19 @@ public class PluginExecutor(IPluginTracker tracker, PluginLoggingFacade logger) 
     {
         TryInitializePlugin(extension);
         
-        tracker.SetPluginState(extension.Name, PluginState.Running);
+        NotifyObservers(extension, PluginState.Running);
         logger.ExtensionPluginExecuting(extension.Name, extension.Version);
         
         extension.Expand(ref data);
         
         TryFinalizePlugin(extension);
     }
+
     public byte[] ExecuteNetworkPluginReceive(INetworkPlugin plugin)
     {
         TryInitializePlugin(plugin);
         
-        tracker.SetPluginState(plugin.Name, PluginState.Running);
+        NotifyObservers(plugin, PluginState.Running);
         logger.NetworkPluginExecuting(plugin.Name, plugin.Version, false);
         
         var result = plugin.ReceiveData();
@@ -70,10 +93,11 @@ public class PluginExecutor(IPluginTracker tracker, PluginLoggingFacade logger) 
         TryFinalizePlugin(plugin);
         return result;
     }
+
     public void ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin)
         => ExecuteAction(addon =>
         {
-            tracker.SetPluginState(plugin.Name, PluginState.Running);
+            NotifyObservers(plugin, PluginState.Running);
             logger.NetworkPluginExecuting(plugin.Name, plugin.Version, true);
             
             plugin.SendData(data);
