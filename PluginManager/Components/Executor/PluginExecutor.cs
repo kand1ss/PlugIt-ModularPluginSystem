@@ -25,13 +25,14 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
             observer.OnPluginStateChanged(pluginInfo);
     }
 
+    
+    
     private void TryInitializePlugin(IPlugin plugin)
     {
         if (plugin is IInitialisablePlugin initPlugin)
         {
             NotifyObservers(plugin, PluginState.Initializing);
             logger.PluginInitialized(plugin.Name, plugin.Version);
-            
             initPlugin.Initialize();
         }
     }
@@ -40,9 +41,7 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
     {
         if (plugin is IExecutablePlugin executablePlugin)
         {
-            NotifyObservers(plugin, PluginState.Running);
             logger.PluginExecuted(plugin.Name, plugin.Version);
-            
             executablePlugin.Execute();
         }
     }
@@ -53,53 +52,60 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
         {
             NotifyObservers(plugin, PluginState.Finalizing);
             logger.PluginFinalized(plugin.Name, plugin.Version);
-            
             finalPlugin.FinalizePlugin();
         }
     }
 
-    private void ExecuteAction(Action<IPlugin> action, IPlugin plugin)
-    {
-        TryInitializePlugin(plugin);
-        action(plugin);
-        TryFinalizePlugin(plugin);
-    }
-
-
-    public void Execute(IPlugin plugin)
-        => ExecuteAction(TryExecutePlugin, plugin);
-
-    public void ExecuteExtensionPlugin<T>(ref T data, IExtensionPlugin<T> extension)
-    {
-        TryInitializePlugin(extension);
-        
-        NotifyObservers(extension, PluginState.Running);
-        logger.ExtensionPluginExecuting(extension.Name, extension.Version);
-        
-        extension.Expand(ref data);
-        
-        TryFinalizePlugin(extension);
-    }
-
-    public byte[] ExecuteNetworkPluginReceive(INetworkPlugin plugin)
+    private void ExecutePlugin(IPlugin plugin, Action<IPlugin> action)
     {
         TryInitializePlugin(plugin);
         
         NotifyObservers(plugin, PluginState.Running);
-        logger.NetworkPluginExecuting(plugin.Name, plugin.Version, false);
-        
-        var result = plugin.ReceiveData();
+        action(plugin);
         
         TryFinalizePlugin(plugin);
+        NotifyObservers(plugin, PluginState.Completed);
+    }
+
+    private TResult ExecutePlugin<TResult>(IPlugin plugin, Func<IPlugin, TResult> action)
+    {
+        TryInitializePlugin(plugin);
+        
+        NotifyObservers(plugin, PluginState.Running);
+        var result = action(plugin);
+        
+        TryFinalizePlugin(plugin);
+        NotifyObservers(plugin, PluginState.Completed);
         return result;
     }
 
-    public void ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin)
-        => ExecuteAction(addon =>
+
+    public void Execute(IPlugin plugin)
+        => ExecutePlugin(plugin, TryExecutePlugin);
+
+    public void ExecuteExtensionPlugin<T>(ref T data, IExtensionPlugin<T> plugin)
+    {
+        TryInitializePlugin(plugin);
+        
+        NotifyObservers(plugin, PluginState.Running);
+        logger.ExtensionPluginExecuting(plugin.Name, plugin.Version);
+        plugin.Expand(ref data);
+        
+        TryFinalizePlugin(plugin);
+        NotifyObservers(plugin, PluginState.Completed);
+    }
+
+    public byte[] ExecuteNetworkPluginReceive(INetworkPlugin plugin)
+        => ExecutePlugin<byte[]>(plugin, p =>
         {
-            NotifyObservers(plugin, PluginState.Running);
-            logger.NetworkPluginExecuting(plugin.Name, plugin.Version, true);
-            
-            plugin.SendData(data);
-        }, plugin);
+            logger.NetworkPluginExecuting(p.Name, p.Version, false);
+            return ((INetworkPlugin)p).ReceiveData();
+        });
+
+    public void ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin)
+        => ExecutePlugin(plugin, p =>
+        {
+            logger.NetworkPluginExecuting(p.Name, p.Version, true);
+            ((INetworkPlugin)p).SendData(data);
+        });
 }
