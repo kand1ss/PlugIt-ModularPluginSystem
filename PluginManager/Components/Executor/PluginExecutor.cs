@@ -56,6 +56,12 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
         }
     }
 
+    private void OnPluginCompleted(IPlugin plugin)
+    {
+        NotifyObservers(plugin, PluginState.Completed);
+        logger.PluginExecutionCompleted(plugin.Name, plugin.Version);
+    }
+
     private void ExecutePlugin(IPlugin plugin, Action<IPlugin> action)
     {
         TryInitializePlugin(plugin);
@@ -64,7 +70,7 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
         action(plugin);
         
         TryFinalizePlugin(plugin);
-        NotifyObservers(plugin, PluginState.Completed);
+        OnPluginCompleted(plugin);
     }
 
     private TResult ExecutePlugin<TResult>(IPlugin plugin, Func<IPlugin, TResult> action)
@@ -75,7 +81,7 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
         var result = action(plugin);
         
         TryFinalizePlugin(plugin);
-        NotifyObservers(plugin, PluginState.Completed);
+        OnPluginCompleted(plugin);
         return result;
     }
 
@@ -92,7 +98,7 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
         plugin.Expand(ref data);
         
         TryFinalizePlugin(plugin);
-        NotifyObservers(plugin, PluginState.Completed);
+        OnPluginCompleted(plugin);
     }
 
     public byte[] ExecuteNetworkPluginReceive(INetworkPlugin plugin)

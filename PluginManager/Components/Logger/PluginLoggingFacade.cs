@@ -63,6 +63,12 @@ public class PluginLoggingFacade(ILoggerService logger)
             $"Finalizing plugin '{pluginName} v{pluginVersion}'.");
     }
 
+    public void PluginExecutionCompleted(string pluginName, Version pluginVersion)
+    {
+        logger.Log(LogSender.Plugin, LogType.INFO, 
+            $"Plugin execution completed: '{pluginName} v{pluginVersion}'.");
+    }
+
     public void PluginStateChanged(string pluginName, PluginState pluginState)
     {
         logger.Log(LogSender.PluginManager, LogType.TRACE, 
@@ -74,12 +80,6 @@ public class PluginLoggingFacade(ILoggerService logger)
     {
         logger.Log(LogSender.PluginManager, LogType.DEBUG, 
             $"Dependency '{dependencyName} v{dependencyVersion}' from assembly '{assemblyName} v{assemblyVersion}' loaded.");
-    }
-
-
-    public void DirectoryChanged(string directory)
-    {
-        logger.Log(LogSender.PluginManager, LogType.INFO, $"Plugin directory changed to: '{directory}'.");
     }
 
     public void TrackerComponentRegistered(IPluginTrackerObserver component)

@@ -16,6 +16,8 @@ public class LogRepository : ILogRepository
 
     public IEnumerable<string> GetLogs()
         => ParseLogsToString();
+    public void ClearLogs()
+        => _logs.Clear();
     private IEnumerable<LogData> GetLogsExceptLogType(IEnumerable<LogType> exceptLogTypes)
         => _logs.Where(m => !exceptLogTypes.Contains(m.LogType));
 
