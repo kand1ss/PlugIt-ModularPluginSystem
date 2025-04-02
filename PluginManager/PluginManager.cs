@@ -4,6 +4,7 @@ using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Logger.Components;
 using ModularPluginAPI.Components.Logger.Interfaces;
+using ModularPluginAPI.Components.Profiler;
 using ModularPluginAPI.Exceptions;
 
 namespace ModularPluginAPI;
@@ -12,6 +13,7 @@ public class PluginManager
 {
     private readonly PluginDispatcher _dispatcher;
     private readonly ILoggerService _logger;
+    private readonly IPluginPerformanceProfiler _profiler;
 
     /// <summary>
     /// Provides access to the plugin tracking API, allowing integration with custom components 
@@ -37,8 +39,11 @@ public class PluginManager
         var repository = new AssemblyMetadataRepository();
         repository.AddObserver(pluginTracker);
         var pluginExecutor = new PluginExecutor(loggerFacade);
+        var pluginProfiler = new PluginPerformanceProfiler();
+        _profiler = pluginProfiler;
         pluginExecutor.AddObserver(pluginTracker);
-        
+        pluginExecutor.AddObserver(pluginProfiler);
+
         var metadataService = new PluginMetadataService(repository);
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
@@ -274,4 +279,17 @@ public class PluginManager
     /// </remarks>
     public void ExportTraceLogs(ILogExporter exporter)
         => _logger.ExportLogs(exporter);
+
+    /// <summary>
+    /// Exports the collected profiler logs using the specified log exporter.
+    /// </summary>
+    /// <param name="exporter">
+    /// An instance of <see cref="ILogExporter"/> that handles the export of the profiler logs.
+    /// </param>
+    /// <remarks>
+    /// This method delegates the export process to the underlying profiler logger,
+    /// which formats and sends the profiling data to the given exporter.
+    /// </remarks>
+    public void ExportProfilerLogs(ILogExporter exporter)
+        => _profiler.ExportProfilerLogs(exporter);
 }
