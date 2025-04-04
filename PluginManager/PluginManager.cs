@@ -26,6 +26,18 @@ public class PluginManager
     public IPluginTrackerPublic Tracker => _tracker;
     private readonly IPluginTracker _tracker;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="PluginManager"/> class with the specified settings.
+    /// </summary>
+    /// <param name="settings">
+    /// An optional instance of <see cref="PluginManagerSettings"/> that allows customization of the plugin manager's behavior.
+    /// If no settings are provided, default settings will be used.
+    /// </param>
+    /// <remarks>
+    /// If no settings are specified, the plugin manager will use default settings, which include predefined behaviors like enabling performance profiling.
+    /// 
+    /// Example setting: You can disable performance profiling by setting the <see cref="PluginManagerSettings.EnableProfiling"/> property to <c>false</c> in the <paramref name="settings"/>.
+    /// </remarks>
     public PluginManager(PluginManagerSettings? settings = null)
     {
         settings ??= new PluginManagerSettings();

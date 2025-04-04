@@ -23,6 +23,8 @@ public class FileLogExporter(string path, string? fileName = null) : ILogExporte
     /// If the file name is not specified, it is automatically generated in the format "Log_yyyy-MM-dd_HH-mm-ss.log".
     /// The method ensures that the file has a ".log" extension.
     /// If a file with the same name already exists, a numeric suffix (e.g., "(1)", "(2)", etc.) is added to create a unique file name.
+    /// 
+    /// <para><b>Note:</b> If there are 0 messages, the file will not be created.</para>
     /// </remarks>
     public void Export(IEnumerable<string> messages)
     {
