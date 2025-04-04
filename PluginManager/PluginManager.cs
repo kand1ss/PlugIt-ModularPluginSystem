@@ -44,7 +44,8 @@ public class PluginManager
         var pluginProfiler = new PluginPerformanceProfiler();
         _profiler = pluginProfiler;
         pluginExecutor.AddObserver(pluginTracker);
-        pluginExecutor.AddObserver(pluginProfiler);
+        if (settings.EnableProfiling)
+            pluginExecutor.AddObserver(pluginProfiler);
 
         var metadataService = new PluginMetadataService(repository);
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);
