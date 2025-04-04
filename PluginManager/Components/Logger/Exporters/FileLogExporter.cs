@@ -26,6 +26,10 @@ public class FileLogExporter(string path, string? fileName = null) : ILogExporte
     /// </remarks>
     public void Export(IEnumerable<string> messages)
     {
+        messages = messages.ToList();
+        if (!messages.Any())
+            return;
+        
         if (_fileName is null)
         {
             var date = DateTime.Now;

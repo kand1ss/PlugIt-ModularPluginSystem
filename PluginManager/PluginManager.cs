@@ -26,8 +26,10 @@ public class PluginManager
     public IPluginTrackerPublic Tracker => _tracker;
     private readonly IPluginTracker _tracker;
 
-    public PluginManager()
+    public PluginManager(PluginManagerSettings? settings = null)
     {
+        settings ??= new PluginManagerSettings();
+        
         var logRepository = new LogRepository();
         _logger = new PluginLoggerService(logRepository);
         var loggerFacade = new PluginLoggingFacade(_logger);
