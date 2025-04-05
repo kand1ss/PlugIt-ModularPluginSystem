@@ -1,9 +1,11 @@
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger.Interfaces;
+using ModularPluginAPI.Components.Observer;
 
 namespace ModularPluginAPI.Components.Profiler;
 
-public class PluginPerformanceProfiler : IPluginPerformanceProfiler
+public class PluginPerformanceProfiler : IPluginPerformanceProfiler, 
+    IPluginExecutorObserver, IErrorHandledPluginExecutorObserver
 {
     private readonly Dictionary<string, ProfiledData> _profiledData = new();
     private readonly Dictionary<string, PluginStateDurationTimer> _timers = new();
@@ -12,6 +14,19 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler
 
     public void ExportProfilerLogs(ILogExporter exporter)
         => _logger.Export(exporter);
+
+    private void CreateLog(PluginInfo plugin)
+    {
+        var data = _profiledData[plugin.Name];
+        _logger.CreateLog(data);
+        _profiledData.Remove(plugin.Name);
+    }
+    
+    public void OnPluginFaulted(PluginInfo plugin, Exception exception)
+    {
+        SetValueFromTimer(plugin);
+        CreateLog(plugin);
+    }
 
     public void OnPluginStateChanged(PluginInfo plugin)
     {
@@ -46,9 +61,7 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler
     {
         if (plugin.State == PluginState.Completed)
         {
-            var data = _profiledData[plugin.Name];
-            _logger.CreateLog(data);
-            _profiledData.Remove(plugin.Name);
+            CreateLog(plugin);
             return true;
         }
 

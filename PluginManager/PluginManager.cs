@@ -45,6 +45,7 @@ public class PluginManager
         var logRepository = new LogRepository();
         _logger = new PluginLoggerService(logRepository);
         var loggerFacade = new PluginLoggingFacade(_logger);
+        
         var pluginTracker = new PluginTracker(loggerFacade);
         _tracker = pluginTracker;
 
@@ -52,19 +53,25 @@ public class PluginManager
         var assemblyLoader = new AssemblyLoader(loggerFacade);
         var repository = new AssemblyMetadataRepository();
         repository.AddObserver(pluginTracker);
+        
         var pluginExecutor = new PluginExecutor(loggerFacade);
+        pluginExecutor.AddObserver(pluginTracker);
+        
         var pluginProfiler = new PluginPerformanceProfiler();
         _profiler = pluginProfiler;
-        pluginExecutor.AddObserver(pluginTracker);
         if (settings.EnableProfiling)
             pluginExecutor.AddObserver(pluginProfiler);
+        
+        var errorHandledPluginExecutor = new ErrorHandlingPluginExecutor(pluginExecutor, loggerFacade);
+        errorHandledPluginExecutor.AddObserver(pluginTracker);
+        errorHandledPluginExecutor.AddObserver(pluginProfiler);
 
         var metadataService = new PluginMetadataService(repository);
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
 
         _dispatcher = new(repository, assemblyLoader, assemblyHandler,
-            pluginExecutor, _tracker,loggerFacade, loaderService, metadataService, dependencyResolver);
+            errorHandledPluginExecutor, _tracker,loggerFacade, loaderService, metadataService, dependencyResolver);
     }
 
     internal PluginManager(IPluginTracker tracker,
@@ -74,7 +81,6 @@ public class PluginManager
     {
         _logger = logger;
         _tracker = tracker;
-        repository.AddObserver(tracker);
 
         var loggerFacade = new PluginLoggingFacade(_logger);
         _dispatcher = new(repository, loader, handler,

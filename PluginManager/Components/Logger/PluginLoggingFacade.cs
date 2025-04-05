@@ -75,6 +75,12 @@ public class PluginLoggingFacade(ILoggerService logger)
             $"(PluginTracker) - Plugin '{pluginName}' state changed: '{pluginState}'");
     }
 
+    public void PluginFaulted(string pluginName, string errorMessage)
+    {
+        logger.Log(LogSender.Plugin, LogType.INFO,
+            $"Plugin '{pluginName}' faulted. Message: '{errorMessage}'.");
+    }
+
     public void DependencyLoaded(string dependencyName, Version dependencyVersion, string assemblyName,
         Version assemblyVersion)
     {

@@ -1,9 +1,8 @@
-using ModularPluginAPI.Components.Interfaces;
 using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
-public interface IPluginExecutor : IObservablePluginExecutor
+public interface IPluginExecutor 
 {
     void Execute(IPlugin plugin);
     void ExecuteExtensionPlugin<T>(ref T data, IExtensionPlugin<T> plugin);

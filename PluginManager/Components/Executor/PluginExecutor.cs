@@ -1,3 +1,4 @@
+using ModularPluginAPI.Components.Interfaces;
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Observer;
@@ -5,7 +6,7 @@ using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
+public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor, IObservablePluginExecutor
 {
     private readonly List<IPluginExecutorObserver> _observers = new();
     
@@ -15,7 +16,7 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor
     public void RemoveObserver(IPluginExecutorObserver observer)
         => _observers.Remove(observer);
 
-    private void NotifyObservers(IPlugin plugin, PluginState state)
+    public void NotifyObservers(IPlugin plugin, PluginState state)
     {
         var metadata = PluginMetadataGenerator.Generate(plugin);
         var pluginInfo = PluginInfoMapper.Map(metadata);

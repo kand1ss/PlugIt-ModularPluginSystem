@@ -1,14 +1,15 @@
 using ModularPluginAPI.Components.Lifecycle.Observer;
 using ModularPluginAPI.Components.Logger;
+using ModularPluginAPI.Components.Observer;
 using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components.Lifecycle;
 
-public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker
+public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker, 
+    IErrorHandledPluginExecutorObserver, IMetadataRepositoryObserver, IPluginExecutorObserver
 {
     private readonly List<IPluginTrackerObserver> _observers = new();
     private readonly Dictionary<string, PluginInfo> _plugins = new();
-
     
     private void NotifyObservers(Action<IPluginTrackerObserver> action)
     {
@@ -45,6 +46,8 @@ public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker
 
     public void OnPluginStateChanged(PluginInfo plugin)
         => SetPluginState(plugin.Name, plugin.State);
+    public void OnPluginFaulted(PluginInfo plugin, Exception exception)
+        => SetPluginState(plugin.Name, PluginState.Faulted);
 
     
     
@@ -69,22 +72,23 @@ public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker
             NotifyObservers(o => o.OnPluginRemoved(pluginInfo));
     }
 
-    public void RemovePlugins(IEnumerable<string> pluginNames) 
-        => pluginNames.ToList().ForEach(RemovePlugin);
+    public void RemovePlugins(IEnumerable<string> pluginNames)
+    {
+        foreach(var pluginName in pluginNames)
+            RemovePlugin(pluginName);
+    }
 
     public void Clear() => _plugins.Clear();
 
 
     public void SetPluginState(string pluginName, PluginState state)
     {
-        if (!_plugins.TryGetValue(pluginName, out _))
-            return;
-        if (_plugins[pluginName].State == state)
-            return;
-        
-        _plugins[pluginName].State = state;
-        NotifyObservers(o => o.OnPluginStateChanged(_plugins[pluginName]));
-        logger.PluginStateChanged(pluginName, state);
+        if (_plugins.TryGetValue(pluginName, out var info) && info.State != state)
+        {
+            info.State = state;
+            NotifyObservers(o => o.OnPluginStateChanged(info));
+            logger.PluginStateChanged(pluginName, state);
+        }
     }
 
     public void SetPluginsState(IEnumerable<string> pluginNames, PluginState state)
