@@ -1,13 +1,63 @@
-# Default ignored files
-/shelf/
-/workspace.xml
-# Rider ignored files
-/modules.xml
-/.idea.PluginAPI.iml
-/contentModel.xml
-/projectSettingsUpdater.xml
-# Editor-based HTTP Client requests
-/httpRequests/
-# Datasource local storage ignored files
-/dataSources/
-/dataSources.local.xml
+# --------------------------------
+# Build results
+bin/
+obj/
+*.dll
+*.exe
+*.app
+*.pdb
+*.cache
+*.log
+
+# --------------------------------
+# Rider
+.idea/
+*.sln.iml
+
+# --------------------------------
+# User-specific files
+*.user
+*.userosscache
+*.suo
+*.sdf
+*.cache
+*.dbmdl
+*.bak
+
+# --------------------------------
+# Visual Studio
+.vs/
+.vscode/
+
+# --------------------------------
+# ASP.NET / Blazor temp files
+wwwroot/node_modules/
+wwwroot/lib/
+
+# --------------------------------
+# NuGet
+*.nupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+
+# --------------------------------
+# Other
+_ReSharper*/
+*.resharper
+*.DotSettings.user
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# --------------------------------
+# Logs
+*.log
+logs/
+
+# --------------------------------
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
