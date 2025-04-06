@@ -1,4 +1,6 @@
 using ModularPluginAPI.Components;
+using ModularPluginAPI.Components.ErrorRegistry;
+using ModularPluginAPI.Components.ErrorRegistry.Interfaces;
 using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
@@ -25,6 +27,14 @@ public class PluginManager
     /// </remarks>
     public IPluginTrackerPublic Tracker => _tracker;
     private readonly IPluginTracker _tracker;
+    
+    /// <summary>
+    /// Gets the error registry that stores information about occurred errors.
+    /// </summary>
+    /// <remarks>
+    /// The error registry will save errors only if it is enabled (by default, it is always enabled).
+    /// </remarks>
+    public IPluginErrorRegistry ErrorRegistry { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginManager"/> class with the specified settings.
@@ -61,8 +71,12 @@ public class PluginManager
         _profiler = pluginProfiler;
         if (settings.EnableProfiling)
             pluginExecutor.AddObserver(pluginProfiler);
-        
-        var errorHandledPluginExecutor = new ErrorHandlingPluginExecutor(pluginExecutor, loggerFacade);
+
+        var errorRegistry = new PluginErrorRegistry();
+        ErrorRegistry = errorRegistry;
+        var errorHandledPluginExecutor = new ErrorHandlingPluginExecutor(pluginExecutor, _tracker, loggerFacade);
+        if (settings.EnableErrorRegistry)
+            errorHandledPluginExecutor.AddObserver(errorRegistry);
         errorHandledPluginExecutor.AddObserver(pluginTracker);
         errorHandledPluginExecutor.AddObserver(pluginProfiler);
 

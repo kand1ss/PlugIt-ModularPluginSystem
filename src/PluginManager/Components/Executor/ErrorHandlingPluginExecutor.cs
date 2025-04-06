@@ -1,20 +1,19 @@
 using ModularPluginAPI.Components.Interfaces;
-using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Observer;
 using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
-public class ErrorHandlingPluginExecutor(IPluginExecutor pluginExecutor, PluginLoggingFacade logger) 
+public class ErrorHandlingPluginExecutor(IPluginExecutor pluginExecutor, IPluginTracker pluginTracker, 
+    PluginLoggingFacade logger) 
     : IPluginExecutor, IObservableErrorHandledPluginExecutor
 {
     private readonly List<IErrorHandledPluginExecutorObserver> _errorObservers = new();
     
     private void NotifyObservers(IPlugin plugin, Exception exception)
     {
-        var metadata = PluginMetadataGenerator.Generate(plugin);
-        var pluginInfo = PluginInfoMapper.Map(metadata);
+        var pluginInfo = pluginTracker.GetPluginStatus(plugin.Name);
         
         foreach(var observer in _errorObservers)
             observer.OnPluginFaulted(pluginInfo, exception);
