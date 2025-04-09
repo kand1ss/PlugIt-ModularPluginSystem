@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\PluginManager\PluginManager.csproj" />
+      <ProjectReference Include="..\TestAssembly\TestAssembly.csproj" />
     </ItemGroup>
 
     <ItemGroup>
