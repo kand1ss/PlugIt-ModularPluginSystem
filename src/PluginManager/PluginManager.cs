@@ -94,10 +94,13 @@ public class PluginManager
     internal PluginManager(IPluginTracker tracker,
         IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository,
         IPluginExecutor executor, ILoggerService logger, IPluginLoaderService loaderService, 
-        IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver, IAssemblyWatcher watcher)
+        IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver, IAssemblyWatcher watcher,
+        IPluginPerformanceProfiler performanceProfiler, IPluginErrorRegistry errorRegistry)
     {
         _logger = logger;
         _tracker = tracker;
+        ErrorRegistry = errorRegistry;
+        _profiler = performanceProfiler;
 
         var loggerFacade = new PluginLoggingFacade(_logger);
         _dispatcher = new(repository, loader, handler, executor, _tracker, loggerFacade, loaderService, 
