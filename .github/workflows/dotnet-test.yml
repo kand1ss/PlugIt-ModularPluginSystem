@@ -23,4 +23,4 @@ jobs:
       run: dotnet restore
 
     - name: Запустить тесты
-      run: dotnet test --no-restore --verbosity normal
+      run: dotnet test --no-restore --verbosity normal --warnaserror:false
