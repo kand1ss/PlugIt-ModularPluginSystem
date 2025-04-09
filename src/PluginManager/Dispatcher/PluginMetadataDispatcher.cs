@@ -1,14 +1,28 @@
+using ModularPluginAPI.Components.AssemblyWatcher.Observer;
 using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Logger;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IPluginMetadataService metadataService, 
-    IAssemblyLoader loader, IAssemblyHandler handler, IPluginTracker tracker, 
-    PluginLoggingFacade logger)
+public class PluginMetadataDispatcher(IAssemblyMetadataRepository repository, IPluginMetadataService metadataService,
+    IAssemblyLoader loader, IAssemblyHandler handler, PluginLoggingFacade logger)
+    : IAssemblyWatcherObserver
 {
     private readonly AssemblyMetadataGenerator _metadataGenerator = new(handler);
 
+    public void OnAssemblyAdded(string assemblyPath)
+        => LoadMetadata(assemblyPath);
+
+    public void OnAssemblyRemoved(string assemblyPath)
+        => RemoveMetadata(assemblyPath);
+
+    public void OnAssemblyChanged(string assemblyPath)
+    {
+        RemoveMetadata(assemblyPath);
+        LoadMetadata(assemblyPath);
+    }
+    
+    
     public void LoadMetadata(string assemblyPath)
     {
         var assembly = loader.LoadAssembly(assemblyPath);
