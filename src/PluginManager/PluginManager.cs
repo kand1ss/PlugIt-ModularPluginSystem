@@ -83,7 +83,7 @@ public class PluginManager
         errorHandledPluginExecutor.AddObserver(pluginProfiler);
 
         var metadataService = new PluginMetadataService(repository);
-        var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);
+        var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler);
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
 
         var assemblyWatcher = new AssemblyWatcher();
