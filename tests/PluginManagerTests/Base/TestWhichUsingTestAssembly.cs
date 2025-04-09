@@ -19,7 +19,7 @@ public class TestWhichUsingTestAssembly
             "TestAssembly",
             "bin",
             "Debug",
-            "net9.0",
+            "net8.0",
             "TestAssembly.dll"
         );
 

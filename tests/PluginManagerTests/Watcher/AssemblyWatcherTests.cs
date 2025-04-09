@@ -9,26 +9,28 @@ public class AssemblyWatcherTests : TestWhichUsingTestAssembly
     private readonly AssemblyWatcher _watcher = new();
     private readonly WatcherObserver _observer = new();
     
-    private string _tempFolderPath;
-    private string _tempAssemblyPath;
+    private readonly string _tempFolderPath;
+    private readonly string _tempAssemblyPath;
 
     public AssemblyWatcherTests()
     {
-        CreateTempFolder();
-        CopyAssemblyToTempFolder();
+        _tempFolderPath = CreateTempFolder();
+        _tempAssemblyPath = CopyAssemblyToTempFolder();
         _watcher.AddObserver(_observer);
     }
 
-    private void CreateTempFolder()
+    private string CreateTempFolder()
     {
-        _tempFolderPath = Path.Combine(Path.GetDirectoryName(TestAssemblyPath)!, "temp");
-        Directory.CreateDirectory(_tempFolderPath);
+        var path = Path.Combine(Path.GetDirectoryName(TestAssemblyPath)!, "temp");
+        Directory.CreateDirectory(path);
+        return path;
     }
 
-    private void CopyAssemblyToTempFolder()
+    private string CopyAssemblyToTempFolder()
     {
-        _tempAssemblyPath = Path.Combine(_tempFolderPath, Path.GetFileName(TestAssemblyPath));
-        File.Copy(TestAssemblyPath, _tempAssemblyPath, true);
+        var path = Path.Combine(_tempFolderPath, Path.GetFileName(TestAssemblyPath));
+        File.Copy(TestAssemblyPath, path, true);
+        return path;
     }
 
     private void RecreateTempAssembly()
