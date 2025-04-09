@@ -1,4 +1,6 @@
 using ModularPluginAPI.Components;
+using ModularPluginAPI.Components.AssemblyWatcher;
+using ModularPluginAPI.Components.AssemblyWatcher.Interfaces;
 using ModularPluginAPI.Components.ErrorRegistry;
 using ModularPluginAPI.Components.ErrorRegistry.Interfaces;
 using ModularPluginAPI.Components.Interfaces.Services;
@@ -84,21 +86,22 @@ public class PluginManager
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler, loggerFacade);
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
 
-        _dispatcher = new(repository, assemblyLoader, assemblyHandler,
-            errorHandledPluginExecutor, _tracker,loggerFacade, loaderService, metadataService, dependencyResolver);
+        var assemblyWatcher = new AssemblyWatcher();
+        _dispatcher = new(repository, assemblyLoader, assemblyHandler, errorHandledPluginExecutor, 
+            _tracker,loggerFacade, loaderService, metadataService, dependencyResolver, assemblyWatcher);
     }
 
     internal PluginManager(IPluginTracker tracker,
         IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository,
         IPluginExecutor executor, ILoggerService logger, IPluginLoaderService loaderService, 
-        IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver)
+        IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver, IAssemblyWatcher watcher)
     {
         _logger = logger;
         _tracker = tracker;
 
         var loggerFacade = new PluginLoggingFacade(_logger);
-        _dispatcher = new(repository, loader, handler,
-            executor, _tracker,loggerFacade, loaderService, metadataService, dependencyResolver);
+        _dispatcher = new(repository, loader, handler, executor, _tracker, loggerFacade, loaderService, 
+            metadataService, dependencyResolver, watcher);
     }
 
     /// <summary>
@@ -114,6 +117,7 @@ public class PluginManager
     /// </remarks>
     public void RegisterAssembly(string assemblyPath)
     {
+        _dispatcher.RegisterAssembly(assemblyPath);
         _dispatcher.Metadata.LoadMetadata(assemblyPath);
         _dispatcher.Unloader.UnloadAssembly(assemblyPath);
     }
@@ -131,6 +135,7 @@ public class PluginManager
     /// </remarks>
     public void RegisterAssembliesFromDirectory(string directoryPath)
     {
+        _dispatcher.RegisterAssembliesFromDirectory(directoryPath);
         _dispatcher.Metadata.LoadMetadataFromDirectory(directoryPath);
         _dispatcher.Unloader.UnloadAssembliesFromDirectory(directoryPath);
     }
@@ -147,6 +152,7 @@ public class PluginManager
     /// </remarks>
     public void UnregisterAssembly(string assemblyPath)
     {
+        _dispatcher.UnregisterAssembly(assemblyPath);
         _dispatcher.Metadata.RemoveMetadata(assemblyPath);
     }
 
@@ -162,6 +168,7 @@ public class PluginManager
     /// </remarks>
     public void UnregisterAssembliesFromDirectory(string directoryPath)
     {
+        _dispatcher.UnregisterAssembliesFromDirectory(directoryPath);
         _dispatcher.Metadata.RemoveMetadataFromDirectory(directoryPath);
     }
 

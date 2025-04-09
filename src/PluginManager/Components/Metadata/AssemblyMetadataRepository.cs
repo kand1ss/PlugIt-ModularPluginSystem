@@ -46,7 +46,9 @@ public class AssemblyMetadataRepository : IAssemblyMetadataRepository
     
     public void Remove(string assemblyName)
     {
-        var metadata = _assemblies[assemblyName];
+        if (!_assemblies.TryGetValue(assemblyName, out var metadata))
+            return;
+
         if(_assemblies.Remove(assemblyName))
             NotifyObservers(o => o.OnMetadataRemoved(metadata));
     }
