@@ -22,7 +22,10 @@ public class AssemblyLoaderTests : TestWhichUsingTestAssembly
     public void LoadAssembly_ValidPath_LoadsAndLogsAssembly()
     {
         var assembly = _loader.LoadAssembly(TestAssemblyPath);
+        
         Assert.NotNull(assembly);
+        Assert.Equal(TestAssemblyPath, assembly.Location);
+        Assert.Equal(Path.GetFileNameWithoutExtension(TestAssemblyPath), assembly.GetName().Name);
     }
 
     [Fact]
@@ -48,5 +51,6 @@ public class AssemblyLoaderTests : TestWhichUsingTestAssembly
         var secondLoad = _loader.LoadAssembly(TestAssemblyPath);
         
         Assert.NotSame(firstLoad, secondLoad);
+        Assert.Equal(firstLoad.FullName, secondLoad.FullName);
     }
 }

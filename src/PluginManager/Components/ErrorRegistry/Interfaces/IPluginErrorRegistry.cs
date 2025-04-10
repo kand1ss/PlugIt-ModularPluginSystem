@@ -36,5 +36,5 @@ public interface IPluginErrorRegistry : IObservablePluginErrorRegistry
     /// </summary>
     /// <param name="pluginName">The name of the plugin for which the errors should be removed.</param>
     /// <param name="exceptionType">The type of the exception whose corresponding error entries should be removed.</param>
-    void RemoveErrorByException(string pluginName, Type exceptionType);
+    void RemoveErrorsByException(string pluginName, Type exceptionType);
 }

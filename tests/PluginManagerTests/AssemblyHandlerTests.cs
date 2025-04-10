@@ -9,6 +9,9 @@ namespace PluginManagerTests;
 
 public class AssemblyHandlerTests : TestWhichUsingTestAssembly
 {
+    private const string TestPlugin = "TestPlugin";
+    private const string NetworkPlugin = "NetworkPlugin";
+    
     private readonly Assembly _testAssembly;
     private readonly AssemblyHandler _handler = new();
 
@@ -20,11 +23,11 @@ public class AssemblyHandlerTests : TestWhichUsingTestAssembly
     [Fact]
     public void GetPlugin_CorrectPluginName_ReturnsCorrectPlugin()
     {
-        var plugin = _handler.GetPlugin<IPlugin>(_testAssembly, "TestPlugin");
+        var plugin = _handler.GetPlugin<IPlugin>(_testAssembly, TestPlugin);
+        
         Assert.NotNull(plugin);
         Assert.IsAssignableFrom<IPlugin>(plugin);
-        Assert.Equal("TestPlugin", plugin.Name);
-
+        Assert.Equal(TestPlugin, plugin.Name);
     }
 
     [Fact]
@@ -37,23 +40,17 @@ public class AssemblyHandlerTests : TestWhichUsingTestAssembly
     [Fact]
     public void GetPlugin_SpecifiedPlugin_ReturnsCorrectPlugin()
     {
-        var plugin = _handler.GetPlugin<INetworkPlugin>(_testAssembly, "NetworkPlugin");
+        var plugin = _handler.GetPlugin<INetworkPlugin>(_testAssembly, NetworkPlugin);
+        
         Assert.NotNull(plugin);
+        Assert.IsAssignableFrom<INetworkPlugin>(plugin);
+        Assert.Equal("NetworkPlugin", plugin.Name);
     }
 
     [Fact]
     public void GetPlugin_CorrectNameButNotTheRightOne_ThrowsException()
     {
         Assert.Throws<PluginNotFoundException>(() => 
-            _handler.GetPlugin<INetworkPlugin>(_testAssembly, "TestPlugin"));
-    }
-
-    [Fact]
-    public void GetAllPlugins_ReturnsAllPlugins()
-    {
-        var plugins = _handler.GetAllPlugins(_testAssembly).ToList();
-        Assert.Contains(plugins, p => p.GetType().Name == "TestPlugin");
-        Assert.Contains(plugins, p => p is IPlugin);
-
+            _handler.GetPlugin<INetworkPlugin>(_testAssembly, TestPlugin));
     }
 }

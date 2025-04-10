@@ -15,5 +15,5 @@ public interface IPluginTrackerPublic : IObservablePluginTracker
     /// </summary>
     /// <param name="pluginName">The name of the plugin whose state is to be retrieved.</param>
     /// <returns>The current state of the specified plugin as a string.</returns>
-    PluginInfo GetPluginStatus(string pluginName);  
+    PluginInfo? GetPluginStatus(string pluginName);  
 }

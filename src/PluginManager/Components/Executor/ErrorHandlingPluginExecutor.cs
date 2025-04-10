@@ -1,4 +1,5 @@
 using ModularPluginAPI.Components.Interfaces;
+using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Observer;
 using PluginAPI;
@@ -13,7 +14,12 @@ public class ErrorHandlingPluginExecutor(IPluginExecutor pluginExecutor, IPlugin
     
     private void NotifyObservers(IPlugin plugin, Exception exception)
     {
-        var pluginInfo = pluginTracker.GetPluginStatus(plugin.Name);
+        var metadata = PluginMetadataGenerator.Generate(plugin);
+        var pluginInfo = PluginInfoMapper.Map(metadata);
+        
+        var pluginStateFromTracker = pluginTracker.GetPluginStatus(plugin.Name);
+        if(pluginStateFromTracker is not null)
+            pluginInfo.State = pluginStateFromTracker.State;
         
         foreach(var observer in _errorObservers)
             observer.OnPluginFaulted(pluginInfo, exception);
