@@ -7,7 +7,7 @@ namespace PluginManagerTests;
 
 public class AssemblyMetadataRepositoryTests
 {
-    private readonly string _testMetadataPath = Path.Combine("D", "SomePath");
+    private readonly string _testMetadataPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
     private readonly AssemblyMetadata _testMetadata;
     private readonly AssemblyMetadataRepository _repository = new();
 

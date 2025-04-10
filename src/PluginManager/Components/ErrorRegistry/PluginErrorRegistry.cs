@@ -58,7 +58,7 @@ public class PluginErrorRegistry : IPluginErrorRegistry, IErrorHandledPluginExec
     }
 
     
-    public void RemoveErrorByException(string pluginName, Type exceptionType)
+    public void RemoveErrorsByException(string pluginName, Type exceptionType)
     {
         if (!_errors.TryGetValue(pluginName, out var errors))
             return;

@@ -47,7 +47,6 @@ public class AssemblyWatcherTests : TestWhichUsingTestAssembly
         RecreateTempAssembly();
 
         Assert.Contains(_tempAssemblyPath, _observer.RemovedAssemblies);
-        Assert.NotEmpty(_observer.AddedAssemblies);
         Assert.Contains(_tempAssemblyPath, _observer.AddedAssemblies);
     }
 

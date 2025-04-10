@@ -1,4 +1,3 @@
-using ModularPluginAPI.Components;
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Observer;
 

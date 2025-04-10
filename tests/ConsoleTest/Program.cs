@@ -6,11 +6,11 @@ class Program
 {
     static void Main(string[] args)
     {
-        var manager = new PluginManager(new PluginManagerSettings
-        {
-            EnableErrorRegistry = false
-        });
-        // var manager = new PluginManager();
+        // var manager = new PluginManager(new PluginManagerSettings
+        // {
+        //     EnableErrorRegistry = false
+        // });
+        var manager = new PluginManager();
         manager.RegisterAssembliesFromDirectory(@"C:\Users\kand1s\Desktop\Plugins");
         var observerComponent = new Observer();
         manager.Tracker.AddObserver(observerComponent);
@@ -37,7 +37,7 @@ class Program
         foreach (var error in manager.ErrorRegistry.GetErrors("FaultedPlugin"))
             Console.WriteLine($"{error.PluginName} - {error.ExceptionType} {error.ErrorMessage} - {error.Timestamp} - {error.StateBeforeError}");
         
-        manager.ErrorRegistry.RemoveErrorByException("FaultedPlugin", typeof(Exception));
+        manager.ErrorRegistry.RemoveErrorsByException("FaultedPlugin", typeof(Exception));
         Console.ReadLine();
         foreach (var error in manager.ErrorRegistry.GetErrors("FaultedPlugin"))
             Console.WriteLine($"{error.PluginName} - {error.ExceptionType} {error.ErrorMessage} - {error.Timestamp} - {error.StateBeforeError}");

@@ -14,8 +14,5 @@ public class WatcherObserver : IAssemblyWatcherObserver
         => RemovedAssemblies.Add(assemblyPath);
 
     public void OnAssemblyChanged(string assemblyPath)
-    {
-        AddedAssemblies.Remove(assemblyPath);
-        AddedAssemblies.Add(assemblyPath);
-    }
+        => AddedAssemblies.Add(assemblyPath);
 }
