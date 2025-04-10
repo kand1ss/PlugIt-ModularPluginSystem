@@ -36,7 +36,7 @@ public class AssemblyWatcherTests : TestWhichUsingTestAssembly
     private void RecreateTempAssembly()
     {
         File.Delete(_tempAssemblyPath);
-        File.Copy(TestAssemblyPath, _tempAssemblyPath, true);
+        File.Create(_tempAssemblyPath).Close();
     }
 
     [Fact]
