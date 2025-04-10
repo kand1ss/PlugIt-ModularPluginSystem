@@ -6,10 +6,12 @@ PlugIt is a plugin management system designed for dynamically loading, unloading
 
 ## 🚀 Features
 ✅ Dynamic loading and unloading of plugins<br>
+✅ Dynamic tracking of registered assemblies<br>
 ✅ Dependency management between plugins<br>
 ✅ Flexible architecture with modular extensibility<br>
 ✅ Logging and monitoring of plugin states<br>
 ✅ **PluginTracker API**: Track plugin states based on generated metadata and integrate custom components via the `Observer` pattern<br>
+✅ **Error Registry**: Monitor errors in plugins and integrate your own components to handle them<br>
 
 ## 🚦 Quick Start
 Create an instance of PluginManager.<br>
@@ -18,7 +20,7 @@ Use the `RegisterAssembly()` methods for a single assembly, or `RegisterAssembli
 var pluginManager = new PluginManager();
 pluginManager.RegisterAssembliesFromDirectory("C:\PathToFolder");
 ```
-PlugIt will **automatically** generate metadata for all assemblies(.dll), process it and detect all plugins.
+PlugIt will **automatically** generate metadata for all assemblies(.dll), process it and detect all plugins. Registered assemblies will be tracked by the manager. Based on changes in the assembly, the manager will generate up-to-date metadata.
 
 
 ## 🧩 Creating a Plugin
