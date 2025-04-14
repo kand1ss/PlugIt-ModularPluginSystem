@@ -10,6 +10,7 @@ using ModularPluginAPI.Components.Logger.Components;
 using ModularPluginAPI.Components.Logger.Interfaces;
 using ModularPluginAPI.Components.Profiler;
 using ModularPluginAPI.Exceptions;
+using ModularPluginAPI.Services.Interfaces;
 
 namespace ModularPluginAPI;
 
@@ -37,6 +38,16 @@ public class PluginManager
     /// The error registry will save errors only if it is enabled (by default, it is always enabled).
     /// </remarks>
     public IPluginErrorRegistry ErrorRegistry { get; }
+    
+    
+    /// <summary>
+    /// Gets the security service for the plugin manager.
+    /// This component is responsible for handling the security of plugins, including performing static analysis and enforcing security policies.
+    /// The security service will only be active if the security feature has not been disabled in <see cref="PluginManagerSettings"/>.
+    /// If <c>EnableSecurityService</c> is set to <c>false</c> in <see cref="PluginManagerSettings"/>, this service will not be available.
+    /// </summary>
+    public IAssemblySecurityService Security { get; }
+    
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PluginManager"/> class with the specified settings.
@@ -60,11 +71,15 @@ public class PluginManager
         
         var pluginTracker = new PluginTracker(loggerFacade);
         _tracker = pluginTracker;
-
+        
         var assemblyHandler = new AssemblyHandler();
         var assemblyLoader = new AssemblyLoader(loggerFacade);
+        var securityService = new AssemblySecurityService();
+        Security = securityService;
         var repository = new AssemblyMetadataRepository();
         repository.AddObserver(pluginTracker);
+        if (settings.EnableSecurity)
+            repository.AddObserver(securityService);
         
         var pluginExecutor = new PluginExecutor(loggerFacade);
         pluginExecutor.AddObserver(pluginTracker);
@@ -95,12 +110,13 @@ public class PluginManager
         IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository,
         IPluginExecutor executor, ILoggerService logger, IPluginLoaderService loaderService, 
         IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver, IAssemblyWatcher watcher,
-        IPluginPerformanceProfiler performanceProfiler, IPluginErrorRegistry errorRegistry)
+        IPluginPerformanceProfiler performanceProfiler, IPluginErrorRegistry errorRegistry, IAssemblySecurityService security)
     {
         _logger = logger;
         _tracker = tracker;
         ErrorRegistry = errorRegistry;
         _profiler = performanceProfiler;
+        Security = security;
 
         var loggerFacade = new PluginLoggingFacade(_logger);
         _dispatcher = new(repository, loader, handler, executor, _tracker, loggerFacade, loaderService, 

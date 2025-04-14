@@ -9,6 +9,8 @@
     <ItemGroup>
       <ProjectReference Include="..\..\src\PluginManager\PluginManager.csproj" />
       <ProjectReference Include="..\TestAssembly\TestAssembly.csproj" />
+      <ProjectReference Include="..\TestSafeAssembly\TestSafeAssembly.csproj" />
+      <ProjectReference Include="..\TestUnsafeAssembly\TestUnsafeAssembly.csproj" />
     </ItemGroup>
 
     <ItemGroup>

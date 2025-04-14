@@ -19,4 +19,11 @@ public class PluginManagerSettings
     /// If <c>false</c>, errors will not be recorded in the error registry.
     /// </summary>
     public bool EnableErrorRegistry { get; set; } = true;
+    
+    /// <summary>
+    /// Gets or sets a value indicating whether the security service is enabled.
+    /// If <c>true</c>, the plugin manager will enable security checks for plugins, including static analysis and safe service access.
+    /// If <c>false</c>, security checks will be disabled.
+    /// </summary>
+    public bool EnableSecurity { get; set; } = true;
 }
