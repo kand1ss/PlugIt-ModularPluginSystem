@@ -26,10 +26,6 @@ public class AssemblySecurityService : IAssemblySecurityService, IMetadataReposi
     public void OnMetadataRemoved(AssemblyMetadata assemblyMetadata)
     {
     }
-
-    public void OnMetadataCleared()
-    {
-    }
     
 
     public bool AddBlockedNamespace(string namespaceName)

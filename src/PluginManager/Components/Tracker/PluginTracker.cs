@@ -41,9 +41,6 @@ public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker,
         RemovePlugins(pluginNames);
     }
 
-    public void OnMetadataCleared()
-        => Clear();
-
     public void OnPluginStateChanged(PluginInfo plugin)
         => SetPluginState(plugin.Name, plugin.State);
     public void OnPluginFaulted(PluginInfo plugin, Exception exception)

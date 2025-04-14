@@ -55,8 +55,11 @@ public class AssemblyMetadataRepository : IAssemblyMetadataRepository
 
     public void Clear()
     {
+        var metadatas = _assemblies.Values.ToList();
         _assemblies.Clear();
-        NotifyObservers(o => o.OnMetadataCleared());
+        
+        foreach(var metadata in metadatas)
+            NotifyObservers(o => o.OnMetadataRemoved(metadata));
     }
 
 
