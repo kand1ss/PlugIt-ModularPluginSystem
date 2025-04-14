@@ -19,6 +19,12 @@ public class AssemblyWatcherTests : TestWhichUsingTestAssembly
         _watcher.AddObserver(_observer);
     }
 
+    ~AssemblyWatcherTests()
+    {
+        _watcher.RemoveObserver(_observer);
+        File.Delete(_tempAssemblyPath);
+    }
+
     private string CreateTempFolder()
     {
         var path = Path.Combine(Path.GetDirectoryName(TestAssemblyPath)!, "temp");
@@ -45,6 +51,7 @@ public class AssemblyWatcherTests : TestWhichUsingTestAssembly
         _watcher.ObserveAssembly(_tempAssemblyPath);
 
         RecreateTempAssembly();
+        Thread.Sleep(50);
 
         Assert.Contains(_tempAssemblyPath, _observer.RemovedAssemblies);
         Assert.Contains(_tempAssemblyPath, _observer.AddedAssemblies);
