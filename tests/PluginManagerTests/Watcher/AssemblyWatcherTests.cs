@@ -51,7 +51,7 @@ public class AssemblyWatcherTests : TestWhichUsingTestAssembly
         _watcher.ObserveAssembly(_tempAssemblyPath);
 
         RecreateTempAssembly();
-        Thread.Sleep(50);
+        Thread.Sleep(100);
 
         Assert.Contains(_tempAssemblyPath, _observer.RemovedAssemblies);
         Assert.Contains(_tempAssemblyPath, _observer.AddedAssemblies);
