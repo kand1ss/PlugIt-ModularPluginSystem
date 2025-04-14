@@ -9,9 +9,11 @@ PlugIt is a plugin management system designed for dynamically loading, unloading
 ✅ Dynamic tracking of registered assemblies<br>
 ✅ Dependency management between plugins<br>
 ✅ Flexible architecture with modular extensibility<br>
-✅ Logging and monitoring of plugin states<br>
+✅ Logging divided by abstraction levels<br>
 ✅ **PluginTracker API**: Track plugin states based on generated metadata and integrate custom components via the `Observer` pattern<br>
-✅ **Error Registry**: Monitor errors in plugins and integrate your own components to handle them<br>
+✅ **Error Registry**: Monitor errors in plugins and integrate your own components to handle them (Optional)<br>
+✅ **Security system**: Enforce custom security policies to block unwanted assemblies (Optional)<br>
+✅ **Plugin Performance Profiler**: Profile plugin performance across all lifecycle stages (Optional)<br>
 
 ## 🚦 Quick Start
 Create an instance of PluginManager.<br>
