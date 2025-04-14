@@ -96,4 +96,16 @@ public class PluginLoggingFacade(ILoggerService logger)
     {
         logger.Log(LogSender.PluginManager, LogType.DEBUG, $"(PluginTracker) - Custom component '{component.GetType().Name}' removed.");
     }
+
+    public void SecurityCheckPassed(string assemblyName, Version assemblyVersion)
+    {
+        logger.Log(LogSender.PluginManager, LogType.TRACE, 
+            $"(Security) - Assembly: '{assemblyName} v{assemblyVersion}' passed security check.");
+    }
+
+    public void SecurityCheckFailed(string assemblyName, Version assemblyVersion)
+    {
+        logger.Log(LogSender.PluginManager, LogType.INFO, 
+            $"(Security) - Assembly: '{assemblyName} v{assemblyVersion}' failed security check.");
+    }
 }

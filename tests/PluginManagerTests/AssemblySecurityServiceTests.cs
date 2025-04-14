@@ -1,4 +1,6 @@
 using ModularPluginAPI.Components;
+using ModularPluginAPI.Components.Logger;
+using Moq;
 using PluginManagerTests.Base;
 using Xunit;
 
@@ -6,7 +8,7 @@ namespace PluginManagerTests;
 
 public class AssemblySecurityServiceTests : TestWhichUsingTestAssembly
 {
-    private readonly AssemblySecurityService _service = new();
+    private readonly AssemblySecurityService _service;
 
     private readonly string _unsafeAssemblyPath;
     private readonly string _safeAssemblyPath;
@@ -15,6 +17,10 @@ public class AssemblySecurityServiceTests : TestWhichUsingTestAssembly
     {
         _unsafeAssemblyPath = GetUnsafeAssemblyPath();
         _safeAssemblyPath = GetSafeAssemblyPath();
+
+        var loggerMock = new Mock<ILoggerService>();
+        var logger = new PluginLoggingFacade(loggerMock.Object);
+        _service = new AssemblySecurityService(logger);
     }
 
     private string GetSolutionDirectory()

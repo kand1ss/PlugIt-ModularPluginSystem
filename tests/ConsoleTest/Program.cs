@@ -22,6 +22,9 @@ class Program
         manager.ExecutePlugin("FaultedPlugin");
         Console.ReadLine();
         manager.Tracker.RemoveObserver(observerComponent);
+
+        manager.Security.CheckSafety(@"C:\Users\kand1s\Desktop\Plugins\TestUnsafeAssembly.dll");
+        
         manager.ExportDebugLogs(new FileLogExporter(@"C:\Users\kand1s\Desktop\Logs"));
         manager.ExportTraceLogs(new FileLogExporter(@"C:\Users\kand1s\Desktop\Logs"));
         manager.ExportProfilerLogs(new FileLogExporter(@"C:\Users\kand1s\Desktop\Logs", "ProfilerLog_1"));

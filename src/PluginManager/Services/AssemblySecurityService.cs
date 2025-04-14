@@ -1,5 +1,6 @@
 using System.Security;
 using System.Text.RegularExpressions;
+using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Observer;
 using ModularPluginAPI.Models;
 using ModularPluginAPI.Services.Interfaces;
@@ -7,7 +8,7 @@ using Mono.Cecil;
 
 namespace ModularPluginAPI.Components;
 
-public class AssemblySecurityService : IAssemblySecurityService, IMetadataRepositoryObserver
+public class AssemblySecurityService(PluginLoggingFacade logger) : IAssemblySecurityService, IMetadataRepositoryObserver
 {
     private readonly HashSet<string> _blockedNamespaces = new()
     {
@@ -59,13 +60,17 @@ public class AssemblySecurityService : IAssemblySecurityService, IMetadataReposi
                         {
                             var typeNamespace = methodRef.DeclaringType.Namespace;
                             if (_blockedNamespaces.Any(banned => typeNamespace.StartsWith(banned)))
+                            {
+                                logger.SecurityCheckFailed(assembly.Name.Name, assembly.Name.Version);
                                 return false;
+                            }
                         }
                     }
                 }
             }
         }
 
+        logger.SecurityCheckPassed(assembly.Name.Name, assembly.Name.Version);
         return true;
     }
 }

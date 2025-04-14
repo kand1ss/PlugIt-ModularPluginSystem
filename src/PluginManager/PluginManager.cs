@@ -74,7 +74,7 @@ public class PluginManager
         
         var assemblyHandler = new AssemblyHandler();
         var assemblyLoader = new AssemblyLoader(loggerFacade);
-        var securityService = new AssemblySecurityService();
+        var securityService = new AssemblySecurityService(loggerFacade);
         Security = securityService;
         var repository = new AssemblyMetadataRepository();
         repository.AddObserver(pluginTracker);
