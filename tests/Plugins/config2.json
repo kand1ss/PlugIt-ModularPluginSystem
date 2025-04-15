@@ -4,5 +4,15 @@
       "Name": "ConsolePlugin2",
       "Version": "1.0.0"
     }
-  ]
+  ],
+  "Permissions": {
+    "FileSystemPaths": [
+      "D:/SomePath",
+      "D:/SomePath/Some2Path"
+    ],
+    "NetworkURLs": [
+      "http://somesite.com",
+      "http://somesecondsite.com"
+    ]
+  }
 }
