@@ -102,7 +102,8 @@ public class PluginManager
         var assemblyWatcher = new AssemblyWatcher();
         _dispatcher = new(repository, assemblyLoader, assemblyHandler, errorHandledPluginExecutor, 
             _tracker,loggerFacade, loaderService, metadataService, dependencyResolver, assemblyWatcher);
-        assemblyWatcher.AddObserver(_dispatcher);
+        if (settings.EnableAssemblyTracking)
+            assemblyWatcher.AddObserver(_dispatcher);
     }
 
     internal PluginManager(IPluginTracker tracker,

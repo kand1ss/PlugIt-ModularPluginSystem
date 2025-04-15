@@ -26,4 +26,11 @@ public class PluginManagerSettings
     /// If <c>false</c>, security checks will be disabled.
     /// </summary>
     public bool EnableSecurity { get; set; } = true;
+    
+    /// <summary>
+    /// Gets or sets a value indicating whether the plugin manager should automatically track registered assemblies.
+    /// If <c>true</c>, the manager will monitor changes to the assembly files and regenerate metadata when modifications are detected.
+    /// If <c>false</c>, the assemblies will not be monitored after registration.
+    /// </summary>
+    public bool EnableAssemblyTracking { get; set; } = true;
 }

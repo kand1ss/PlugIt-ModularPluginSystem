@@ -8,7 +8,7 @@ class Program
     {
         // var manager = new PluginManager(new PluginManagerSettings
         // {
-        //     EnableSecurity = false
+        //     EnableAssemblyTracking = false
         // });
         var manager = new PluginManager();
         
