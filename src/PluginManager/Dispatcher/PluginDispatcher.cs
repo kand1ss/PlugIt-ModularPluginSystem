@@ -1,10 +1,11 @@
 using ModularPluginAPI.Components.AssemblyWatcher.Interfaces;
+using ModularPluginAPI.Components.AssemblyWatcher.Observer;
 using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Logger;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginDispatcher
+public class PluginDispatcher : IAssemblyWatcherObserver
 {
     private readonly IAssemblyWatcher _assemblyWatcher;
     
@@ -20,11 +21,31 @@ public class PluginDispatcher
     {
         Metadata = new(repository, metadataService, loader, handler, logger);
         _assemblyWatcher = assemblyWatcher;
-        _assemblyWatcher.AddObserver(Metadata);
         
         Starter = new(metadataService, loaderService, pluginExecutor, 
             dependencyResolver, logger);
         Unloader = new(metadataService, loader, tracker);
+    }
+    
+    
+    public void OnAssemblyAdded(string assemblyPath)
+        => CreateMetadata(assemblyPath);
+
+    public void OnAssemblyRemoved(string assemblyPath)
+        => Metadata.RemoveMetadata(assemblyPath);
+
+    public void OnAssemblyChanged(string assemblyPath)
+    {
+        Metadata.RemoveMetadata(assemblyPath);
+        CreateMetadata(assemblyPath);
+    }
+    
+    
+
+    public void CreateMetadata(string assemblyPath)
+    {
+        Metadata.LoadMetadata(assemblyPath);
+        Unloader.UnloadAssembly(assemblyPath);
     }
 
     public void RegisterAssembly(string assemblyPath)

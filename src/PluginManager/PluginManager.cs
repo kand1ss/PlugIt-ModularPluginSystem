@@ -102,6 +102,7 @@ public class PluginManager
         var assemblyWatcher = new AssemblyWatcher();
         _dispatcher = new(repository, assemblyLoader, assemblyHandler, errorHandledPluginExecutor, 
             _tracker,loggerFacade, loaderService, metadataService, dependencyResolver, assemblyWatcher);
+        assemblyWatcher.AddObserver(_dispatcher);
     }
 
     internal PluginManager(IPluginTracker tracker,
@@ -135,8 +136,7 @@ public class PluginManager
     public void RegisterAssembly(string assemblyPath)
     {
         _dispatcher.RegisterAssembly(assemblyPath);
-        _dispatcher.Metadata.LoadMetadata(assemblyPath);
-        _dispatcher.Unloader.UnloadAssembly(assemblyPath);
+        _dispatcher.CreateMetadata(assemblyPath);
     }
 
     /// <summary>
