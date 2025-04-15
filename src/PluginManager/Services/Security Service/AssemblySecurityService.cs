@@ -1,11 +1,10 @@
 using System.Text.RegularExpressions;
-using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Services.Interfaces;
 using Mono.Cecil;
 
 namespace ModularPluginAPI.Components;
 
-public class AssemblySecurityService(PluginLoggingFacade logger) : IAssemblySecurityService
+public class AssemblySecurityService : IAssemblySecurityService
 {
     private readonly HashSet<string> _blockedNamespaces = new()
     {
@@ -45,17 +44,13 @@ public class AssemblySecurityService(PluginLoggingFacade logger) : IAssemblySecu
                         {
                             var typeNamespace = methodRef.DeclaringType.Namespace;
                             if (_blockedNamespaces.Any(banned => typeNamespace.StartsWith(banned)))
-                            {
-                                logger.SecurityCheckFailed(assembly.Name.Name, assembly.Name.Version);
                                 return false;
-                            }
                         }
                     }
                 }
             }
         }
 
-        logger.SecurityCheckPassed(assembly.Name.Name, assembly.Name.Version);
         return true;
     }
 }

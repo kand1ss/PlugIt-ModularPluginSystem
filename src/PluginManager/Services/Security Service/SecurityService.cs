@@ -8,7 +8,7 @@ namespace ModularPluginAPI.Components;
 
 public class SecurityService(PluginLoggingFacade logger) : ISecurityService, IMetadataRepositoryObserver
 {
-    private readonly AssemblySecurityService _assemblySecurity = new(logger);
+    private readonly AssemblySecurityService _assemblySecurity = new();
     private readonly PluginPermissionSecurityService _pluginSecurity = new();
     
 
@@ -23,8 +23,19 @@ public class SecurityService(PluginLoggingFacade logger) : ISecurityService, IMe
     }
     
     public bool CheckSafety(AssemblyMetadata assemblyMetadata)
-        => _assemblySecurity.CheckSafety(assemblyMetadata.Path) && 
-           assemblyMetadata.Plugins.All(_pluginSecurity.CheckSafety);
+    {
+        var result = _assemblySecurity.CheckSafety(assemblyMetadata.Path) &&
+               assemblyMetadata.Plugins.All(_pluginSecurity.CheckSafety);
+
+        if (result)
+        {
+            logger.SecurityCheckPassed(assemblyMetadata.Name, assemblyMetadata.Version);
+            return true;
+        }
+        
+        logger.SecurityCheckFailed(assemblyMetadata.Name, assemblyMetadata.Version);
+        return false;
+    }
 
     public bool CheckAssemblySafety(string assemblyPath)
         => _assemblySecurity.CheckSafety(assemblyPath);

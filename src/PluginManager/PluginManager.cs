@@ -39,7 +39,11 @@ public class PluginManager
     /// </remarks>
     public IPluginErrorRegistry ErrorRegistry { get; }
     
-    
+    /// <summary>
+    /// Gets the service responsible for performing security checks and managing plugin permissions.
+    /// This includes static analysis of plugin assemblies and runtime permission validation
+    /// (e.g., file system and network access).
+    /// </summary>
     public ISecurityService Security { get; }
     
 

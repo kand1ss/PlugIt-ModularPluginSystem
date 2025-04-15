@@ -20,7 +20,7 @@ public class AssemblySecurityServiceTests : TestWhichUsingTestAssembly
 
         var loggerMock = new Mock<ILoggerService>();
         var logger = new PluginLoggingFacade(loggerMock.Object);
-        _service = new AssemblySecurityService(logger);
+        _service = new AssemblySecurityService();
     }
 
     private string GetSolutionDirectory()
