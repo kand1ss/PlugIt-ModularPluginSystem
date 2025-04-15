@@ -1,14 +1,11 @@
-using System.Security;
 using System.Text.RegularExpressions;
 using ModularPluginAPI.Components.Logger;
-using ModularPluginAPI.Components.Observer;
-using ModularPluginAPI.Models;
 using ModularPluginAPI.Services.Interfaces;
 using Mono.Cecil;
 
 namespace ModularPluginAPI.Components;
 
-public class AssemblySecurityService(PluginLoggingFacade logger) : IAssemblySecurityService, IMetadataRepositoryObserver
+public class AssemblySecurityService(PluginLoggingFacade logger) : IAssemblySecurityService
 {
     private readonly HashSet<string> _blockedNamespaces = new()
     {
@@ -16,18 +13,6 @@ public class AssemblySecurityService(PluginLoggingFacade logger) : IAssemblySecu
         "System.Reflection.Emit",
         "System.Net"
     };
-    
-    public void OnMetadataAdded(AssemblyMetadata assemblyMetadata)
-    {
-        if (!CheckSafety(assemblyMetadata.Path))
-            throw new SecurityException(
-                $"Assembly '{assemblyMetadata.Name} v{assemblyMetadata.Version}' does not meet the specified safety standards.");
-    }
-
-    public void OnMetadataRemoved(AssemblyMetadata assemblyMetadata)
-    {
-    }
-    
 
     public bool AddBlockedNamespace(string namespaceName)
     {

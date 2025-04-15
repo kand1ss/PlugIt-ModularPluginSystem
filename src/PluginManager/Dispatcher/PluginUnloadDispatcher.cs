@@ -20,9 +20,8 @@ public class PluginUnloadDispatcher(IPluginMetadataService metadataService, IAss
         var metadata = metadataService.GetMetadataByPluginName(pluginName);
         var plugin = metadataService.GetPluginMetadataFromAssembly(metadata, pluginName);
         
-        if (plugin.HasConfiguration)
-            foreach (var dependency in plugin.Configuration.Dependencies)
-                UnloadAssemblyByPluginName(dependency.Name);
+        foreach (var dependency in plugin.Configuration.Dependencies)
+            UnloadAssemblyByPluginName(dependency.Name);
         
         UnloadAssembly(metadata.Path);
     }

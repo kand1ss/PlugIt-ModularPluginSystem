@@ -7,12 +7,10 @@
   ],
   "Permissions": {
     "FileSystemPaths": [
-      "D:/SomePath",
-      "D:/SomePath/Some2Path"
+      "D:/SomePath"
     ],
     "NetworkURLs": [
-      "http://somesite.com",
-      "http://somesecondsite.com"
+      "http://somesite.com"
     ]
   }
 }

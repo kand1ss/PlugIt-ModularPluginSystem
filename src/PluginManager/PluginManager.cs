@@ -40,13 +40,7 @@ public class PluginManager
     public IPluginErrorRegistry ErrorRegistry { get; }
     
     
-    /// <summary>
-    /// Gets the security service for the plugin manager.
-    /// This component is responsible for handling the security of plugins, including performing static analysis and enforcing security policies.
-    /// The security service will only be active if the security feature has not been disabled in <see cref="PluginManagerSettings"/>.
-    /// If <c>EnableSecurityService</c> is set to <c>false</c> in <see cref="PluginManagerSettings"/>, this service will not be available.
-    /// </summary>
-    public IAssemblySecurityService Security { get; }
+    public ISecurityService Security { get; }
     
 
     /// <summary>
@@ -74,7 +68,7 @@ public class PluginManager
         
         var assemblyHandler = new AssemblyHandler();
         var assemblyLoader = new AssemblyLoader(loggerFacade);
-        var securityService = new AssemblySecurityService(loggerFacade);
+        var securityService = new SecurityService(loggerFacade);
         Security = securityService;
         var repository = new AssemblyMetadataRepository();
         repository.AddObserver(pluginTracker);
@@ -110,7 +104,7 @@ public class PluginManager
         IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository,
         IPluginExecutor executor, ILoggerService logger, IPluginLoaderService loaderService, 
         IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver, IAssemblyWatcher watcher,
-        IPluginPerformanceProfiler performanceProfiler, IPluginErrorRegistry errorRegistry, IAssemblySecurityService security)
+        IPluginPerformanceProfiler performanceProfiler, IPluginErrorRegistry errorRegistry, ISecurityService security)
     {
         _logger = logger;
         _tracker = tracker;
