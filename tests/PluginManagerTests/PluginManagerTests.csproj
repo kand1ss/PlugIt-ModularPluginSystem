@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\PluginInfrastructure\PluginInfrastructure.csproj" />
       <ProjectReference Include="..\..\src\PluginManager\PluginManager.csproj" />
       <ProjectReference Include="..\TestAssembly\TestAssembly.csproj" />
       <ProjectReference Include="..\TestSafeAssembly\TestSafeAssembly.csproj" />
