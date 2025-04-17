@@ -60,11 +60,11 @@ public class PluginExecutorTests
     }
 
     [Fact]
-    public void ExecuteNetworkPlugin_SendMode_PluginSuccessfullyExecuted()
+    public async Task ExecuteNetworkPlugin_SendMode_PluginSuccessfullyExecuted()
     {
         var plugin = new TestNetworkPlugin();
         var randomData = new byte[101];
-        _pluginExecutor.ExecuteNetworkPluginSendAsync(randomData, plugin);
+        await _pluginExecutor.ExecuteNetworkPluginSendAsync(randomData, plugin);
         
         Assert.True(plugin.SendCalled);
         Assert.False(plugin.ReceiveCalled);
@@ -77,10 +77,10 @@ public class PluginExecutorTests
     }
     
     [Fact]
-    public void ExecuteNetworkPlugin_ReceiveMode_PluginSuccessfullyExecuted()
+    public async Task ExecuteNetworkPlugin_ReceiveMode_PluginSuccessfullyExecuted()
     {
         var plugin = new TestNetworkPlugin();
-        _pluginExecutor.ExecuteNetworkPluginReceiveAsync(plugin);
+        await _pluginExecutor.ExecuteNetworkPluginReceiveAsync(plugin);
         
         Assert.False(plugin.SendCalled);
         Assert.True(plugin.ReceiveCalled);
