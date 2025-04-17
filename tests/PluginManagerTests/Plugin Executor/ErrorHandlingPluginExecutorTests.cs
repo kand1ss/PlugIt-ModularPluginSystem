@@ -49,7 +49,7 @@ public class ErrorHandlingPluginExecutorTests
     public void ExecuteNetworkPluginSend_FaultedPlugin_ExceptionHandled()
     {
         var faultedPlugin = new FaultedNetworkPlugin();
-        _errorHandledExecutor.ExecuteNetworkPluginSend([101, 52], faultedPlugin);
+        _errorHandledExecutor.ExecuteNetworkPluginSendAsync([101, 52], faultedPlugin);
         
         Assert.NotEmpty(_exceptionObserver.AddedErrors);
         Assert.Contains(faultedPlugin.Name, _exceptionObserver.AddedErrors);
@@ -59,7 +59,7 @@ public class ErrorHandlingPluginExecutorTests
     public void ExecuteNetworkPluginReceive_FaultedPlugin_ExceptionHandled()
     {
         var faultedPlugin = new FaultedNetworkPlugin();
-        _errorHandledExecutor.ExecuteNetworkPluginReceive(faultedPlugin);
+        _errorHandledExecutor.ExecuteNetworkPluginReceiveAsync(faultedPlugin);
         
         Assert.NotEmpty(_exceptionObserver.AddedErrors);
         Assert.Contains(faultedPlugin.Name, _exceptionObserver.AddedErrors);

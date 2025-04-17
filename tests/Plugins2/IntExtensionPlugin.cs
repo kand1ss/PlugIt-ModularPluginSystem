@@ -12,6 +12,6 @@ public class IntExtensionPlugin : PluginBase, IExtensionPlugin<int>
     public void Expand(ref int data)
     {
         data *= 10;
-        GetDependencyPlugin<INetworkPlugin>("NetworkPlugin").SendData([101, 43, 42]);
+        GetDependencyPlugin<INetworkPlugin>("NetworkPlugin").SendDataAsync([101, 43, 42]);
     }
 }

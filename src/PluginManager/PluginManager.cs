@@ -269,12 +269,12 @@ public class PluginManager
     /// <param name="requestData">The data to be sent to the plugin.
     /// If no data should be sent, pass <c>null</c>.</param>
     /// <returns>The response data received from the plugin, or <c>null</c> if no response is expected.</returns>
-    public byte[]? ExecuteNetworkPlugin(string pluginName, bool expectResponse, byte[]? requestData = null)
+    public async Task<byte[]?> ExecuteNetworkPluginAsync(string pluginName, bool expectResponse, byte[]? requestData = null)
     {
         if (requestData is not null)
-            _dispatcher.Starter.SendNetworkPlugin(pluginName, requestData);
+            await _dispatcher.Starter.SendNetworkPluginAsync(pluginName, requestData);
 
-        var response = expectResponse ? _dispatcher.Starter.ReceiveNetworkPlugin(pluginName) : null;
+        var response = expectResponse ? await _dispatcher.Starter.ReceiveNetworkPluginAsync(pluginName) : null;
         _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
 
         return response;

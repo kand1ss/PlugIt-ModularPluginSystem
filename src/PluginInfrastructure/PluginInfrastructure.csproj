@@ -10,8 +10,4 @@
       <ProjectReference Include="..\PluginAPI\PluginAPI.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="tests\" />
-    </ItemGroup>
-
 </Project>

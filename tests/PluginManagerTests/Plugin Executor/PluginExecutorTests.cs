@@ -64,7 +64,7 @@ public class PluginExecutorTests
     {
         var plugin = new TestNetworkPlugin();
         var randomData = new byte[101];
-        _pluginExecutor.ExecuteNetworkPluginSend(randomData, plugin);
+        _pluginExecutor.ExecuteNetworkPluginSendAsync(randomData, plugin);
         
         Assert.True(plugin.SendCalled);
         Assert.False(plugin.ReceiveCalled);
@@ -80,7 +80,7 @@ public class PluginExecutorTests
     public void ExecuteNetworkPlugin_ReceiveMode_PluginSuccessfullyExecuted()
     {
         var plugin = new TestNetworkPlugin();
-        _pluginExecutor.ExecuteNetworkPluginReceive(plugin);
+        _pluginExecutor.ExecuteNetworkPluginReceiveAsync(plugin);
         
         Assert.False(plugin.SendCalled);
         Assert.True(plugin.ReceiveCalled);

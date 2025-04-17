@@ -55,11 +55,11 @@ public class ErrorHandlingPluginExecutor(IPluginExecutor pluginExecutor, IPlugin
         }
     }
 
-    public byte[] ExecuteNetworkPluginReceive(INetworkPlugin plugin)
+    public async Task<byte[]> ExecuteNetworkPluginReceiveAsync(INetworkPlugin plugin)
     {
         try
         {
-            return pluginExecutor.ExecuteNetworkPluginReceive(plugin);
+            return await pluginExecutor.ExecuteNetworkPluginReceiveAsync(plugin);
         }
         catch (Exception e)
         {
@@ -69,11 +69,11 @@ public class ErrorHandlingPluginExecutor(IPluginExecutor pluginExecutor, IPlugin
         return [];
     }
 
-    public void ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin)
+    public async Task ExecuteNetworkPluginSendAsync(byte[] data, INetworkPlugin plugin)
     {
         try
         {
-            pluginExecutor.ExecuteNetworkPluginSend(data, plugin);
+            await pluginExecutor.ExecuteNetworkPluginSendAsync(data, plugin);
         }
         catch (Exception e)
         {

@@ -102,17 +102,17 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor, IObse
         OnPluginCompleted(plugin);
     }
 
-    public byte[] ExecuteNetworkPluginReceive(INetworkPlugin plugin)
-        => ExecutePlugin<byte[]>(plugin, p =>
+    public async Task<byte[]> ExecuteNetworkPluginReceiveAsync(INetworkPlugin plugin)
+        => await ExecutePlugin<Task<byte[]>>(plugin, async p =>
         {
             logger.NetworkPluginExecuting(p.Name, p.Version, false);
-            return ((INetworkPlugin)p).ReceiveData();
+            return await ((INetworkPlugin)p).ReceiveDataAsync();
         });
 
-    public void ExecuteNetworkPluginSend(byte[] data, INetworkPlugin plugin)
-        => ExecutePlugin(plugin, p =>
+    public async Task ExecuteNetworkPluginSendAsync(byte[] data, INetworkPlugin plugin)
+        => await ExecutePlugin(plugin, async p =>
         {
             logger.NetworkPluginExecuting(p.Name, p.Version, true);
-            ((INetworkPlugin)p).SendData(data);
+            await ((INetworkPlugin)p).SendDataAsync(data);
         });
 }

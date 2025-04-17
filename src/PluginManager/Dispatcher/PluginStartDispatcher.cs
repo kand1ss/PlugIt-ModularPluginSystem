@@ -57,15 +57,15 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
     }
     
     
-    public byte[] ReceiveNetworkPlugin(string pluginName)
+    public async Task<byte[]> ReceiveNetworkPluginAsync(string pluginName)
     {
         var plugin = GetPluginFromAssembly<INetworkPlugin>(pluginName);
-        return pluginExecutor.ExecuteNetworkPluginReceive(plugin);
+        return await pluginExecutor.ExecuteNetworkPluginReceiveAsync(plugin);
     }
     
-    public void SendNetworkPlugin(string pluginName, byte[] data)
+    public async Task SendNetworkPluginAsync(string pluginName, byte[] data)
     {
         var plugin = GetPluginFromAssembly<INetworkPlugin>(pluginName);
-        pluginExecutor.ExecuteNetworkPluginSend(data, plugin);
+        await pluginExecutor.ExecuteNetworkPluginSendAsync(data, plugin);
     }
 }

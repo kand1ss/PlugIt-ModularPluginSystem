@@ -4,7 +4,7 @@ using ModularPluginAPI.Components.Logger.Exporters;
 
 class Program
 {
-    static void Main(string[] args)
+    static async Task Main(string[] args)
     {
         // var manager = new PluginManager(new PluginManagerSettings
         // {
@@ -20,7 +20,7 @@ class Program
         manager.ExecutePlugin("ConsolePlugin");
         manager.ExecutePlugin("ConsolePlugin2");
         Console.ReadLine();
-        manager.ExecuteNetworkPlugin("NetworkPlugin", true, [100, 55, 24, 42]);
+        await manager.ExecuteNetworkPluginAsync("NetworkPlugin", true, [100, 55, 24, 42]);
         manager.ExecutePlugin("FaultedPlugin");
         Console.ReadLine();
         manager.Tracker.RemoveObserver(observerComponent);

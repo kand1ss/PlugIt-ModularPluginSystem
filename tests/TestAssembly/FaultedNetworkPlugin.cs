@@ -9,12 +9,12 @@ public class FaultedNetworkPlugin : PluginBase, INetworkPlugin
     public override string Description => "Faulted plugin";
     public override string Author => "kand1s";
 
-    public void SendData(byte[] data)
+    public Task SendDataAsync(byte[] data)
     {
         throw new Exception();
     }
 
-    public byte[] ReceiveData()
+    public Task<byte[]> ReceiveDataAsync()
     {
         throw new Exception();
     }
