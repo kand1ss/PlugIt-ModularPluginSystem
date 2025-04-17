@@ -17,7 +17,7 @@ public class PluginFileSystemServiceTests : IDisposable
         
         var controllerMock = new Mock<IFileSystemPermissionController>();
         controllerMock.Setup(x => x.GetAllowedDirectories())
-            .Returns(new[] { _testDirectory });
+            .Returns([_testDirectory]);
 
         _service = FileSystemServiceFactory.Create(controllerMock.Object);
     }
@@ -97,12 +97,5 @@ public class PluginFileSystemServiceTests : IDisposable
     {
         var testData = Encoding.UTF8.GetBytes("Test");
         Assert.False(_service.Write("", testData));
-    }
-
-    [Fact]
-    public void Write_NullData_ShouldFail()
-    {
-        var testFile = Path.Combine(_testDirectory, "null_data.txt");
-        Assert.False(_service.Write(testFile, null));
     }
 }

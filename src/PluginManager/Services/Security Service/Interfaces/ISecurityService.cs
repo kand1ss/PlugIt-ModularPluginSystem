@@ -1,6 +1,10 @@
 
 namespace ModularPluginAPI.Services.Interfaces;
 
+/// <summary>
+/// Provides security-related services for managing and validating plugin assemblies, namespaces,
+/// and resource permissions in a controlled environment.
+/// </summary>
 public interface ISecurityService
 {
     /// <summary>
@@ -35,19 +39,22 @@ public interface ISecurityService
     /// <c>false</c> if the name was invalid or not found in the list.
     /// </returns>
     bool RemoveBlockedNamespace(string namespaceName);
-    
+
     /// <summary>
     /// Grants permission to access a specific file system path for all plugins.
-    /// This permission allows plugins to interact with the specified path if explicitly requested in their configuration.
+    /// This permission allows plugins to interact with the specified path based on the provided read and write permissions.
     /// </summary>
     /// <param name="fullPath">The full file system path to allow access to (e.g., "D:/Plugins/Data").</param>
-    void AddFileSystemPermission(string fullPath);
+    /// <param name="canRead">Specifies whether read permissions are granted. Defaults to <c>true</c>.</param>
+    /// <param name="canWrite">Specifies whether write permissions are granted. Defaults to <c>true</c>.</param>
+    void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true);
 
     /// <summary>
     /// Grants permission to access a specific network resource (URL) for all plugins.
     /// This permission allows plugins to perform network operations on the given URL if it is declared in their configuration.
     /// </summary>
     /// <param name="url">The URL to allow access to (e.g., "https://api.example.com"). Must be a valid HTTP or HTTPS URL.</param>
-    void AddNetworkPermission(string url);
-
+    /// <param name="canRead">Determines whether read access is permitted for the specified network resource. Default is <c>true</c>.</param>
+    /// <param name="canWrite">Determines whether write access is permitted for the specified network resource. Default is <c>true</c>.</param>
+    void AddNetworkPermission(string url, bool canRead = true, bool canWrite = true);
 }
