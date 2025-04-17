@@ -14,10 +14,11 @@ public class TestNetworkPlugin : INetworkPlugin
     public bool ReceiveCalled { get; private set; } = false;
     
     
-    public Task SendDataAsync(byte[] data)
+    public async Task<string> SendDataAsync(byte[] data)
     {
         SendCalled = true;
-        return Task.CompletedTask;
+        await Task.Yield();
+        return "";
     }
 
     public async Task<byte[]> ReceiveDataAsync()

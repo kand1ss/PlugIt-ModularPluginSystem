@@ -9,7 +9,7 @@ public class FaultedNetworkPlugin : PluginBase, INetworkPlugin
     public override string Description => "Faulted plugin";
     public override string Author => "kand1s";
 
-    public Task SendDataAsync(byte[] data)
+    public Task<string> SendDataAsync(byte[] data)
     {
         throw new Exception();
     }

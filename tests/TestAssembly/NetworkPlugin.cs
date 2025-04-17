@@ -10,10 +10,11 @@ public class NetworkPlugin : PluginBase, INetworkPlugin
     public override string Author => "kand1s";
     
     
-    public Task SendDataAsync(byte[] data)
+    public async Task<string> SendDataAsync(byte[] data)
     {
         Console.WriteLine(data);
-        return Task.CompletedTask;
+        await Task.Yield();
+        return "";
     }
 
     public async Task<byte[]> ReceiveDataAsync()

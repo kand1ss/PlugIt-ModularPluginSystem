@@ -4,7 +4,7 @@ namespace PluginAPI.Services;
 
 public class FileSystemPermissionController : IFileSystemPermissionController
 {
-    private readonly HashSet<string> _allowedDirectories = new();
+    private readonly List<string> _allowedDirectories = new();
     
     public void AddAllowedDirectory(string directoryPath)
     {
