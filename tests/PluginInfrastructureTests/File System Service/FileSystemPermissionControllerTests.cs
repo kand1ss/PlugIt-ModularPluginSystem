@@ -1,5 +1,5 @@
 using PluginAPI.Services;
-using Xunit;
+using PluginInfrastructure;
 
 namespace PluginManagerTests;
 
@@ -14,7 +14,7 @@ public class FileSystemPermissionControllerTests
         _controller.AddAllowedDirectory(path);
 
         Assert.Single(_controller.GetAllowedDirectories());
-        Assert.Contains(path, _controller.GetAllowedDirectories());
+        Assert.Contains(Normalizer.NormalizeDirectoryPath(path), _controller.GetAllowedDirectories());
     }
     
     [Fact]

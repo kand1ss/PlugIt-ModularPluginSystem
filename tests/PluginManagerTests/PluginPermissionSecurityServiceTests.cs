@@ -1,5 +1,6 @@
 using ModularPluginAPI.Components;
 using ModularPluginAPI.Models;
+using PluginInfrastructure;
 using Xunit;
 
 namespace PluginManagerTests;
@@ -10,8 +11,8 @@ public class PluginPermissionSecurityServiceTests
     private readonly PluginMetadata _metadata = new();
     
     private readonly string _path = Path.Combine("D", "SomePath");
-    private readonly string _path1 = Path.Combine("D", "SomePath");
-    private readonly string _path2 = Path.Combine("D", "SomePath");
+    private readonly string _path1 = Path.Combine("D", "SomePath2");
+    private readonly string _path2 = Path.Combine("D", "SomePath3");
 
     private readonly string _url = "https://localhost";
     private readonly string _url1 = "http://localhost";
@@ -21,7 +22,7 @@ public class PluginPermissionSecurityServiceTests
     {
         _securityService.AddFileSystemPermission(_path);
         
-        Assert.Contains(_path, _securityService.GetFileSystemPermissions());
+        Assert.Contains(Normalizer.NormalizeDirectoryPath(_path), _securityService.GetFileSystemPermissions());
         Assert.Single(_securityService.GetFileSystemPermissions());
     }
 
@@ -39,7 +40,7 @@ public class PluginPermissionSecurityServiceTests
     {
         _securityService.AddNetworkPermission(_url);
         
-        Assert.Contains(_url, _securityService.GetNetworkPermissions());
+        Assert.Contains(Normalizer.NormalizeUrl(_url), _securityService.GetNetworkPermissions());
         Assert.Single(_securityService.GetNetworkPermissions());
     }
 
@@ -50,9 +51,9 @@ public class PluginPermissionSecurityServiceTests
         var url2 = "http:/localhost";
         var url3 = "http//localhost";
         
-        _securityService.AddNetworkPermission(url);
-        _securityService.AddNetworkPermission(url2);
-        _securityService.AddNetworkPermission(url3);
+        Assert.Throws<ArgumentException>(() => _securityService.AddNetworkPermission(url));
+        Assert.Throws<ArgumentException>(() => _securityService.AddNetworkPermission(url2));
+        Assert.Throws<ArgumentException>(() => _securityService.AddNetworkPermission(url3));
         
         Assert.Empty(_securityService.GetNetworkPermissions());
     }

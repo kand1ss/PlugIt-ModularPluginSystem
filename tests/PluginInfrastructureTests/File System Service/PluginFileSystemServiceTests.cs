@@ -2,7 +2,6 @@ using System.Text;
 using Moq;
 using PluginAPI.Services;
 using PluginAPI.Services.interfaces;
-using Xunit;
 
 namespace PluginManagerTests;
 

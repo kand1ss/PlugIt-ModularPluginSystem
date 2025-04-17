@@ -1,39 +1,37 @@
-using System.Text.RegularExpressions;
 using ModularPluginAPI.Models;
 using ModularPluginAPI.Services.Interfaces;
+using PluginAPI.Models.Permissions;
+using PluginInfrastructure;
 
 namespace ModularPluginAPI.Components;
 
 public class PluginPermissionSecurityService : IPluginPermissionSecurityService
 {
-    private readonly List<string> _fileSystemPermissions = new();
-    private readonly List<string> _networkPermissions = new();
+    private readonly Dictionary<string, FileSystemPermission> _fileSystemPermissions = new();
+    private readonly Dictionary<string, NetworkPermission> _networkPermissions = new();
     
-    
-    public void AddFileSystemPermission(string fullPath)
+    public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true)
     {
-        if (_fileSystemPermissions.Contains(fullPath))
-            return;
-        
-        _fileSystemPermissions.Add(fullPath);
-    }
-
-    public void AddNetworkPermission(string url)
-    {
-        if (_networkPermissions.Contains(url))
+        fullPath = Normalizer.NormalizeDirectoryPath(fullPath);
+        if (_fileSystemPermissions.ContainsKey(fullPath))
             return;
 
-        var regularExpression = new Regex("^https?:\\/\\/[^\\s\\/$.?#].[^\\s]*$", RegexOptions.Compiled | RegexOptions.IgnoreCase);
-        if (!regularExpression.IsMatch(url))
+        _fileSystemPermissions.Add(fullPath, new FileSystemPermission(canRead, canWrite));
+    }
+
+    public void AddNetworkPermission(string url, bool canGet = true, bool canPost = true)
+    {
+        url = Normalizer.NormalizeUrl(url);
+        if (_networkPermissions.ContainsKey(url))
             return;
-        
-        _networkPermissions.Add(url);
+
+        _networkPermissions.Add(url, new NetworkPermission(canGet, canPost));
     }
     
-    public IEnumerable<string> GetFileSystemPermissions()
+    public IDictionary<string, FileSystemPermission> GetFileSystemPermissions()
         => _fileSystemPermissions;
 
-    public IEnumerable<string> GetNetworkPermissions()
+    public IDictionary<string, NetworkPermission> GetNetworkPermissions()
         => _networkPermissions;
 
     
@@ -46,10 +44,9 @@ public class PluginPermissionSecurityService : IPluginPermissionSecurityService
     }
 
 
-    private bool CheckFileSystemPermissions(IEnumerable<string> pluginPaths)
-        => pluginPaths.All(_fileSystemPermissions.Contains);
+    private bool CheckFileSystemPermissions(IEnumerable<string> filePaths)
+        => filePaths.All(x => _fileSystemPermissions.ContainsKey(Normalizer.NormalizeDirectoryPath(x)));
 
-    private bool CheckNetworkPermissions(IEnumerable<string> pluginUrls)
-        => pluginUrls.All(_networkPermissions.Contains);
-
+    private bool CheckNetworkPermissions(IEnumerable<string> networkPaths)
+        => networkPaths.All(x => _networkPermissions.ContainsKey(Normalizer.NormalizeUrl(x)));
 }

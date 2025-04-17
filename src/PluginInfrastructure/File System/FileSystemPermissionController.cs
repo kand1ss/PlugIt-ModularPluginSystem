@@ -1,4 +1,5 @@
 using PluginAPI.Services.interfaces;
+using PluginInfrastructure;
 
 namespace PluginAPI.Services;
 
@@ -10,8 +11,8 @@ public class FileSystemPermissionController : IFileSystemPermissionController
     {
         if (!Directory.Exists(directoryPath))
             throw new DirectoryNotFoundException($"Directory '{directoryPath}' does not exist");
-        
-        _allowedDirectories.Add(directoryPath);
+
+        _allowedDirectories.Add(Normalizer.NormalizeDirectoryPath(directoryPath));
     }
 
     public IReadOnlyCollection<string> GetAllowedDirectories()
