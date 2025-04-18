@@ -12,7 +12,7 @@ public interface IPluginFileSystemService
     /// <param name="absolutePath">The complete path of the file where the data should be written.</param>
     /// <param name="dataToWrite">The binary data to write to the file.</param>
     /// <returns><c>true</c> if the data was successfully written to the file; otherwise, <c>false</c>.</returns>
-    bool Write(string absolutePath, byte[] dataToWrite);
+    Task<bool> WriteAsync(string absolutePath, byte[] dataToWrite);
 
 
     /// <summary>
@@ -21,5 +21,5 @@ public interface IPluginFileSystemService
     /// </summary>
     /// <param name="absolutePath">The complete path of the file to be read.</param>
     /// <returns>The binary content of the file if it exists and is accessible; otherwise, an empty array.</returns>
-    byte[] Read(string absolutePath);
+    Task<byte[]> ReadAsync(string absolutePath);
 }

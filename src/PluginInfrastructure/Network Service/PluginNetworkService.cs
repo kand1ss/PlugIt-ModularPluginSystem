@@ -33,12 +33,12 @@ internal class PluginNetworkService : IPluginNetworkService, IDisposable
     private void CheckUrlAllowed(string url, bool isGet)
     {
         url = Normalizer.NormalizeUrl(url);
-        if (!_allowedPermissions.ContainsKey(url))
+        if (!_allowedPermissions.TryGetValue(url, out var permission))
             throw new SecurityException($"URL '{url}' is not permitted.");
         
-        if (isGet && !_allowedPermissions[url].CanGet)
+        if (isGet && !permission.CanGet)
             throw new SecurityException($"URL '{url}' does not allow GET requests.");
-        if (!isGet && !_allowedPermissions[url].CanPost)
+        if (!isGet && !permission.CanPost)
             throw new SecurityException($"URL '{url}' does not allow POST requests.");
     }
     

@@ -1,48 +1,38 @@
+using System.Security;
 using PluginAPI.Services.interfaces;
+using PluginInfrastructure;
 
 namespace PluginAPI.Services;
 
 internal class PluginFileSystemService : IPluginFileSystemService
 {
     private readonly HashSet<string> _allowedDirectories = new();
+    private readonly long _maxFileSize;
 
-    public PluginFileSystemService(IFileSystemPermissionController controller)
+    public PluginFileSystemService(IFileSystemPermissionController controller, FileSystemServiceSettings? settings = null)
     {
+        settings ??= new();
         foreach (var directory in controller.GetAllowedDirectories())
             _allowedDirectories.Add(directory);
+        
+        _maxFileSize = settings.MaxFileSize;
     }
-    
+
     private bool IsPathInAllowedDirectory(string path)
     {
         var directory = Path.GetDirectoryName(path);
-        
         if (string.IsNullOrEmpty(directory))
             return false;
-            
-        return _allowedDirectories.Contains(directory) &&
-               !PathTraversesUp(path) &&
-               !IsSymbolicLink(path);
-    }
-    
-    private static bool PathTraversesUp(string path)
-    {
-        return path.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)
-            .Any(s => s == "..");
-    }
-    
-    private static bool IsSymbolicLink(string path)
-    {
-        var fi = new FileInfo(path);
-        return fi.Exists && (fi.Attributes & FileAttributes.ReparsePoint) != 0;
+        
+        var normalizedDirectory = Normalizer.NormalizeDirectoryPath(directory);
+        return _allowedDirectories.Contains(normalizedDirectory);
     }
 
-
-
-    public bool Write(string absolutePath, byte[] dataToWrite)
+    public async Task<bool> WriteAsync(string absolutePath, byte[] dataToWrite)
     {
         try
         {
-            return TryWrite(absolutePath, dataToWrite);
+            return await TryWrite(absolutePath, dataToWrite);
         }
         catch (Exception)
         {
@@ -50,7 +40,7 @@ internal class PluginFileSystemService : IPluginFileSystemService
         }
     }
 
-    private bool TryWrite(string absolutePath, byte[] dataToWrite)
+    private async Task<bool> TryWrite(string absolutePath, byte[] dataToWrite)
     {
         if (!IsPathInAllowedDirectory(absolutePath))
             return false;
@@ -62,16 +52,17 @@ internal class PluginFileSystemService : IPluginFileSystemService
         if (!Directory.Exists(directory))
             Directory.CreateDirectory(directory);
             
-        using var fs = new FileStream(absolutePath, FileMode.Create, FileAccess.Write, FileShare.None);
-        fs.Write(dataToWrite, 0, dataToWrite.Length);
+        await using var stream = new FileStream(absolutePath, FileMode.Create, FileAccess.Write, FileShare.None);
+        await stream.WriteAsync(dataToWrite, 0, dataToWrite.Length);
+        
         return true;
     }
 
-    public byte[] Read(string absolutePath)
+    public async Task<byte[]> ReadAsync(string absolutePath)
     {
         try
         {
-            return TryRead(absolutePath);
+            return await TryRead(absolutePath);
         }
         catch (Exception)
         {
@@ -79,14 +70,36 @@ internal class PluginFileSystemService : IPluginFileSystemService
         }
     }
 
-    private byte[] TryRead(string absolutePath)
+    private async Task<byte[]> TryRead(string absolutePath)
     {
         if (!IsPathInAllowedDirectory(absolutePath))
             return [];
 
         if (!Path.Exists(absolutePath))
             return [];
+        
+        await using var stream = new FileStream(absolutePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+        var buffer = new byte[8192];
+        var totalBytesRead = 0;
+        var memoryStream = new MemoryStream();
 
-        return File.ReadAllBytes(absolutePath);
+        int bytesRead;
+
+        while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+        {
+            totalBytesRead += bytesRead;
+            CheckFileSize(totalBytesRead);
+            
+            await memoryStream.WriteAsync(buffer, 0, bytesRead);
+        }
+        
+        return memoryStream.ToArray();
+    }
+
+    private void CheckFileSize(long fileLength)
+    {
+        if (fileLength > _maxFileSize)
+            throw new SecurityException(
+                $"File size '{fileLength}' exceeds the allowable size '{_maxFileSize}'.");
     }
 }

@@ -10,9 +10,11 @@ public static class Normalizer
         if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
             throw new ArgumentException("Only HTTP and HTTPS URLs are allowed", nameof(url));
 
-        return uri.ToString();
+        var resultUrl = uri.ToString().TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        return resultUrl.ToLowerInvariant();
     }
 
     public static string NormalizeDirectoryPath(string path)
-        => Path.GetFullPath(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)).ToLowerInvariant();
+        => Path.GetFullPath(path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar))
+            .ToLowerInvariant();
 }

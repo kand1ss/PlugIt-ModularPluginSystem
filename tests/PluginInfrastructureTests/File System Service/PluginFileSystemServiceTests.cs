@@ -35,67 +35,67 @@ public class PluginFileSystemServiceTests : IDisposable
     }
 
     [Fact]
-    public void Write_ValidPathAndData_DataWritten()
+    public async Task Write_ValidPathAndData_DataWritten()
     {
         var testFile = Path.Combine(_testDirectory, "test.txt");
         var testData = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(_service.Write(testFile, testData));
+        Assert.True(await _service.WriteAsync(testFile, testData));
         Assert.True(File.Exists(testFile));
         Assert.Equal(testData, File.ReadAllBytes(testFile));
     }
 
     [Fact]
-    public void Write_OutsideAllowedDirectory_DataNotWritten()
+    public async Task Write_OutsideAllowedDirectory_DataNotWritten()
     {
         var testFile = Path.Combine(Path.GetTempPath(), "unauthorized.txt");
         var testData = Encoding.UTF8.GetBytes("Test");
 
-        Assert.False(_service.Write(testFile, testData));
+        Assert.False(await _service.WriteAsync(testFile, testData));
         Assert.False(File.Exists(testFile));
     }
 
     [Fact]
-    public void Write_PathTraversalAttempt_DataNotWritten()
+    public async Task Write_PathTraversalAttempt_DataNotWritten()
     {
         var testFile = Path.Combine(_testDirectory, "..", "traversal.txt");
         var testData = Encoding.UTF8.GetBytes("Test");
 
-        Assert.False(_service.Write(testFile, testData));
+        Assert.False(await _service.WriteAsync(testFile, testData));
         Assert.False(File.Exists(testFile));
     }
 
     [Fact]
-    public void Read_ExistingFile_FileHasBeenRead()
+    public async Task Read_ExistingFile_FileHasBeenRead()
     {
         var testFile = Path.Combine(_testDirectory, "read_test.txt");
         var testData = Encoding.UTF8.GetBytes("Test Content");
         File.WriteAllBytes(testFile, testData);
 
-        Assert.Equal(testData, _service.Read(testFile));
+        Assert.Equal(testData, await _service.ReadAsync(testFile));
     }
 
     [Fact]
-    public void Read_NonExistentFile_ShouldReturnEmptyArray()
+    public async Task Read_NonExistentFile_ShouldReturnEmptyArray()
     {
         var testFile = Path.Combine(_testDirectory, "non_existent.txt");
-        Assert.Empty(_service.Read(testFile));
+        Assert.Empty(await _service.ReadAsync(testFile));
     }
 
     [Fact]
-    public void Read_OutsideAllowedDirectory_ShouldReturnEmptyArray()
+    public async Task Read_OutsideAllowedDirectory_ShouldReturnEmptyArray()
     {
         var testFile = Path.Combine(Path.GetTempPath(), "unauthorized.txt");
         File.WriteAllBytes(testFile, Encoding.UTF8.GetBytes("Test"));
 
-        Assert.Empty(_service.Read(testFile));
+        Assert.Empty(await _service.ReadAsync(testFile));
         File.Delete(testFile);
     }
 
     [Fact]
-    public void Write_InvalidPath_ShouldFail()
+    public async Task Write_InvalidPath_ShouldFail()
     {
         var testData = Encoding.UTF8.GetBytes("Test");
-        Assert.False(_service.Write("", testData));
+        Assert.False(await _service.WriteAsync("", testData));
     }
 }
