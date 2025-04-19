@@ -10,7 +10,18 @@ public class PluginPermissionSecurityService : IPluginPermissionSecurityService
     private readonly Dictionary<string, FileSystemPermission> _fileSystemPermissions = new();
     private readonly Dictionary<string, NetworkPermission> _networkPermissions = new();
     
-    public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true)
+    public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = false)
+    {
+        AddFileSystemPermission(fullPath, canRead, canWrite);
+        if (!recursive)
+            return;
+
+        var allSubdirectories = Directory.GetDirectories(fullPath, "*", SearchOption.AllDirectories);
+        foreach(var path in allSubdirectories)
+            AddFileSystemPermission(path, canRead, canWrite);
+    }
+
+    private void AddFileSystemPermission(string fullPath, bool canRead, bool canWrite)
     {
         fullPath = Normalizer.NormalizeDirectoryPath(fullPath);
         if (_fileSystemPermissions.ContainsKey(fullPath))

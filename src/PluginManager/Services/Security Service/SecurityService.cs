@@ -49,8 +49,8 @@ public class SecurityService(PluginLoggingFacade logger) : ISecurityService, IMe
     public bool RemoveBlockedNamespace(string namespaceName)
         => _assemblySecurity.RemoveBlockedNamespace(namespaceName);
     
-    public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true)
-        => _pluginSecurity.AddFileSystemPermission(fullPath, canRead, canWrite);
+    public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = false)
+        => _pluginSecurity.AddFileSystemPermission(fullPath, canRead, canWrite, recursive);
 
     public void AddNetworkPermission(string url, bool canRead = true, bool canWrite = true)
         => _pluginSecurity.AddNetworkPermission(url, canRead, canWrite);

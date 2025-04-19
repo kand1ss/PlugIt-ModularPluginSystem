@@ -34,6 +34,19 @@ public class PluginPermissionSecurityServiceTests
         
         Assert.Single(_securityService.GetFileSystemPermissions());
     }
+    
+    [Fact]
+    public void AddFileSystemPermission_Recursive_AddsAllSubdirectories()
+    {
+        _securityService.AddFileSystemPermission(Directory.GetCurrentDirectory(), canRead: true, canWrite: false, recursive: true);
+        var expectedDirs = Directory.GetDirectories(Directory.GetCurrentDirectory(), "*", SearchOption.AllDirectories);
+
+        foreach (var dir in expectedDirs)
+        {
+            var normalized = Normalizer.NormalizeDirectoryPath(dir);
+            Assert.True(_securityService.GetFileSystemPermissions().ContainsKey(normalized));
+        }
+    }
 
     [Fact]
     public void AddNetworkPermission_CorrectUrl_PermissionAdded()

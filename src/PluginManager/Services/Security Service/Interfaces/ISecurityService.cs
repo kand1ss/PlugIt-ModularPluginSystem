@@ -51,12 +51,13 @@ public interface ISecurityService
 
     /// <summary>
     /// Grants permission to access a specific file system path for all plugins.
-    /// This permission allows plugins to interact with the specified path based on the provided read and write permissions.
+    /// This permission allows plugins to interact with the specified path based on the provided read, write, and recursive permissions.
     /// </summary>
-    /// <param name="fullPath">The full file system path to allow access to (e.g., "D:/Plugins/Data").</param>
-    /// <param name="canRead">Specifies whether read permissions are granted. Defaults to <c>true</c>.</param>
-    /// <param name="canWrite">Specifies whether write permissions are granted. Defaults to <c>true</c>.</param>
-    void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true);
+    /// <param name="fullPath">The full file system path to grant access to (e.g., "D:/Plugins/Data").</param>
+    /// <param name="canRead">Indicates whether reading the specified path is permitted. Defaults to <c>true</c>.</param>
+    /// <param name="canWrite">Indicates whether writing to the specified path is permitted. Defaults to <c>true</c>.</param>
+    /// <param name="recursive">Indicates whether the permission applies to subdirectories and files within the specified path. Defaults to <c>false</c>.</param>
+    void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = false);
 
     /// <summary>
     /// Grants permission to access a specific network resource (URL) for all plugins.

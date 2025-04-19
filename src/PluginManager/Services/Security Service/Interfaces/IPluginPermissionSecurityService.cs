@@ -5,7 +5,7 @@ namespace ModularPluginAPI.Services.Interfaces;
 
 public interface IPluginPermissionSecurityService
 {
-    void AddFileSystemPermission(string fullPath, bool canRead, bool canWrite);
+    void AddFileSystemPermission(string fullPath, bool canRead, bool canWrite, bool recursive);
     void AddNetworkPermission(string url, bool canGet, bool canPost);
     
     IDictionary<string, FileSystemPermission> GetFileSystemPermissions();
