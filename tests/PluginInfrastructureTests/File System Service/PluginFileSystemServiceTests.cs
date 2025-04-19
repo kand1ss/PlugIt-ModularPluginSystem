@@ -2,6 +2,7 @@ using System.Text;
 using Moq;
 using PluginAPI.Services;
 using PluginAPI.Services.interfaces;
+using PluginInfrastructure;
 
 namespace PluginManagerTests;
 
@@ -17,7 +18,7 @@ public class PluginFileSystemServiceTests : IDisposable
         
         var controllerMock = new Mock<IFileSystemPermissionController>();
         controllerMock.Setup(x => x.GetAllowedDirectories())
-            .Returns([_testDirectory]);
+            .Returns([Normalizer.NormalizeDirectoryPath(_testDirectory)]);
 
         _service = FileSystemServiceFactory.Create(controllerMock.Object);
     }
@@ -42,7 +43,7 @@ public class PluginFileSystemServiceTests : IDisposable
 
         Assert.True(await _service.WriteAsync(testFile, testData));
         Assert.True(File.Exists(testFile));
-        Assert.Equal(testData, File.ReadAllBytes(testFile));
+        Assert.Equal(testData, await File.ReadAllBytesAsync(testFile));
     }
 
     [Fact]
@@ -69,9 +70,9 @@ public class PluginFileSystemServiceTests : IDisposable
     public async Task Read_ExistingFile_FileHasBeenRead()
     {
         var testFile = Path.Combine(_testDirectory, "read_test.txt");
-        var testData = Encoding.UTF8.GetBytes("Test Content");
-        File.WriteAllBytes(testFile, testData);
-
+        var testData = Encoding.UTF8.GetBytes("Test Content"); 
+        
+        await File.WriteAllBytesAsync(testFile, testData);
         Assert.Equal(testData, await _service.ReadAsync(testFile));
     }
 
