@@ -6,11 +6,8 @@
     }
   ],
   "Permissions": {
-    "FileSystemPaths": [
-      "D:/SomePath"
-    ],
     "NetworkURLs": [
-      "http://somesite.com"
+      "https://httpbin.org/get"
     ]
   }
 }

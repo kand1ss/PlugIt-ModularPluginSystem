@@ -4,5 +4,10 @@
       "Name": "ConsolePlugin3",
       "Version": "1.0.0"
     }
-  ]
+  ],
+  "Permissions": {
+    "NetworkURLs": [
+      "https://httpbin.org/get"
+    ]
+  }
 }

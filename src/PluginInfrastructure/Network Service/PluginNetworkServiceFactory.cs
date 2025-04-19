@@ -5,6 +5,6 @@ namespace PluginInfrastructure.Network_Service;
 
 public static class PluginNetworkServiceFactory
 {
-    public static IPluginNetworkService Create(INetworkPermissionController controller)
-        => new PluginNetworkService(controller);
+    public static IPluginNetworkService Create(INetworkPermissionController controller, NetworkServiceSettings? settings = null)
+        => new PluginNetworkService(controller, settings);
 }

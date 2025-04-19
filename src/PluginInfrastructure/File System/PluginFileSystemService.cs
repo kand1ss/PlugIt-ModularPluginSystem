@@ -18,14 +18,14 @@ internal class PluginFileSystemService : IPluginFileSystemService
         _maxFileSize = settings.MaxFileSize;
     }
 
-    private bool IsPathInAllowedDirectory(string path)
+    private bool IsPathAllowed(string path)
     {
-        var directory = Path.GetDirectoryName(path);
-        if (string.IsNullOrEmpty(directory))
+        if (string.IsNullOrEmpty(path))
             return false;
         
-        var normalizedDirectory = Normalizer.NormalizeDirectoryPath(directory);
-        return _allowedDirectories.Contains(normalizedDirectory);
+        var normalizedPath = Normalizer.NormalizeDirectoryPath(path);
+        var normalizedDirectory = Normalizer.NormalizeDirectoryPath(Path.GetDirectoryName(path) ?? "");
+        return _allowedDirectories.Contains(normalizedPath) || _allowedDirectories.Contains(normalizedDirectory);
     }
 
     public async Task<bool> WriteAsync(string absolutePath, byte[] dataToWrite)
@@ -42,7 +42,7 @@ internal class PluginFileSystemService : IPluginFileSystemService
 
     private async Task<bool> TryWrite(string absolutePath, byte[] dataToWrite)
     {
-        if (!IsPathInAllowedDirectory(absolutePath))
+        if (!IsPathAllowed(absolutePath))
             return false;
             
         var directory = Path.GetDirectoryName(absolutePath) ?? "";
@@ -72,7 +72,7 @@ internal class PluginFileSystemService : IPluginFileSystemService
 
     private async Task<byte[]> TryRead(string absolutePath)
     {
-        if (!IsPathInAllowedDirectory(absolutePath))
+        if (!IsPathAllowed(absolutePath))
             return [];
 
         if (!Path.Exists(absolutePath))

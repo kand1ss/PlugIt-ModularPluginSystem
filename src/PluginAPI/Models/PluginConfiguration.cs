@@ -6,6 +6,6 @@ namespace PluginAPI;
 
 public class PluginConfiguration
 {
-    [JsonInclude] public HashSet<DependencyInfo> Dependencies { get; private set; } = new();
+    [JsonInclude] public HashSet<DependencyInfo> Dependencies { get; init; } = new();
     [JsonInclude] public PluginPermissions Permissions { get; private set; } = new();
 }

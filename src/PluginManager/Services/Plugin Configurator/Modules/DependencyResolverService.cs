@@ -58,20 +58,25 @@ public class DependencyResolverService(IPluginLoaderService loader, IPluginMetad
     }
 
     public void Resolve(IPlugin plugin)
+        => ResolveWithResult(plugin);
+
+    public IEnumerable<IPlugin> ResolveWithResult(IPlugin plugin)
     {
         if (plugin is not IPluginWithDependencies configurable || configurable.Configuration is null)
-            return;
+            return [];
         
         CheckCyclicDependency(plugin);
         var dependencies = configurable.Configuration.Dependencies;
         var loadedDependencies = FindDependencies(dependencies);
+        var totalLoadedDependencies = new List<IPlugin>(loadedDependencies);
         
         foreach (var dependency in loadedDependencies)
         {
-            Resolve(dependency);
+            totalLoadedDependencies.AddRange(ResolveWithResult(dependency));
             configurable.LoadDependency(dependency);
         }
         
         _loadingPlugins.Remove(plugin.Name);
+        return totalLoadedDependencies;
     }
 }

@@ -2,6 +2,7 @@ using ModularPluginAPI.Components.AssemblyWatcher.Interfaces;
 using ModularPluginAPI.Components.AssemblyWatcher.Observer;
 using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Logger;
+using ModularPluginAPI.Components.Plugin_Configurator.Interfaces;
 
 namespace ModularPluginAPI.Components;
 
@@ -17,13 +18,12 @@ public class PluginDispatcher : IAssemblyWatcherObserver
     public PluginDispatcher(IAssemblyMetadataRepository repository, IAssemblyLoader loader, 
         IAssemblyHandler handler, IPluginExecutor pluginExecutor, IPluginTracker tracker, 
         PluginLoggingFacade logger, IPluginLoaderService loaderService, IPluginMetadataService metadataService, 
-        IDependencyResolverService dependencyResolver, IAssemblyWatcher assemblyWatcher)
+        IPluginConfiguratorService configuratorService, IAssemblyWatcher assemblyWatcher)
     {
         Metadata = new(repository, metadataService, loader, handler, logger);
         _assemblyWatcher = assemblyWatcher;
         
-        Starter = new(metadataService, loaderService, pluginExecutor, 
-            dependencyResolver, logger);
+        Starter = new(metadataService, loaderService, pluginExecutor, configuratorService, logger);
         Unloader = new(metadataService, loader, tracker);
     }
     

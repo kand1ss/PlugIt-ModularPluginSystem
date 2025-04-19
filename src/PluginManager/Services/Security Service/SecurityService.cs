@@ -11,6 +11,9 @@ public class SecurityService(PluginLoggingFacade logger) : ISecurityService, IMe
     private readonly AssemblySecurityService _assemblySecurity = new();
     private readonly PluginPermissionSecurityService _pluginSecurity = new();
     
+    
+    public SecuritySettings Settings { get; } = new();
+    
 
     public void OnMetadataAdded(AssemblyMetadata assemblyMetadata)
     {

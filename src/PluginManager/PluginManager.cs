@@ -8,6 +8,8 @@ using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Logger.Components;
 using ModularPluginAPI.Components.Logger.Interfaces;
+using ModularPluginAPI.Components.Plugin_Configurator;
+using ModularPluginAPI.Components.Plugin_Configurator.Interfaces;
 using ModularPluginAPI.Components.Profiler;
 using ModularPluginAPI.Exceptions;
 using ModularPluginAPI.Services.Interfaces;
@@ -97,11 +99,14 @@ public class PluginManager
 
         var metadataService = new PluginMetadataService(repository);
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler);
+        
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
-
+        var injectorService = new InjectorService(Security.Settings, loggerFacade);
+        var configuratorService = new PluginConfiguratorService(dependencyResolver, injectorService);
+        
         var assemblyWatcher = new AssemblyWatcher();
         _dispatcher = new(repository, assemblyLoader, assemblyHandler, errorHandledPluginExecutor, 
-            _tracker,loggerFacade, loaderService, metadataService, dependencyResolver, assemblyWatcher);
+            _tracker,loggerFacade, loaderService, metadataService, configuratorService, assemblyWatcher);
         if (settings.EnableAssemblyTracking)
             assemblyWatcher.AddObserver(_dispatcher);
     }
@@ -109,7 +114,7 @@ public class PluginManager
     internal PluginManager(IPluginTracker tracker,
         IAssemblyHandler handler, IAssemblyLoader loader, IAssemblyMetadataRepository repository,
         IPluginExecutor executor, ILoggerService logger, IPluginLoaderService loaderService, 
-        IPluginMetadataService metadataService, IDependencyResolverService dependencyResolver, IAssemblyWatcher watcher,
+        IPluginMetadataService metadataService, IPluginConfiguratorService pluginConfigurator, IAssemblyWatcher watcher,
         IPluginPerformanceProfiler performanceProfiler, IPluginErrorRegistry errorRegistry, ISecurityService security)
     {
         _logger = logger;
@@ -120,7 +125,7 @@ public class PluginManager
 
         var loggerFacade = new PluginLoggingFacade(_logger);
         _dispatcher = new(repository, loader, handler, executor, _tracker, loggerFacade, loaderService, 
-            metadataService, dependencyResolver, watcher);
+            metadataService, pluginConfigurator, watcher);
     }
 
     /// <summary>

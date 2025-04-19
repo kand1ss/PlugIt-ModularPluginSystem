@@ -4,6 +4,6 @@ namespace PluginAPI.Services;
 
 public class FileSystemServiceFactory
 {
-    public static IPluginFileSystemService Create(IFileSystemPermissionController controller)
-        => new PluginFileSystemService(controller);
+    public static IPluginFileSystemService Create(IFileSystemPermissionController controller, FileSystemServiceSettings? settings = null)
+        => new PluginFileSystemService(controller, settings);
 }

@@ -1,12 +1,13 @@
 using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
+using ModularPluginAPI.Components.Plugin_Configurator.Interfaces;
 using PluginAPI;
 
 namespace ModularPluginAPI.Components;
 
 public class PluginStartDispatcher(IPluginMetadataService metadataService, IPluginLoaderService loaderService, 
-    IPluginExecutor pluginExecutor, IDependencyResolverService dependencyResolver, PluginLoggingFacade logger)
+    IPluginExecutor pluginExecutor, IPluginConfiguratorService configuratorService, PluginLoggingFacade logger)
 {
     private T GetPluginFromAssembly<T>(string pluginName) where T : class, IPlugin
     {
@@ -19,7 +20,7 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
         logger.PluginLoaded(plugin.Name, assemblyName, assemblyVersion);
         logger.PluginStateChanged(pluginName, PluginState.Loaded);
         
-        dependencyResolver.Resolve(plugin);
+        configuratorService.Configure(plugin);
         return plugin;
     }
 

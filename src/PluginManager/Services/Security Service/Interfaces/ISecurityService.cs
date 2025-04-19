@@ -1,4 +1,6 @@
 
+using ModularPluginAPI.Components;
+
 namespace ModularPluginAPI.Services.Interfaces;
 
 /// <summary>
@@ -7,6 +9,13 @@ namespace ModularPluginAPI.Services.Interfaces;
 /// </summary>
 public interface ISecurityService
 {
+    /// <summary>
+    /// Represents the settings used to configure security-related features for plugin management.
+    /// Provides access to specific settings for network and file system operations.
+    /// </summary>
+    public SecuritySettings Settings { get; }
+    
+    
     /// <summary>
     /// Checks the specified assembly (.dll file) for the usage of blocked namespaces.
     /// This static analysis is performed only if security checks are enabled in <see cref="PluginManagerSettings"/>.

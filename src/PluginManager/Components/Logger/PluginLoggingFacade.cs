@@ -108,4 +108,11 @@ public class PluginLoggingFacade(ILoggerService logger)
         logger.Log(LogSender.PluginManager, LogType.INFO, 
             $"(Security) - Assembly: '{assemblyName} v{assemblyVersion}' failed security check.");
     }
+
+
+    public void PluginServiceInjected(string pluginName, Version pluginVersion, string serviceName)
+    {
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, 
+            $"A service '{serviceName}' has been injected in the plugin '{pluginName} v{pluginVersion}'.");
+    }
 }

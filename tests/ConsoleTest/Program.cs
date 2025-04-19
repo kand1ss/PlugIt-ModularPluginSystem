@@ -11,10 +11,11 @@ class Program
         //     EnableAssemblyTracking = false
         // });
         var manager = new PluginManager();
-        
-        manager.Security.AddFileSystemPermission("D:/SomePath");
-        manager.Security.AddNetworkPermission("http://somesite.com");
+        manager.Security.AddNetworkPermission("https://httpbin.org/get");
+        manager.Security.AddFileSystemPermission(@"C:\Users\kand1s\Desktop\Target.txt");
+
         manager.RegisterAssembliesFromDirectory(@"C:\Users\kand1s\Desktop\Plugins");
+        
         var observerComponent = new Observer();
         manager.Tracker.AddObserver(observerComponent);
         manager.ExecutePlugin("ConsolePlugin");
