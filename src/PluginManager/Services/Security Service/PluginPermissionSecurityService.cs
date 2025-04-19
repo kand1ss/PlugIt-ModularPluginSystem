@@ -56,7 +56,12 @@ public class PluginPermissionSecurityService : IPluginPermissionSecurityService
 
 
     private bool CheckFileSystemPermissions(IEnumerable<string> filePaths)
-        => filePaths.All(x => _fileSystemPermissions.ContainsKey(Normalizer.NormalizeDirectoryPath(x)));
+        => filePaths.All(path =>
+        {
+            var normalizedPath = Normalizer.NormalizeDirectoryPath(path);
+            return _fileSystemPermissions.Keys.Any(x 
+                => normalizedPath.StartsWith(x, StringComparison.OrdinalIgnoreCase));
+        });
 
     private bool CheckNetworkPermissions(IEnumerable<string> networkPaths)
         => networkPaths.All(x => _networkPermissions.ContainsKey(Normalizer.NormalizeUrl(x)));

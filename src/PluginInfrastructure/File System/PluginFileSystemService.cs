@@ -24,8 +24,7 @@ internal class PluginFileSystemService : IPluginFileSystemService
             return false;
         
         var normalizedPath = Normalizer.NormalizeDirectoryPath(path);
-        var normalizedDirectory = Normalizer.NormalizeDirectoryPath(Path.GetDirectoryName(path) ?? "");
-        return _allowedDirectories.Contains(normalizedPath) || _allowedDirectories.Contains(normalizedDirectory);
+        return _allowedDirectories.Any(dir => normalizedPath.StartsWith(dir, StringComparison.OrdinalIgnoreCase));
     }
 
     public async Task<bool> WriteAsync(string absolutePath, byte[] dataToWrite)
