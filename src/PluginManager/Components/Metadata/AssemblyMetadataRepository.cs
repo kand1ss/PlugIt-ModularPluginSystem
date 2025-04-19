@@ -22,10 +22,12 @@ public class AssemblyMetadataRepository : IAssemblyMetadataRepository
 
     private void CheckPluginsForDuplicate(AssemblyMetadata metadata)
     {
-        var allExistingPluginNames = _assemblies.Values.SelectMany(a => a.Plugins);
-        var allNewPluginNames = metadata.Plugins;
+        var allExistingPluginNames = _assemblies.Values.SelectMany(a => a.Plugins.Select(p => p.Name));
+        var allNewPluginNames = metadata.Plugins.Select(p => p.Name);
 
-        var duplicatePluginNames = allNewPluginNames.Intersect(allExistingPluginNames).ToList();
+        var duplicatePluginNames = allNewPluginNames
+            .Intersect(allExistingPluginNames, StringComparer.OrdinalIgnoreCase).ToList();
+        
         if (duplicatePluginNames.Count == 0)
             return;
             
