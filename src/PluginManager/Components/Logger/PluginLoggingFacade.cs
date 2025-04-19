@@ -115,4 +115,16 @@ public class PluginLoggingFacade(ILoggerService logger)
         logger.Log(LogSender.PluginManager, LogType.DEBUG, 
             $"A service '{serviceName}' has been injected in the plugin '{pluginName} v{pluginVersion}'.");
     }
+
+    public void FilePermissionAdded(string permission, bool canRead, bool canWrite)
+    {
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, 
+            $"File permission '{permission}' added | Write access: {canWrite}, Read access: {canRead}.");
+    }
+    
+    public void NetworkPermissionAdded(string permission, bool canReceive, bool canSend)
+    {
+        logger.Log(LogSender.PluginManager, LogType.DEBUG, 
+            $"Network permission '{permission}' added | Send access: {canSend}, Receive access: {canReceive}.");
+    }
 }

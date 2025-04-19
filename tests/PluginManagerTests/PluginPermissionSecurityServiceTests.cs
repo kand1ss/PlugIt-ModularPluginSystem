@@ -1,5 +1,7 @@
 using ModularPluginAPI.Components;
+using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Models;
+using Moq;
 using PluginInfrastructure;
 using Xunit;
 
@@ -7,7 +9,7 @@ namespace PluginManagerTests;
 
 public class PluginPermissionSecurityServiceTests
 {
-    private readonly PluginPermissionSecurityService _securityService = new();
+    private readonly PluginPermissionSecurityService _securityService;
     private readonly PluginMetadata _metadata = new();
     
     private readonly string _path = Path.Combine("D", "SomePath");
@@ -16,6 +18,15 @@ public class PluginPermissionSecurityServiceTests
 
     private readonly string _url = "https://localhost";
     private readonly string _url1 = "http://localhost";
+
+    
+    public PluginPermissionSecurityServiceTests()
+    {
+        var loggerMock = new Mock<ILoggerService>();
+        var logger = new PluginLoggingFacade(loggerMock.Object);
+        _securityService = new(logger);
+    }
+    
 
     [Fact]
     public void AddFileSystemPermission_CorrectPath_PermissionAdded()

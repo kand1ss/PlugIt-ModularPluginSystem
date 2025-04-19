@@ -1,3 +1,4 @@
+using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Models;
 using ModularPluginAPI.Services.Interfaces;
 using PluginAPI.Models.Permissions;
@@ -5,38 +6,40 @@ using PluginInfrastructure;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginPermissionSecurityService : IPluginPermissionSecurityService
+public class PluginPermissionSecurityService(PluginLoggingFacade logger) : IPluginPermissionSecurityService
 {
     private readonly Dictionary<string, FileSystemPermission> _fileSystemPermissions = new();
     private readonly Dictionary<string, NetworkPermission> _networkPermissions = new();
     
-    public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = false)
+    public void AddFileSystemPermission(string normalizedPath, bool canRead = true, bool canWrite = true, bool recursive = false)
     {
-        AddFileSystemPermission(fullPath, canRead, canWrite);
+        AddFileSystemPermission(normalizedPath, canRead, canWrite);
         if (!recursive)
             return;
 
-        var allSubdirectories = Directory.GetDirectories(fullPath, "*", SearchOption.AllDirectories);
+        var allSubdirectories = Directory.GetDirectories(normalizedPath, "*", SearchOption.AllDirectories);
         foreach(var path in allSubdirectories)
             AddFileSystemPermission(path, canRead, canWrite);
     }
 
     private void AddFileSystemPermission(string fullPath, bool canRead, bool canWrite)
     {
-        fullPath = Normalizer.NormalizeDirectoryPath(fullPath);
-        if (_fileSystemPermissions.ContainsKey(fullPath))
+        var normalizedPath = Normalizer.NormalizeDirectoryPath(fullPath);
+        if (_fileSystemPermissions.ContainsKey(normalizedPath))
             return;
 
-        _fileSystemPermissions.Add(fullPath, new FileSystemPermission(canRead, canWrite));
+        _fileSystemPermissions.Add(normalizedPath, new FileSystemPermission(canRead, canWrite));
+        logger.FilePermissionAdded(fullPath, canRead, canWrite);
     }
 
     public void AddNetworkPermission(string url, bool canGet = true, bool canPost = true)
     {
-        url = Normalizer.NormalizeUrl(url);
-        if (_networkPermissions.ContainsKey(url))
+        var normalizedUrl = Normalizer.NormalizeUrl(url);
+        if (_networkPermissions.ContainsKey(normalizedUrl))
             return;
 
-        _networkPermissions.Add(url, new NetworkPermission(canGet, canPost));
+        _networkPermissions.Add(normalizedUrl, new NetworkPermission(canGet, canPost));
+        logger.NetworkPermissionAdded(url, canGet, canPost);
     }
     
     public IDictionary<string, FileSystemPermission> GetFileSystemPermissions()

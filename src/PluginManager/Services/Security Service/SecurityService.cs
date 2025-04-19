@@ -9,8 +9,7 @@ namespace ModularPluginAPI.Components;
 public class SecurityService(PluginLoggingFacade logger) : ISecurityService, IMetadataRepositoryObserver
 {
     private readonly AssemblySecurityService _assemblySecurity = new();
-    private readonly PluginPermissionSecurityService _pluginSecurity = new();
-    
+    private readonly PluginPermissionSecurityService _pluginSecurity = new(logger);
     
     public SecuritySettings Settings { get; } = new();
     
