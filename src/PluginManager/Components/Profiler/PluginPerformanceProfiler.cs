@@ -17,7 +17,9 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler,
 
     private void CreateLog(PluginInfo plugin)
     {
-        var data = _profiledData[plugin.Name];
+        if (!_profiledData.TryGetValue(plugin.Name, out var data))
+            return;
+        
         _logger.CreateLog(data);
         _profiledData.Remove(plugin.Name);
     }
