@@ -6,7 +6,8 @@ using ModularPluginAPI.Services.Interfaces;
 
 namespace ModularPluginAPI.Components;
 
-public class SecurityService(PluginLoggingFacade logger) : ISecurityService, IMetadataRepositoryObserver
+public class SecurityService(IAssemblyLoader loader, IAssemblyHandler handler, PluginLoggingFacade logger) 
+    : ISecurityService, IMetadataRepositoryObserver
 {
     private readonly AssemblySecurityService _assemblySecurity = new();
     private readonly PluginPermissionSecurityService _pluginSecurity = new(logger);
@@ -40,7 +41,20 @@ public class SecurityService(PluginLoggingFacade logger) : ISecurityService, IMe
     }
 
     public bool CheckAssemblySafety(string assemblyPath)
-        => _assemblySecurity.CheckSafety(assemblyPath);
+    {
+        var metadata = CreateMetadata(assemblyPath);
+        var result = CheckSafety(metadata);
+        
+        loader.UnloadAssembly(assemblyPath);
+        return result;
+    }
+
+    private AssemblyMetadata CreateMetadata(string assemblyPath)
+    {
+        var metadataGenerator = new AssemblyMetadataGenerator(handler);
+        var assembly = loader.LoadAssembly(assemblyPath);
+        return metadataGenerator.Generate(assembly);
+    }
 
     public bool AddBlockedNamespace(string namespaceName)
         => _assemblySecurity.AddBlockedNamespace(namespaceName);

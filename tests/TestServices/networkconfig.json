@@ -1,0 +1,13 @@
+{
+  "Dependencies": [
+    {
+      "Name": "FilePlugin",
+      "Version": "1.0.0"
+    }
+  ],
+  "Permissions": {
+    "NetworkURLs": [
+      "https://httpbin.org/get"
+    ]
+  }
+}

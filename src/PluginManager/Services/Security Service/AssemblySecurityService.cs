@@ -1,6 +1,6 @@
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
-using System.Security;
 using System.Text.RegularExpressions;
 using ModularPluginAPI.Services.Interfaces;
 using Mono.Cecil;
@@ -14,7 +14,15 @@ public class AssemblySecurityService : IAssemblySecurityService
     {
         "System.IO",
         "System.Reflection.Emit",
+        "System.Reflection",
+        "System.Linq.Expressions",
         "System.Net"
+    };
+
+    private readonly HashSet<string> _trustedTokens = new()
+    {
+        "b03f5f7f11d50a3a",
+        "7cec85d7bea7798e"
     };
     
     private readonly HashSet<string> _checkedAssemblies = new();
@@ -44,26 +52,25 @@ public class AssemblySecurityService : IAssemblySecurityService
         
         foreach (var reference in assembly.MainModule.AssemblyReferences)
         {
-            if (IsTrustedAssembly(reference.Name))
-                continue;
-
             var resolvedPath = resolver.ResolveAssemblyToPath(new AssemblyName(reference.FullName));
+            if (IsTrustedAssembly(reference, resolvedPath ?? ""))
+                continue;
+            
             if (resolvedPath != null)
                 result &= CheckSafety(resolvedPath);
         }
 
         return result;
     }
-    
-    private bool CheckSafety(AssemblyDefinition assembly)
-        => AnalyzeNamespaces(assembly) && AnalyzeInterfaces(assembly);
 
-    private bool IsTrustedAssembly(string name)
+    private bool IsTrustedAssembly(AssemblyNameReference reference, string resolvedPath)
     {
-        return name.StartsWith("System.", StringComparison.OrdinalIgnoreCase) ||
-               name.StartsWith("Microsoft.", StringComparison.OrdinalIgnoreCase) ||
-               name.Equals("PluginAPI", StringComparison.OrdinalIgnoreCase) ||
-               name == "System" || name == "mscorlib" || name == "netstandard";
+        var name = reference.Name;
+        var publicKey = BitConverter.ToString(reference.PublicKeyToken).Replace("-", "").ToLowerInvariant();
+
+        return name == "PluginAPI" 
+                     || _trustedTokens.Contains(publicKey ?? "")
+                     || resolvedPath.StartsWith(RuntimeEnvironment.GetRuntimeDirectory(), StringComparison.OrdinalIgnoreCase);
     }
 
 
@@ -101,9 +108,10 @@ public class AssemblySecurityService : IAssemblySecurityService
             foreach (var @interface in type.Interfaces)
             {
                 if (@interface.InterfaceType.FullName == typeof(IPluginFileSystemService).FullName)
-                    throw new SecurityException($"A fake secure file system service has been detected in the assembly: '{assembly.Name}'");
+                    return false;
+                
                 if (@interface.InterfaceType.FullName == typeof(IPluginNetworkService).FullName)
-                    throw new SecurityException($"A fake secure network service has been detected in the assembly: '{assembly.Name}'");
+                    return false;
             }
         }
 

@@ -42,10 +42,10 @@ public class PluginPermissionSecurityService(PluginLoggingFacade logger) : IPlug
         logger.NetworkPermissionAdded(url, canGet, canPost);
     }
     
-    public IDictionary<string, FileSystemPermission> GetFileSystemPermissions()
+    public IReadOnlyDictionary<string, FileSystemPermission> GetFileSystemPermissions()
         => _fileSystemPermissions;
 
-    public IDictionary<string, NetworkPermission> GetNetworkPermissions()
+    public IReadOnlyDictionary<string, NetworkPermission> GetNetworkPermissions()
         => _networkPermissions;
 
     

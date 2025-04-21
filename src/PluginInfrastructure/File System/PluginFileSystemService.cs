@@ -15,7 +15,7 @@ internal class PluginFileSystemService : IPluginFileSystemService
         foreach (var directory in controller.GetAllowedDirectories())
             _allowedDirectories.Add(directory);
         
-        _maxFileSize = settings.MaxFileSizeMb;
+        _maxFileSize = settings.MaxFileSizeBytes;
     }
 
     private bool IsPathAllowed(string path)

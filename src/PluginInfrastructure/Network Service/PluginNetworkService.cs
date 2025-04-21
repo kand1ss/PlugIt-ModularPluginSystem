@@ -20,7 +20,7 @@ internal class PluginNetworkService : IPluginNetworkService, IDisposable
         foreach(var url in controller.GetAllowedUrls())
             _allowedPermissions.Add(url.Key, url.Value);
 
-        _maxResponseSize = settings.MaxResponseSizeMb;
+        _maxResponseSize = settings.MaxResponseSizeBytes;
         _httpClientHandler.MaxAutomaticRedirections = settings.MaxRedirectionsCount;
         if (settings.MaxRedirectionsCount != 0)
             _httpClientHandler.AllowAutoRedirect = true;

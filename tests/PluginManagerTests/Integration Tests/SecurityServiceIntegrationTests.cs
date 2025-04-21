@@ -18,8 +18,10 @@ public class SecurityServiceIntegrationTests : TestWhichUsingTestAssembly
     {
         var loggerMock = new Mock<ILoggerService>();
         var logger = new PluginLoggingFacade(loggerMock.Object);
+        var loaderMock = new Mock<IAssemblyLoader>();
+        var handlerMock = new Mock<IAssemblyHandler>();
         
-        _securityService = new SecurityService(logger);
+        _securityService = new SecurityService(loaderMock.Object, handlerMock.Object, logger);
         _assemblyMetadata = InitializeAssemblyMetadata();
         _unsafeAssemblyPath = GetUnsafeAssemblyPath();
     }

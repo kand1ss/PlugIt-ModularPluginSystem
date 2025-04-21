@@ -5,7 +5,7 @@ namespace PluginAPI.Services;
 /// </summary>
 public class FileSystemServiceSettings
 {
-    private readonly long _maxFileSizeBytes = 50 * 1024 * 1024;
+    private long _maxFileSizeBytes = 50 * 1024 * 1024;
 
     /// <summary>
     /// Gets or initializes the maximum file size allowed, in megabytes (MB).
@@ -17,7 +17,7 @@ public class FileSystemServiceSettings
     public long MaxFileSizeMb
     {
         get => _maxFileSizeBytes / (1024 * 1024);
-        init => _maxFileSizeBytes = value * 1024 * 1024;
+        set => _maxFileSizeBytes = value * 1024 * 1024;
     }
 
     /// <summary>

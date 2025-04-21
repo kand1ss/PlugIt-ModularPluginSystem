@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\PluginAPI\PluginAPI.csproj" />
+      <ProjectReference Include="..\..\src\PluginInfrastructure\PluginInfrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="networkconfig.json" />
+      <EmbeddedResource Include="networkconfig.json">
+        <DependentUpon>NetworkPlugin.cs</DependentUpon>
+      </EmbeddedResource>
+      <None Remove="fileconfig.json" />
+      <EmbeddedResource Include="fileconfig.json">
+        <DependentUpon>FilePlugin.cs</DependentUpon>
+      </EmbeddedResource>
+    </ItemGroup>
+
+</Project>

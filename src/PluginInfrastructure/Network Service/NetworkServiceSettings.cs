@@ -12,10 +12,10 @@ public class NetworkServiceSettings
     /// This property defines the timeout duration for HTTP requests performed by the network service.
     /// If a request exceeds this duration, the operation will be aborted and an exception will be thrown.
     /// </summary>
-    public TimeSpan RequestTimeout { get; init; } = TimeSpan.FromSeconds(5);
+    public TimeSpan RequestTimeout { get; set; } = TimeSpan.FromSeconds(10);
 
     
-    private readonly long _maxResponseSizeBytes = 50 * 1024 * 1024;
+    private long _maxResponseSizeBytes = 50 * 1024 * 1024;
 
     /// <summary>
     /// Gets or sets the maximum allowable response size in megabytes for network requests.
@@ -25,7 +25,7 @@ public class NetworkServiceSettings
     public long MaxResponseSizeMb
     {
         get => _maxResponseSizeBytes / (1024 * 1024);
-        init => _maxResponseSizeBytes = value * 1024 * 1024;
+        set => _maxResponseSizeBytes = value * 1024 * 1024;
     }
 
     /// <summary>
@@ -41,7 +41,7 @@ public class NetworkServiceSettings
     /// A value of 0 indicates that no retries will be attempted.
     /// This property is used to manage transient failures, such as temporary network issues or server overload.
     /// </summary>
-    public int MaxRequestRetriesCount { get; init; } = 0;
+    public int MaxRequestRetriesCount { get; set; } = 0;
 
     /// <summary>
     /// Gets or initializes the maximum number of redirections
@@ -49,5 +49,5 @@ public class NetworkServiceSettings
     /// how many times an HTTP client will automatically follow
     /// redirection responses (such as 3xx status codes).
     /// </summary>
-    public int MaxRedirectionsCount { get; init; } = 3;
+    public int MaxRedirectionsCount { get; set; } = 3;
 }
