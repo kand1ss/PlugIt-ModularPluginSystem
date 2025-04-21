@@ -16,7 +16,7 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor, IObse
     public void RemoveObserver(IPluginExecutorObserver observer)
         => _observers.Remove(observer);
 
-    public void NotifyObservers(IPlugin plugin, PluginState state)
+    private void NotifyObservers(IPlugin plugin, PluginState state)
     {
         var metadata = PluginMetadataGenerator.Generate(plugin);
         var pluginInfo = PluginInfoMapper.Map(metadata);
@@ -114,5 +114,19 @@ public class PluginExecutor(PluginLoggingFacade logger) : IPluginExecutor, IObse
         {
             logger.NetworkPluginExecuting(p.Name, p.Version, true);
             await ((INetworkPlugin)p).SendDataAsync(data);
+        });
+
+    public async Task<byte[]> ExecuteFilePluginReadAsync(IFilePlugin plugin)
+        => await ExecutePlugin<Task<byte[]>>(plugin, async p =>
+        {
+            logger.FilePluginExecuting(p.Name, p.Version, false);;
+            return await ((IFilePlugin)p).ReadFileAsync();
+        });
+    
+    public async Task ExecuteFilePluginWriteAsync(byte[] data, IFilePlugin plugin)
+        => await ExecutePlugin(plugin, async p =>
+        {
+            logger.FilePluginExecuting(p.Name, p.Version, true);;
+            await ((IFilePlugin)p).WriteFileAsync(data);
         });
 }

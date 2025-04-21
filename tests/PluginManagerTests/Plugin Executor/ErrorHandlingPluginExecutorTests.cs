@@ -46,22 +46,32 @@ public class ErrorHandlingPluginExecutorTests
     }
 
     [Fact]
-    public void ExecuteNetworkPluginSend_FaultedPlugin_ExceptionHandled()
+    public async Task ExecuteNetworkPluginSend_FaultedPlugin_ExceptionHandled()
     {
         var faultedPlugin = new FaultedNetworkPlugin();
-        _errorHandledExecutor.ExecuteNetworkPluginSendAsync([101, 52], faultedPlugin);
+        await _errorHandledExecutor.ExecuteNetworkPluginSendAsync([101, 52], faultedPlugin);
         
         Assert.NotEmpty(_exceptionObserver.AddedErrors);
         Assert.Contains(faultedPlugin.Name, _exceptionObserver.AddedErrors);
     }
     
     [Fact]
-    public void ExecuteNetworkPluginReceive_FaultedPlugin_ExceptionHandled()
+    public async Task ExecuteNetworkPluginReceive_FaultedPlugin_ExceptionHandled()
     {
         var faultedPlugin = new FaultedNetworkPlugin();
-        _errorHandledExecutor.ExecuteNetworkPluginReceiveAsync(faultedPlugin);
+        await _errorHandledExecutor.ExecuteNetworkPluginReceiveAsync(faultedPlugin);
         
         Assert.NotEmpty(_exceptionObserver.AddedErrors);
         Assert.Contains(faultedPlugin.Name, _exceptionObserver.AddedErrors);
+    }
+
+    [Fact]
+    public async Task ExecuteFilePluginRead_FaultedPlugin_ExceptionHandled()
+    {
+        var plugin = new FaultedFilePlugin();
+        await _errorHandledExecutor.ExecuteFilePluginReadAsync(plugin);
+        
+        Assert.NotEmpty(_exceptionObserver.AddedErrors);
+        Assert.Contains(plugin.Name, _exceptionObserver.AddedErrors);
     }
 }

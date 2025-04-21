@@ -286,6 +286,34 @@ public class PluginManager
     }
 
     /// <summary>
+    /// Executes a file-based plugin, allowing for data to be written to and/or read from the plugin.
+    /// </summary>
+    /// <param name="pluginName">
+    /// The name of the file-based plugin to execute.
+    /// </param>
+    /// <param name="needRead">
+    /// A boolean value indicating whether a response should be read from the plugin after execution.
+    /// If set to <c>true</c>, the method will attempt to read data from the plugin.
+    /// </param>
+    /// <param name="dataToWrite">
+    /// An optional byte array containing the data to write to the plugin before reading its response.
+    /// If no data needs to be written, this parameter can be <c>null</c>.
+    /// </param>
+    /// <returns>
+    /// A byte array representing the response read from the plugin, or <c>null</c> if <paramref name="needRead"/> is <c>false</c>.
+    /// </returns>
+    public async Task<byte[]?> ExecuteFilePluginAsync(string pluginName, bool needRead, byte[]? dataToWrite)
+    {
+        if (dataToWrite is not null)
+            await _dispatcher.Starter.WriteFilePluginAsync(pluginName, dataToWrite);
+        
+        var response = needRead ? await _dispatcher.Starter.ReadFilePluginAsync(pluginName) : null;
+        _dispatcher.Unloader.UnloadAssemblyByPluginName(pluginName);
+        
+        return response;
+    }
+
+    /// <summary>
     /// Retrieves a list of messages from the logger.
     /// </summary>
     /// <returns>A collection of strings containing logged messages.</returns>

@@ -69,4 +69,16 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
         var plugin = GetPluginFromAssembly<INetworkPlugin>(pluginName);
         await pluginExecutor.ExecuteNetworkPluginSendAsync(data, plugin);
     }
+
+    public async Task<byte[]> ReadFilePluginAsync(string pluginName)
+    {
+        var plugin = GetPluginFromAssembly<IFilePlugin>(pluginName);
+        return await pluginExecutor.ExecuteFilePluginReadAsync(plugin);
+    }
+
+    public async Task WriteFilePluginAsync(string pluginName, byte[] data)
+    {
+        var plugin = GetPluginFromAssembly<IFilePlugin>(pluginName);
+        await pluginExecutor.ExecuteFilePluginWriteAsync(data, plugin);
+    }
 }

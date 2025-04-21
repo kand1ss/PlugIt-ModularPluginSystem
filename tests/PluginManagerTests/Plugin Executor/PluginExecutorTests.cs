@@ -3,6 +3,7 @@ using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using Moq;
 using PluginManagerTests.Test_Plugins;
+using TestAssembly;
 using Xunit;
 
 namespace PluginManagerTests;
@@ -84,6 +85,38 @@ public class PluginExecutorTests
         
         Assert.False(plugin.SendCalled);
         Assert.True(plugin.ReceiveCalled);
+        
+        Assert.Equal(new[]
+        {
+            PluginState.Running,
+            PluginState.Completed
+        }, _executorObserver.ReceivedStates);
+    }
+
+    [Fact]
+    public async Task ExecuteFilePlugin_ReadMode_PluginSuccessfullyExecuted()
+    {
+        var plugin = new TestFilePlugin();
+        await _pluginExecutor.ExecuteFilePluginReadAsync(plugin);
+        
+        Assert.True(plugin.IsRead);
+        Assert.False(plugin.IsWrite);
+        
+        Assert.Equal(new[]
+        {
+            PluginState.Running,
+            PluginState.Completed
+        }, _executorObserver.ReceivedStates);
+    }
+    
+    [Fact]
+    public async Task ExecuteFilePlugin_WriteMode_PluginSuccessfullyExecuted()
+    {
+        var plugin = new TestFilePlugin();
+        await _pluginExecutor.ExecuteFilePluginWriteAsync([], plugin);
+        
+        Assert.False(plugin.IsRead);
+        Assert.True(plugin.IsWrite);
         
         Assert.Equal(new[]
         {

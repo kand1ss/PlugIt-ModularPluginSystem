@@ -81,4 +81,32 @@ public class ErrorHandlingPluginExecutor(IPluginExecutor pluginExecutor, IPlugin
             NotifyObservers(plugin, e);
         }
     }
+
+    public async Task<byte[]> ExecuteFilePluginReadAsync(IFilePlugin plugin)
+    {
+        try
+        {
+            return await pluginExecutor.ExecuteFilePluginReadAsync(plugin);
+        }
+        catch (Exception e)
+        {
+            logger.PluginFaulted(plugin.Name, e.Message);
+            NotifyObservers(plugin, e);
+        }
+
+        return [];
+    }
+
+    public async Task ExecuteFilePluginWriteAsync(byte[] data, IFilePlugin plugin)
+    {
+        try
+        {
+            await pluginExecutor.ExecuteFilePluginWriteAsync(data, plugin);
+        }
+        catch (Exception e)
+        {
+            logger.PluginFaulted(plugin.Name, e.Message);
+            NotifyObservers(plugin, e);
+        }
+    }
 }

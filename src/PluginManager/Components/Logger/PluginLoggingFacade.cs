@@ -57,6 +57,19 @@ public class PluginLoggingFacade(ILoggerService logger)
         
         logger.Log(LogSender.Plugin, LogType.INFO, message);
     }
+
+    public void FilePluginExecuting(string pluginName, Version pluginVersion, bool isWriteMode)
+    {
+        string message = $"Executing file plugin '{pluginName} v{pluginVersion}' | Mode: ";
+
+        if (isWriteMode)
+            message += "Write.";
+        else
+            message += "Read.";
+        
+        logger.Log(LogSender.Plugin, LogType.INFO, message);
+    }
+    
     public void PluginFinalized(string pluginName, Version pluginVersion)
     {
         logger.Log(LogSender.Plugin, LogType.INFO, 

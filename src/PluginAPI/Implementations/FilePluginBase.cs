@@ -11,6 +11,6 @@ public abstract class FilePluginBase : PluginBase, IFilePlugin
     public void InjectService(IPluginFileSystemService service)
         => FileSystemService = InjectService<IPluginFileSystemService>.TryInject(service, ref _isServiceInjected);
     
-    public abstract Task WriteFileAsync(string path, byte[] data);
-    public abstract Task<byte[]> ReadFileAsync(string path);
+    public abstract Task WriteFileAsync(byte[] data);
+    public abstract Task<byte[]> ReadFileAsync();
 }
