@@ -5,7 +5,7 @@ using PluginInfrastructure.Network_Service.Interfaces;
 
 namespace PluginInfrastructure.Network_Service;
 
-internal class PluginNetworkService : IPluginNetworkService, IDisposable
+public class PluginNetworkService : IPluginNetworkService, IDisposable
 {
     private readonly Dictionary<string, NetworkPermission> _allowedPermissions = new();
     private readonly HttpClientHandler _httpClientHandler = new();

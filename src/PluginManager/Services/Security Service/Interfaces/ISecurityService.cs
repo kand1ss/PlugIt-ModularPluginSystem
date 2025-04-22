@@ -57,7 +57,7 @@ public interface ISecurityService
     /// <param name="canRead">Indicates whether reading the specified path is permitted. Defaults to <c>true</c>.</param>
     /// <param name="canWrite">Indicates whether writing to the specified path is permitted. Defaults to <c>true</c>.</param>
     /// <param name="recursive">Indicates whether the permission applies to subdirectories and files within the specified path. Defaults to <c>false</c>.</param>
-    void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = false);
+    void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = true);
 
     /// <summary>
     /// Grants permission to access a specific network resource (URL) for all plugins.

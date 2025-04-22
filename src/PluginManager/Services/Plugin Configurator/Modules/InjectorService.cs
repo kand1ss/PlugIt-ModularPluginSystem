@@ -25,8 +25,8 @@ public class InjectorService(SecuritySettings settings, PluginLoggingFacade logg
         var permissionController = new FileSystemPermissionController();
         foreach (var permission in filePlugin.Configuration.Permissions.FileSystemPaths)
             permissionController.AddAllowedDirectory(permission);
-        
-        var service = FileSystemServiceFactory.Create(permissionController, settings.FileSystem);
+
+        var service = new PluginFileSystemService(permissionController, settings.FileSystem);
         filePlugin.InjectService(service);
         logger.PluginServiceInjected(filePlugin.Name, filePlugin.Version, "FileSystemService");
     }
@@ -40,7 +40,7 @@ public class InjectorService(SecuritySettings settings, PluginLoggingFacade logg
         foreach (var permission in networkPlugin.Configuration.Permissions.NetworkURLs)
             permissionController.AddAllowedUrl(permission);
 
-        var service = PluginNetworkServiceFactory.Create(permissionController, settings.Network);
+        var service = new PluginNetworkService(permissionController, settings.Network);
         networkPlugin.InjectService(service);
         logger.PluginServiceInjected(networkPlugin.Name, networkPlugin.Version,"NetworkService");
     }

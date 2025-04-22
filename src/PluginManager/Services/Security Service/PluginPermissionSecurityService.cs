@@ -11,24 +11,13 @@ public class PluginPermissionSecurityService(PluginLoggingFacade logger) : IPlug
     private readonly Dictionary<string, FileSystemPermission> _fileSystemPermissions = new();
     private readonly Dictionary<string, NetworkPermission> _networkPermissions = new();
     
-    public void AddFileSystemPermission(string normalizedPath, bool canRead = true, bool canWrite = true, bool recursive = false)
-    {
-        AddFileSystemPermission(normalizedPath, canRead, canWrite);
-        if (!recursive)
-            return;
-
-        var allSubdirectories = Directory.GetDirectories(normalizedPath, "*", SearchOption.AllDirectories);
-        foreach(var path in allSubdirectories)
-            AddFileSystemPermission(path, canRead, canWrite);
-    }
-
-    private void AddFileSystemPermission(string fullPath, bool canRead, bool canWrite)
+    public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = true)
     {
         var normalizedPath = Normalizer.NormalizeDirectoryPath(fullPath);
         if (_fileSystemPermissions.ContainsKey(normalizedPath))
             return;
 
-        _fileSystemPermissions.Add(normalizedPath, new FileSystemPermission(canRead, canWrite));
+        _fileSystemPermissions.Add(normalizedPath, new FileSystemPermission(canRead, canWrite, recursive));
         logger.FilePermissionAdded(fullPath, canRead, canWrite);
     }
 
@@ -59,12 +48,20 @@ public class PluginPermissionSecurityService(PluginLoggingFacade logger) : IPlug
 
 
     private bool CheckFileSystemPermissions(IEnumerable<string> filePaths)
-        => filePaths.All(path =>
+    {
+        foreach (var path in filePaths)
         {
             var normalizedPath = Normalizer.NormalizeDirectoryPath(path);
-            return _fileSystemPermissions.Keys.Any(x 
-                => normalizedPath.StartsWith(x, StringComparison.OrdinalIgnoreCase));
-        });
+            if (_fileSystemPermissions.ContainsKey(normalizedPath))
+                continue;
+
+            return _fileSystemPermissions
+                .Where(kv => kv.Value.Recursive)
+                .Any(kv => normalizedPath.StartsWith(kv.Key, StringComparison.OrdinalIgnoreCase));
+        }
+
+        return true;
+    }
 
     private bool CheckNetworkPermissions(IEnumerable<string> networkPaths)
         => networkPaths.All(x => _networkPermissions.ContainsKey(Normalizer.NormalizeUrl(x)));

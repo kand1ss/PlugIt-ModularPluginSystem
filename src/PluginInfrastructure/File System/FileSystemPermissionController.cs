@@ -1,3 +1,4 @@
+using PluginAPI.Models.Permissions;
 using PluginAPI.Services.interfaces;
 using PluginInfrastructure;
 
@@ -5,11 +6,14 @@ namespace PluginAPI.Services;
 
 public class FileSystemPermissionController : IFileSystemPermissionController
 {
-    private readonly List<string> _allowedDirectories = new();
+    private readonly Dictionary<string, FileSystemPermission> _allowedDirectories = new();
     
-    public void AddAllowedDirectory(string path)
-        => _allowedDirectories.Add(Normalizer.NormalizeDirectoryPath(path));
+    public void AddAllowedDirectory(string path, FileSystemPermission? permission = null)
+    {
+        permission ??= new FileSystemPermission();
+        _allowedDirectories.Add(Normalizer.NormalizeDirectoryPath(path), permission);
+    }
 
-    public IReadOnlyCollection<string> GetAllowedDirectories()
+    public IReadOnlyDictionary<string, FileSystemPermission> GetAllowedDirectories()
         => _allowedDirectories;
 }

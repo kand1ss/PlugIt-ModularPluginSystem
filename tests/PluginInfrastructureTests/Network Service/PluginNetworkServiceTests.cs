@@ -9,10 +9,11 @@ using WireMock.Server;
 
 namespace PluginInfrastructure.Tests;
 
-public class PluginNetworkServiceTests
+public class PluginNetworkServiceTests : IDisposable
 {
     private readonly string _getMethodUrl;
     private readonly string _postMethodUrl;
+    private readonly WireMockServer _server;
     
     private static readonly string _postMethodResponse = "Response: Hello from WireMock!";
     private static readonly string _getMethodResponse = "Hello from WireMock!";
@@ -22,9 +23,9 @@ public class PluginNetworkServiceTests
 
     public PluginNetworkServiceTests()
     {
-        var server = SetupHttpServer();
+        _server = SetupHttpServer();
 
-        _getMethodUrl = server.Urls[0] + "/test";
+        _getMethodUrl = _server.Urls[0] + "/test";
         _postMethodUrl = _getMethodUrl + "/post";
 
         _allowedUrls.Add(_getMethodUrl);
@@ -34,7 +35,7 @@ public class PluginNetworkServiceTests
         foreach (var url in _allowedUrls)
             controller.AddAllowedUrl(url, new NetworkPermission());
 
-        _service = PluginNetworkServiceFactory.Create(controller);
+        _service = new PluginNetworkService(controller);
     }
 
     private static WireMockServer SetupHttpServer()
@@ -58,7 +59,56 @@ public class PluginNetworkServiceTests
                     .WithStatusCode(200)
                     .WithBody(_postMethodResponse)
             );
+
+        server.Given(
+                Request.Create().WithPath("/test/error").UsingGet()
+            )
+            .RespondWith(
+                Response.Create()
+                    .WithStatusCode(500)
+            );
+
+        server.Given(
+                Request.Create().WithPath("/test/large").UsingGet()
+            )
+            .RespondWith(
+                Response.Create()
+                    .WithBody(new byte[5 * 1024 * 1024]) // 5MB response
+            );
+
+        server.Given(
+                Request.Create().WithPath("/test/retry").UsingGet()
+            )
+            .RespondWith(
+                Response.Create()
+                    .WithFault(FaultType.EMPTY_RESPONSE)
+            );
+
         return server;
+    }
+
+    [Fact]
+    public async Task GetAsync_WithLargeResponse_ThrowsSecurityException()
+    {
+        var controller = new NetworkPermissionController();
+        controller.AddAllowedUrl(_getMethodUrl + "/large", new NetworkPermission());
+        _service = new PluginNetworkService(controller, 
+            new NetworkServiceSettings { MaxResponseSizeMb = 1 });
+
+        await Assert.ThrowsAsync<SecurityException>(
+            async () => await _service.GetAsync(_getMethodUrl + "/large"));
+    }
+
+    [Fact]
+    public async Task GetAsync_WithRetryableError_RetriesRequest()
+    {
+        var controller = new NetworkPermissionController();
+        controller.AddAllowedUrl(_getMethodUrl + "/retry", new NetworkPermission());
+        _service = new PluginNetworkService(controller,
+            new NetworkServiceSettings { MaxRequestRetriesCount = 3 });
+
+        var result = await _service.GetAsync(_getMethodUrl + "/retry");
+        Assert.Empty(result);
     }
 
     [Fact]
@@ -73,7 +123,7 @@ public class PluginNetworkServiceTests
     {
         var response = await _service.GetAsync(_getMethodUrl);
         Assert.NotNull(response);
-        Assert.Equal(_getMethodResponse, Encoding.UTF8.GetString(response));;
+        Assert.Equal(_getMethodResponse, Encoding.UTF8.GetString(response));
     }
 
     [Fact]
@@ -81,9 +131,9 @@ public class PluginNetworkServiceTests
     {
         var controller = new NetworkPermissionController();
         controller.AddAllowedUrl(_getMethodUrl, new NetworkPermission(false));
-        _service = PluginNetworkServiceFactory.Create(controller);
+        _service = new PluginNetworkService(controller);
         
-        await Assert.ThrowsAsync<SecurityException>(async () => await _service.GetAsync(_getMethodUrl));;
+        await Assert.ThrowsAsync<SecurityException>(async () => await _service.GetAsync(_getMethodUrl));
     }
 
     [Theory]
@@ -119,7 +169,7 @@ public class PluginNetworkServiceTests
     {
         var controller = new NetworkPermissionController();
         controller.AddAllowedUrl(_postMethodUrl, new NetworkPermission(true, false));
-        _service = PluginNetworkServiceFactory.Create(controller);
+        _service = new PluginNetworkService(controller);
         
         var content = new StringContent("test");
         await Assert.ThrowsAsync<SecurityException>(async () => await _service.PostAsync(_postMethodUrl, content));
@@ -133,5 +183,22 @@ public class PluginNetworkServiceTests
     {
         var content = new StringContent("test");
         await Assert.ThrowsAsync<ArgumentException>(async () => await _service.PostAsync(invalidUrl, content));
+    }
+
+    [Fact]
+    public async Task PostAsync_WithCustomTimeout_TimesOut()
+    {
+        var controller = new NetworkPermissionController();
+        controller.AddAllowedUrl(_postMethodUrl, new NetworkPermission());
+        _service = new PluginNetworkService(controller,
+            new NetworkServiceSettings { RequestTimeout = TimeSpan.FromMicroseconds(1) });
+
+        await Assert.ThrowsAsync<TaskCanceledException>(
+            async () => await _service.PostAsync(_postMethodUrl, new StringContent("test")));
+    }
+
+    public void Dispose()
+    {
+        _server?.Dispose();
     }
 }

@@ -1,79 +1,86 @@
 using System.Security;
+using PluginAPI.Models.Permissions;
 using PluginAPI.Services.interfaces;
 using PluginInfrastructure;
 
 namespace PluginAPI.Services;
 
-internal class PluginFileSystemService : IPluginFileSystemService
+public class PluginFileSystemService : IPluginFileSystemService
 {
-    private readonly HashSet<string> _allowedDirectories = new();
+    private readonly Dictionary<string, FileSystemPermission> _allowedDirectories = new();
     private readonly long _maxFileSize;
 
     public PluginFileSystemService(IFileSystemPermissionController controller, FileSystemServiceSettings? settings = null)
     {
         settings ??= new();
-        foreach (var directory in controller.GetAllowedDirectories())
-            _allowedDirectories.Add(directory);
+        foreach (var permission in controller.GetAllowedDirectories())
+            _allowedDirectories.Add(permission.Key, permission.Value);
         
         _maxFileSize = settings.MaxFileSizeBytes;
     }
 
-    private bool IsPathAllowed(string path)
+    private void IsPathAllowed(string path, bool isRead)
     {
-        if (string.IsNullOrEmpty(path))
-            return false;
-        
         var normalizedPath = Normalizer.NormalizeDirectoryPath(path);
-        return _allowedDirectories.Any(dir => normalizedPath.StartsWith(dir, StringComparison.OrdinalIgnoreCase));
+
+        foreach (var kvp in _allowedDirectories)
+        {
+            var allowedPath = kvp.Key;
+            var permission = kvp.Value;
+
+            if (permission.Recursive)
+            {
+                if (normalizedPath.StartsWith(allowedPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    CheckAccess(path, permission, isRead);
+                    return;
+                }
+            }
+            else
+            {
+                if (string.Equals(normalizedPath, allowedPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    CheckAccess(normalizedPath, permission, isRead);
+                    return;
+                }
+                
+                var parentPath = Normalizer.NormalizeDirectoryPath(Path.GetDirectoryName(normalizedPath) ?? "");
+                if (string.Equals(parentPath, allowedPath, StringComparison.OrdinalIgnoreCase))
+                {
+                    CheckAccess(path, permission, isRead);
+                    return;
+                }
+            }
+        }
+        
+        throw new SecurityException($"Path '{path}' is not permitted.");
     }
 
-    public async Task<bool> WriteAsync(string absolutePath, byte[] dataToWrite)
+    private void CheckAccess(string path, FileSystemPermission permission, bool isRead)
     {
-        try
-        {
-            return await TryWrite(absolutePath, dataToWrite);
-        }
-        catch (Exception)
-        {
-            return false;
-        }
+        if (isRead && !permission.CanRead)
+            throw new SecurityException($"Path '{path}' does not allow read.");
+        if (!isRead && !permission.CanWrite)
+            throw new SecurityException($"Path '{path}' does not allow write.");
     }
 
-    private async Task<bool> TryWrite(string absolutePath, byte[] dataToWrite)
+    public async Task WriteAsync(string absolutePath, byte[] dataToWrite)
     {
-        if (!IsPathAllowed(absolutePath))
-            return false;
+        IsPathAllowed(absolutePath, false);
             
         var directory = Path.GetDirectoryName(absolutePath) ?? "";
-        if (string.IsNullOrEmpty(directory))
-            return false;
-            
         if (!Directory.Exists(directory))
             Directory.CreateDirectory(directory);
+        
+        CheckFileSize(dataToWrite.Length);
             
         await using var stream = new FileStream(absolutePath, FileMode.Create, FileAccess.Write, FileShare.None);
         await stream.WriteAsync(dataToWrite, 0, dataToWrite.Length);
-        
-        return true;
     }
 
     public async Task<byte[]> ReadAsync(string absolutePath)
     {
-        try
-        {
-            return await TryRead(absolutePath);
-        }
-        catch (Exception)
-        {
-            return [];
-        }
-    }
-
-    private async Task<byte[]> TryRead(string absolutePath)
-    {
-        if (!IsPathAllowed(absolutePath))
-            return [];
-
+        IsPathAllowed(absolutePath, true);
         if (!Path.Exists(absolutePath))
             return [];
         

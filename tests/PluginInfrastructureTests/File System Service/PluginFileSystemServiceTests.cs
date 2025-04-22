@@ -1,5 +1,7 @@
+using System.Security;
 using System.Text;
 using Moq;
+using PluginAPI.Models.Permissions;
 using PluginAPI.Services;
 using PluginAPI.Services.interfaces;
 using PluginInfrastructure;
@@ -18,9 +20,12 @@ public class PluginFileSystemServiceTests : IDisposable
         
         var controllerMock = new Mock<IFileSystemPermissionController>();
         controllerMock.Setup(x => x.GetAllowedDirectories())
-            .Returns([Normalizer.NormalizeDirectoryPath(_testDirectory)]);
+            .Returns(new Dictionary<string, FileSystemPermission> 
+            { 
+                { Normalizer.NormalizeDirectoryPath(_testDirectory), new FileSystemPermission(true, true, false) } 
+            });
 
-        _service = FileSystemServiceFactory.Create(controllerMock.Object);
+        _service = new PluginFileSystemService(controllerMock.Object, new FileSystemServiceSettings() { MaxFileSizeMb = 10 });
     }
 
     public void Dispose()
@@ -41,28 +46,28 @@ public class PluginFileSystemServiceTests : IDisposable
         var testFile = Path.Combine(_testDirectory, "test.txt");
         var testData = Encoding.UTF8.GetBytes("Hello, World!");
 
-        Assert.True(await _service.WriteAsync(testFile, testData));
+        await _service.WriteAsync(testFile, testData);
         Assert.True(File.Exists(testFile));
         Assert.Equal(testData, await File.ReadAllBytesAsync(testFile));
     }
 
     [Fact]
-    public async Task Write_OutsideAllowedDirectory_DataNotWritten()
+    public async Task Write_OutsideAllowedDirectory_ThrowsSecurityException()
     {
         var testFile = Path.Combine(Path.GetTempPath(), "unauthorized.txt");
         var testData = Encoding.UTF8.GetBytes("Test");
 
-        Assert.False(await _service.WriteAsync(testFile, testData));
+        await Assert.ThrowsAsync<SecurityException>(async() => await _service.WriteAsync(testFile, testData));
         Assert.False(File.Exists(testFile));
     }
 
     [Fact]
-    public async Task Write_PathTraversalAttempt_DataNotWritten()
+    public async Task Write_PathTraversalAttempt_ThrowsSecurityException()
     {
         var testFile = Path.Combine(_testDirectory, "..", "traversal.txt");
         var testData = Encoding.UTF8.GetBytes("Test");
 
-        Assert.False(await _service.WriteAsync(testFile, testData));
+        await Assert.ThrowsAsync<SecurityException>(async() => await _service.WriteAsync(testFile, testData));
         Assert.False(File.Exists(testFile));
     }
 
@@ -84,19 +89,48 @@ public class PluginFileSystemServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task Read_OutsideAllowedDirectory_ShouldReturnEmptyArray()
+    public async Task Read_OutsideAllowedDirectory_ThrowsSecurityException()
     {
         var testFile = Path.Combine(Path.GetTempPath(), "unauthorized.txt");
-        File.WriteAllBytes(testFile, Encoding.UTF8.GetBytes("Test"));
+        await File.WriteAllBytesAsync(testFile, Encoding.UTF8.GetBytes("Test"));
 
-        Assert.Empty(await _service.ReadAsync(testFile));
+        await Assert.ThrowsAsync<SecurityException>(async () => await _service.ReadAsync(testFile));
         File.Delete(testFile);
     }
-
+    
     [Fact]
-    public async Task Write_InvalidPath_ShouldFail()
+    public async Task Write_ExceedingSizeLimit_ThrowsSecurityException()
     {
-        var testData = Encoding.UTF8.GetBytes("Test");
-        Assert.False(await _service.WriteAsync("", testData));
+        var testFile = Path.Combine(_testDirectory, "large.txt");
+        var largeData = new byte[1024 * 1024 * 11];
+    
+        await Assert.ThrowsAsync<SecurityException>(() => _service.WriteAsync(testFile, largeData));
+    }
+    
+    [Fact]
+    public async Task Read_WithoutReadPermission_ThrowsSecurityException()
+    {
+        var controllerMock = new Mock<IFileSystemPermissionController>();
+        controllerMock.Setup(x => x.GetAllowedDirectories())
+            .Returns(new Dictionary<string, FileSystemPermission> 
+            { 
+                { Normalizer.NormalizeDirectoryPath(_testDirectory), new FileSystemPermission(false, true) } 
+            });
+        var service = new PluginFileSystemService(controllerMock.Object);
+    
+        var testFile = Path.Combine(_testDirectory, "test.txt");
+        await File.WriteAllTextAsync(testFile, "Test");
+    
+        await Assert.ThrowsAsync<SecurityException>(() => service.ReadAsync(testFile));
+    }
+    
+    [Fact]
+    public async Task Read_ExceedingSizeLimit_ThrowsSecurityException()
+    {
+        var testFile = Path.Combine(_testDirectory, "large.txt");
+        var largeData = new byte[1024 * 1024 * 11];
+        await File.WriteAllBytesAsync(testFile, largeData);
+    
+        await Assert.ThrowsAsync<SecurityException>(() => _service.ReadAsync(testFile));
     }
 }

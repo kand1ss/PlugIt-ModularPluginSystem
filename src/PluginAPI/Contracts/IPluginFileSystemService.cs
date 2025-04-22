@@ -11,8 +11,7 @@ public interface IPluginFileSystemService
     /// </summary>
     /// <param name="absolutePath">The complete path of the file where the data should be written.</param>
     /// <param name="dataToWrite">The binary data to write to the file.</param>
-    /// <returns><c>true</c> if the data was successfully written to the file; otherwise, <c>false</c>.</returns>
-    Task<bool> WriteAsync(string absolutePath, byte[] dataToWrite);
+    Task WriteAsync(string absolutePath, byte[] dataToWrite);
 
 
     /// <summary>

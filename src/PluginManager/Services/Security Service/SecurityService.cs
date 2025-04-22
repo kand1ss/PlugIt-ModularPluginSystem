@@ -62,7 +62,7 @@ public class SecurityService(IAssemblyLoader loader, IAssemblyHandler handler, P
     public bool RemoveBlockedNamespace(string namespaceName)
         => _assemblySecurity.RemoveBlockedNamespace(namespaceName);
     
-    public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = false)
+    public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = true)
         => _pluginSecurity.AddFileSystemPermission(fullPath, canRead, canWrite, recursive);
 
     public void AddNetworkPermission(string url, bool canRead = true, bool canWrite = true)
