@@ -1,7 +1,7 @@
 using System.Security;
 using PluginAPI.Models.Permissions;
+using PluginAPI.Models.Permissions.Interfaces;
 using PluginAPI.Services.interfaces;
-using PluginInfrastructure.Network_Service.Interfaces;
 
 namespace PluginInfrastructure.Network_Service;
 
@@ -13,12 +13,14 @@ public class PluginNetworkService : IPluginNetworkService, IDisposable
     
     private readonly long _maxResponseSize;
     private readonly int _maxRetries;
+    
+    private readonly NetworkPermissionChecker _permissionChecker;
 
-    public PluginNetworkService(INetworkPermissionController controller, NetworkServiceSettings? settings = null)
+    public PluginNetworkService(IPermissionController<NetworkPermission> controller, NetworkServiceSettings? settings = null)
     {
         settings ??= new();
-        foreach(var url in controller.GetAllowedUrls())
-            _allowedPermissions.Add(url.Key, url.Value);
+        foreach(var url in controller.GetPermissions())
+            _allowedPermissions.Add(url.Path, url);
 
         _maxResponseSize = settings.MaxResponseSizeBytes;
         _httpClientHandler.MaxAutomaticRedirections = settings.MaxRedirectionsCount;
@@ -28,12 +30,13 @@ public class PluginNetworkService : IPluginNetworkService, IDisposable
         _httpClient = new(_httpClientHandler);
         _httpClient.Timeout = settings.RequestTimeout;
         _maxRetries = settings.MaxRequestRetriesCount;
+        _permissionChecker = new(_allowedPermissions);
     }
 
     private void CheckUrlAllowed(string url, bool isGet)
     {
         url = Normalizer.NormalizeUrl(url);
-        if (!_allowedPermissions.TryGetValue(url, out var permission))
+        if (!_permissionChecker.CheckPermissionAllow(url, out var permission) || permission == null)
             throw new SecurityException($"URL '{url}' is not permitted.");
         
         if (isGet && !permission.CanGet)

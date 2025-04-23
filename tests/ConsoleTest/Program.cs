@@ -13,9 +13,6 @@ class Program
         var manager = new PluginManager();
         manager.Security.AddNetworkPermission("https://httpbin.org/get");
         manager.Security.AddFileSystemPermission(@"C:\Users\kand1s\Desktop\Target.txt");
-        
-        Console.WriteLine(manager.Security.CheckAssemblySafety(@"C:\Users\kand1s\Desktop\Plugins2\ServiceRealization.dll"));
-        Console.ReadLine();
 
         manager.RegisterAssembliesFromDirectory(@"C:\Users\kand1s\Desktop\Plugins");
         

@@ -75,7 +75,10 @@ public class PluginManager
         var assemblyHandler = new AssemblyHandler();
         var assemblyLoader = new AssemblyLoader(loggerFacade);
         var repository = new AssemblyMetadataRepository();
-        var securityService = new SecurityService(assemblyLoader, assemblyHandler, loggerFacade);
+
+        var permissionSecurity = new PluginPermissionSecurityService(loggerFacade);
+        var assemblySecurity = new AssemblySecurityService();
+        var securityService = new SecurityService(assemblySecurity, permissionSecurity, assemblyLoader, assemblyHandler, loggerFacade);
         Security = securityService;
         repository.AddObserver(pluginTracker);
         if (settings.EnableSecurity)
@@ -101,7 +104,7 @@ public class PluginManager
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler);
         
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
-        var injectorService = new InjectorService(Security.Settings, loggerFacade);
+        var injectorService = new InjectorService(Security.Settings, permissionSecurity, loggerFacade);
         var configuratorService = new PluginConfiguratorService(dependencyResolver, injectorService);
         
         var assemblyWatcher = new AssemblyWatcher();

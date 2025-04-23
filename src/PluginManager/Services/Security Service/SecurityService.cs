@@ -6,14 +6,11 @@ using ModularPluginAPI.Services.Interfaces;
 
 namespace ModularPluginAPI.Components;
 
-public class SecurityService(IAssemblyLoader loader, IAssemblyHandler handler, PluginLoggingFacade logger) 
+public class SecurityService(IAssemblySecurityService assemblySecurity, IPluginPermissionSecurityService permissionSecurity, IAssemblyLoader loader, 
+    IAssemblyHandler handler, PluginLoggingFacade logger) 
     : ISecurityService, IMetadataRepositoryObserver
 {
-    private readonly AssemblySecurityService _assemblySecurity = new();
-    private readonly PluginPermissionSecurityService _pluginSecurity = new(logger);
-    
     public SecuritySettings Settings { get; } = new();
-    
 
     public void OnMetadataAdded(AssemblyMetadata assemblyMetadata)
     {
@@ -27,8 +24,8 @@ public class SecurityService(IAssemblyLoader loader, IAssemblyHandler handler, P
     
     public bool CheckSafety(AssemblyMetadata assemblyMetadata)
     {
-        var result = _assemblySecurity.CheckSafety(assemblyMetadata.Path) &&
-               assemblyMetadata.Plugins.All(_pluginSecurity.CheckSafety);
+        var result = assemblySecurity.CheckSafety(assemblyMetadata.Path) &&
+               assemblyMetadata.Plugins.All(permissionSecurity.CheckSafety);
 
         if (result)
         {
@@ -57,14 +54,14 @@ public class SecurityService(IAssemblyLoader loader, IAssemblyHandler handler, P
     }
 
     public bool AddBlockedNamespace(string namespaceName)
-        => _assemblySecurity.AddBlockedNamespace(namespaceName);
+        => assemblySecurity.AddBlockedNamespace(namespaceName);
 
     public bool RemoveBlockedNamespace(string namespaceName)
-        => _assemblySecurity.RemoveBlockedNamespace(namespaceName);
+        => assemblySecurity.RemoveBlockedNamespace(namespaceName);
     
     public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = true)
-        => _pluginSecurity.AddFileSystemPermission(fullPath, canRead, canWrite, recursive);
+        => permissionSecurity.AddFileSystemPermission(fullPath, canRead, canWrite, recursive);
 
     public void AddNetworkPermission(string url, bool canRead = true, bool canWrite = true)
-        => _pluginSecurity.AddNetworkPermission(url, canRead, canWrite);
+        => permissionSecurity.AddNetworkPermission(url, canRead, canWrite);
 }

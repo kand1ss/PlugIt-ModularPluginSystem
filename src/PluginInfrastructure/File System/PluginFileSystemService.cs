@@ -1,7 +1,7 @@
 using System.Security;
 using PluginAPI.Models.Permissions;
+using PluginAPI.Models.Permissions.Interfaces;
 using PluginAPI.Services.interfaces;
-using PluginInfrastructure;
 
 namespace PluginAPI.Services;
 
@@ -10,50 +10,24 @@ public class PluginFileSystemService : IPluginFileSystemService
     private readonly Dictionary<string, FileSystemPermission> _allowedDirectories = new();
     private readonly long _maxFileSize;
 
-    public PluginFileSystemService(IFileSystemPermissionController controller, FileSystemServiceSettings? settings = null)
+    private readonly FileSystemPermissionChecker _permissionChecker;
+
+    public PluginFileSystemService(IPermissionController<FileSystemPermission> controller, FileSystemServiceSettings? settings = null)
     {
         settings ??= new();
-        foreach (var permission in controller.GetAllowedDirectories())
-            _allowedDirectories.Add(permission.Key, permission.Value);
+        foreach (var permission in controller.GetPermissions())
+            _allowedDirectories.Add(permission.Path, permission);
         
         _maxFileSize = settings.MaxFileSizeBytes;
+        _permissionChecker = new(_allowedDirectories);
     }
 
     private void IsPathAllowed(string path, bool isRead)
     {
-        var normalizedPath = Normalizer.NormalizeDirectoryPath(path);
+        if(!_permissionChecker.CheckPermissionAllow(path, out var permission) || permission == null)
+            throw new SecurityException($"Path '{path}' is not permitted.");
 
-        foreach (var kvp in _allowedDirectories)
-        {
-            var allowedPath = kvp.Key;
-            var permission = kvp.Value;
-
-            if (permission.Recursive)
-            {
-                if (normalizedPath.StartsWith(allowedPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    CheckAccess(path, permission, isRead);
-                    return;
-                }
-            }
-            else
-            {
-                if (string.Equals(normalizedPath, allowedPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    CheckAccess(normalizedPath, permission, isRead);
-                    return;
-                }
-                
-                var parentPath = Normalizer.NormalizeDirectoryPath(Path.GetDirectoryName(normalizedPath) ?? "");
-                if (string.Equals(parentPath, allowedPath, StringComparison.OrdinalIgnoreCase))
-                {
-                    CheckAccess(path, permission, isRead);
-                    return;
-                }
-            }
-        }
-        
-        throw new SecurityException($"Path '{path}' is not permitted.");
+        CheckAccess(path, permission, isRead);
     }
 
     private void CheckAccess(string path, FileSystemPermission permission, bool isRead)

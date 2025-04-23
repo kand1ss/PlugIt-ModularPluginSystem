@@ -2,14 +2,28 @@ using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Models;
 using ModularPluginAPI.Services.Interfaces;
 using PluginAPI.Models.Permissions;
+using PluginAPI.Services;
 using PluginInfrastructure;
+using PluginInfrastructure.Network_Service;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginPermissionSecurityService(PluginLoggingFacade logger) : IPluginPermissionSecurityService
+public class PluginPermissionSecurityService : IPluginPermissionSecurityService
 {
     private readonly Dictionary<string, FileSystemPermission> _fileSystemPermissions = new();
     private readonly Dictionary<string, NetworkPermission> _networkPermissions = new();
+    
+    private readonly FileSystemPermissionChecker _filePermissionChecker;
+    private readonly NetworkPermissionChecker _networkPermissionChecker;
+    
+    private readonly PluginLoggingFacade _logger;
+
+    public PluginPermissionSecurityService(PluginLoggingFacade logger)
+    {
+        _filePermissionChecker = new(_fileSystemPermissions);
+        _networkPermissionChecker = new(_networkPermissions);
+        _logger = logger;
+    }
     
     public void AddFileSystemPermission(string fullPath, bool canRead = true, bool canWrite = true, bool recursive = true)
     {
@@ -17,8 +31,8 @@ public class PluginPermissionSecurityService(PluginLoggingFacade logger) : IPlug
         if (_fileSystemPermissions.ContainsKey(normalizedPath))
             return;
 
-        _fileSystemPermissions.Add(normalizedPath, new FileSystemPermission(canRead, canWrite, recursive));
-        logger.FilePermissionAdded(fullPath, canRead, canWrite);
+        _fileSystemPermissions.Add(normalizedPath, new FileSystemPermission(normalizedPath, canRead, canWrite, recursive));
+        _logger.FilePermissionAdded(fullPath, canRead, canWrite);
     }
 
     public void AddNetworkPermission(string url, bool canGet = true, bool canPost = true)
@@ -27,8 +41,8 @@ public class PluginPermissionSecurityService(PluginLoggingFacade logger) : IPlug
         if (_networkPermissions.ContainsKey(normalizedUrl))
             return;
 
-        _networkPermissions.Add(normalizedUrl, new NetworkPermission(canGet, canPost));
-        logger.NetworkPermissionAdded(url, canGet, canPost);
+        _networkPermissions.Add(normalizedUrl, new NetworkPermission(normalizedUrl, canGet, canPost));
+        _logger.NetworkPermissionAdded(url, canGet, canPost);
     }
     
     public IReadOnlyDictionary<string, FileSystemPermission> GetFileSystemPermissions()
@@ -48,21 +62,8 @@ public class PluginPermissionSecurityService(PluginLoggingFacade logger) : IPlug
 
 
     private bool CheckFileSystemPermissions(IEnumerable<string> filePaths)
-    {
-        foreach (var path in filePaths)
-        {
-            var normalizedPath = Normalizer.NormalizeDirectoryPath(path);
-            if (_fileSystemPermissions.ContainsKey(normalizedPath))
-                continue;
-
-            return _fileSystemPermissions
-                .Where(kv => kv.Value.Recursive)
-                .Any(kv => normalizedPath.StartsWith(kv.Key, StringComparison.OrdinalIgnoreCase));
-        }
-
-        return true;
-    }
+        => _filePermissionChecker.CheckPermissionsAllow(filePaths.ToList());
 
     private bool CheckNetworkPermissions(IEnumerable<string> networkPaths)
-        => networkPaths.All(x => _networkPermissions.ContainsKey(Normalizer.NormalizeUrl(x)));
+        => _networkPermissionChecker.CheckPermissionsAllow(networkPaths.ToList());
 }

@@ -2,6 +2,7 @@ using System.Security;
 using System.Text;
 using Moq;
 using PluginAPI.Models.Permissions;
+using PluginAPI.Models.Permissions.Interfaces;
 using PluginAPI.Services;
 using PluginAPI.Services.interfaces;
 using PluginInfrastructure;
@@ -18,11 +19,12 @@ public class PluginFileSystemServiceTests : IDisposable
         _testDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(_testDirectory);
         
-        var controllerMock = new Mock<IFileSystemPermissionController>();
-        controllerMock.Setup(x => x.GetAllowedDirectories())
-            .Returns(new Dictionary<string, FileSystemPermission> 
+        var controllerMock = new Mock<IPermissionController<FileSystemPermission>>();
+        var normalizedPath = Normalizer.NormalizeDirectoryPath(_testDirectory);
+        controllerMock.Setup(x => x.GetPermissions())
+            .Returns(new List<FileSystemPermission> 
             { 
-                { Normalizer.NormalizeDirectoryPath(_testDirectory), new FileSystemPermission(true, true, false) } 
+                new FileSystemPermission(normalizedPath, true, true, false)
             });
 
         _service = new PluginFileSystemService(controllerMock.Object, new FileSystemServiceSettings() { MaxFileSizeMb = 10 });
@@ -110,14 +112,15 @@ public class PluginFileSystemServiceTests : IDisposable
     [Fact]
     public async Task Read_WithoutReadPermission_ThrowsSecurityException()
     {
-        var controllerMock = new Mock<IFileSystemPermissionController>();
-        controllerMock.Setup(x => x.GetAllowedDirectories())
-            .Returns(new Dictionary<string, FileSystemPermission> 
+        var controllerMock = new Mock<IPermissionController<FileSystemPermission>>();
+        var normalizedPath = Normalizer.NormalizeDirectoryPath(_testDirectory);
+        controllerMock.Setup(x => x.GetPermissions())
+            .Returns(new List<FileSystemPermission> 
             { 
-                { Normalizer.NormalizeDirectoryPath(_testDirectory), new FileSystemPermission(false, true) } 
+                new FileSystemPermission(normalizedPath, false, true)
             });
+        
         var service = new PluginFileSystemService(controllerMock.Object);
-    
         var testFile = Path.Combine(_testDirectory, "test.txt");
         await File.WriteAllTextAsync(testFile, "Test");
     

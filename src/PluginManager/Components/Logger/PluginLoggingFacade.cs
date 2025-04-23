@@ -129,6 +129,12 @@ public class PluginLoggingFacade(ILoggerService logger)
             $"A service '{serviceName}' has been injected in the plugin '{pluginName} v{pluginVersion}'.");
     }
 
+    public void InjectionFailed(string pluginName, Version pluginVersion, string serviceName, string permission)
+    {
+        logger.Log(LogSender.PluginManager, LogType.WARNING,
+            $"An error occurred while implementing the resolved path '{permission}' in the service '{serviceName}' of the plugin '{pluginName} v{pluginVersion}'.");
+    }
+
     public void FilePermissionAdded(string permission, bool canRead, bool canWrite)
     {
         logger.Log(LogSender.PluginManager, LogType.DEBUG, 
