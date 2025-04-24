@@ -16,7 +16,7 @@ public class NetworkPermissionCheckerTests
             
             var checker = new NetworkPermissionChecker(permissions);
             
-            bool result = checker.CheckPermissionAllow("https://example.com", out var permission);
+            bool result = checker.CheckPermissionExists("https://example.com", out var permission);
             
             Assert.True(result);
             Assert.NotNull(permission);
@@ -32,7 +32,7 @@ public class NetworkPermissionCheckerTests
             };
             
             var checker = new NetworkPermissionChecker(permissions);
-            bool result = checker.CheckPermissionAllow("https://othersite.com", out var permission);
+            bool result = checker.CheckPermissionExists("https://othersite.com", out var permission);
             
             Assert.False(result);
             Assert.Null(permission);
@@ -48,7 +48,7 @@ public class NetworkPermissionCheckerTests
             };
             
             var checker = new NetworkPermissionChecker(permissions);
-            bool result = checker.CheckPermissionAllow("https://example.com", out var permission);
+            bool result = checker.CheckPermissionExists("https://example.com", out var permission);
             
             Assert.True(result);
             Assert.NotNull(permission);
@@ -63,7 +63,7 @@ public class NetworkPermissionCheckerTests
             };
             
             var checker = new NetworkPermissionChecker(permissions);
-            bool result = checker.CheckPermissionAllow("https://Example.Com/", out var permission);
+            bool result = checker.CheckPermissionExists("https://Example.Com/", out var permission);
             
             Assert.True(result);
             Assert.NotNull(permission);
@@ -79,7 +79,7 @@ public class NetworkPermissionCheckerTests
             };
             
             var checker = new NetworkPermissionChecker(permissions);
-            bool result = checker.CheckPermissionAllow("https://api.example.com", out var permission);
+            bool result = checker.CheckPermissionExists("https://api.example.com", out var permission);
             
             Assert.True(result);
             Assert.NotNull(permission);
@@ -98,7 +98,7 @@ public class NetworkPermissionCheckerTests
             
             var checker = new NetworkPermissionChecker(permissions);
             
-            bool result = checker.CheckPermissionsAllow(new List<string> 
+            bool result = checker.CheckPermissionsExists(new List<string> 
             { 
                 "https://example.com", 
                 "https://api.example.com" 
@@ -117,7 +117,7 @@ public class NetworkPermissionCheckerTests
             
             var checker = new NetworkPermissionChecker(permissions);
             
-            bool result = checker.CheckPermissionsAllow(new List<string> 
+            bool result = checker.CheckPermissionsExists(new List<string> 
             { 
                 "https://example.com", 
                 "https://api.example.com" 
@@ -134,6 +134,6 @@ public class NetworkPermissionCheckerTests
             
             // Act & Assert
             Assert.Throws<ArgumentException>(() => 
-                checker.CheckPermissionAllow("invalid-url", out var permission));
+                checker.CheckPermissionExists("invalid-url", out var permission));
         }
     }

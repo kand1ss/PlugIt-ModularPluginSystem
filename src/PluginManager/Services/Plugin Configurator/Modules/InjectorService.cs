@@ -31,7 +31,7 @@ public class InjectorService(SecuritySettings settings, IPluginPermissionSecurit
 
         foreach (var path in filePlugin.Configuration.Permissions.FileSystemPaths)
         {
-            if (permissionChecker.CheckPermissionAllow(path, out var permission))
+            if (permissionChecker.CheckPermissionExists(path, out var permission))
                 permissionController.AddPermission(permission!);
             else
                 logger.InjectionFailed(filePlugin.Name, filePlugin.Version, nameof(PluginFileSystemService), path);

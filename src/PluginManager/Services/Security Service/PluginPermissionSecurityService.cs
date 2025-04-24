@@ -62,8 +62,8 @@ public class PluginPermissionSecurityService : IPluginPermissionSecurityService
 
 
     private bool CheckFileSystemPermissions(IEnumerable<string> filePaths)
-        => _filePermissionChecker.CheckPermissionsAllow(filePaths.ToList());
+        => _filePermissionChecker.CheckPermissionsExists(filePaths.ToList());
 
     private bool CheckNetworkPermissions(IEnumerable<string> networkPaths)
-        => _networkPermissionChecker.CheckPermissionsAllow(networkPaths.ToList());
+        => _networkPermissionChecker.CheckPermissionsExists(networkPaths.ToList());
 }

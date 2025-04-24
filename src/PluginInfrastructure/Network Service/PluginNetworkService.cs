@@ -36,7 +36,7 @@ public class PluginNetworkService : IPluginNetworkService, IDisposable
     private void CheckUrlAllowed(string url, bool isGet)
     {
         url = Normalizer.NormalizeUrl(url);
-        if (!_permissionChecker.CheckPermissionAllow(url, out var permission) || permission == null)
+        if (!_permissionChecker.CheckPermissionExists(url, out var permission) || permission == null)
             throw new SecurityException($"URL '{url}' is not permitted.");
         
         if (isGet && !permission.CanGet)

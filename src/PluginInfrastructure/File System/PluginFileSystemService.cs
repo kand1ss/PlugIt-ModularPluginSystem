@@ -24,7 +24,7 @@ public class PluginFileSystemService : IPluginFileSystemService
 
     private void IsPathAllowed(string path, bool isRead)
     {
-        if(!_permissionChecker.CheckPermissionAllow(path, out var permission) || permission == null)
+        if(!_permissionChecker.CheckPermissionExists(path, out var permission) || permission == null)
             throw new SecurityException($"Path '{path}' is not permitted.");
 
         CheckAccess(path, permission, isRead);
