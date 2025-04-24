@@ -31,7 +31,7 @@ public class PluginNetworkServiceTests : IDisposable
         _allowedUrls.Add(_getMethodUrl);
         _allowedUrls.Add(_postMethodUrl);
 
-        var controller = new PermissionController<NetworkPermission>(Normalizer.NormalizeUrl);
+        var controller = new PermissionController<NetworkPermission>();
         foreach (var url in _allowedUrls)
             controller.AddPermission(new NetworkPermission(url));
 
@@ -90,7 +90,7 @@ public class PluginNetworkServiceTests : IDisposable
     [Fact]
     public async Task GetAsync_WithLargeResponse_ThrowsSecurityException()
     {
-        var controller = new PermissionController<NetworkPermission>(Normalizer.NormalizeUrl);
+        var controller = new PermissionController<NetworkPermission>();
         controller.AddPermission(new NetworkPermission(_getMethodUrl + "/large"));
         _service = new PluginNetworkService(controller, 
             new NetworkServiceSettings { MaxResponseSizeMb = 1 });
@@ -102,7 +102,7 @@ public class PluginNetworkServiceTests : IDisposable
     [Fact]
     public async Task GetAsync_WithRetryableError_RetriesRequest()
     {
-        var controller = new PermissionController<NetworkPermission>(Normalizer.NormalizeUrl);
+        var controller = new PermissionController<NetworkPermission>();
         controller.AddPermission(new NetworkPermission(_getMethodUrl + "/retry"));
         _service = new PluginNetworkService(controller,
             new NetworkServiceSettings { MaxRequestRetriesCount = 3 });
@@ -129,7 +129,7 @@ public class PluginNetworkServiceTests : IDisposable
     [Fact]
     public async Task GetAsync_WithAllowedUrlButWithoutPermission_ThrowsSecurityException()
     {
-        var controller = new PermissionController<NetworkPermission>(Normalizer.NormalizeUrl);
+        var controller = new PermissionController<NetworkPermission>();
         controller.AddPermission(new NetworkPermission(_getMethodUrl, false));
         _service = new PluginNetworkService(controller);
         
@@ -167,7 +167,7 @@ public class PluginNetworkServiceTests : IDisposable
     [Fact]
     public async Task PostAsync_WithAllowedUrlButhWithoutPermission_ThrowsSecurityException()
     {
-        var controller = new PermissionController<NetworkPermission>(Normalizer.NormalizeUrl);
+        var controller = new PermissionController<NetworkPermission>();
         controller.AddPermission(new NetworkPermission(_postMethodUrl, true, false));
         _service = new PluginNetworkService(controller);
         
@@ -188,7 +188,7 @@ public class PluginNetworkServiceTests : IDisposable
     [Fact]
     public async Task PostAsync_WithCustomTimeout_TimesOut()
     {
-        var controller = new PermissionController<NetworkPermission>(Normalizer.NormalizeUrl);
+        var controller = new PermissionController<NetworkPermission>();
         controller.AddPermission(new NetworkPermission(_postMethodUrl));
         _service = new PluginNetworkService(controller,
             new NetworkServiceSettings { RequestTimeout = TimeSpan.FromMicroseconds(1) });

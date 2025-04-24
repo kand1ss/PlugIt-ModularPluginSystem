@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using PluginAPI.Models.Permissions;
 using PluginInfrastructure.Permissions;
 using PluginInfrastructure.Permissions.Checkers.Interfaces;
@@ -9,7 +10,7 @@ public class FileSystemPermissionChecker(IReadOnlyDictionary<string, FileSystemP
 {
     private readonly FileSystemPermissionSeeker _permissionSeeker = new(permissions);
     
-    public override bool CheckPermissionExists(string path, out FileSystemPermission? permission)
+    public override bool CheckPermissionExists(string path, [NotNullWhen(true)] out FileSystemPermission? permission)
     {
         permission = _permissionSeeker.GetSuitablePermission(path);
         return permission != null;

@@ -25,14 +25,14 @@ public class InjectorService(SecuritySettings settings, IPluginPermissionSecurit
         if (plugin is not FilePluginBase filePlugin || filePlugin.Configuration is null)
             return;
 
-        var permissionController = new PermissionController<FileSystemPermission>(Normalizer.NormalizeDirectoryPath);
+        var permissionController = new PermissionController<FileSystemPermission>();
         var userPermissions = permissionSecurity.GetFileSystemPermissions();
         var permissionChecker = new FileSystemPermissionChecker(userPermissions);
 
         foreach (var path in filePlugin.Configuration.Permissions.FileSystemPaths)
         {
             if (permissionChecker.CheckPermissionExists(path, out var permission))
-                permissionController.AddPermission(permission!);
+                permissionController.AddPermission(permission);
             else
                 logger.InjectionFailed(filePlugin.Name, filePlugin.Version, nameof(PluginFileSystemService), path);
         }
@@ -47,16 +47,16 @@ public class InjectorService(SecuritySettings settings, IPluginPermissionSecurit
         if (plugin is not NetworkPluginBase networkPlugin || networkPlugin.Configuration is null)
             return;
 
-        var permissionController = new PermissionController<NetworkPermission>(Normalizer.NormalizeUrl);
+        var permissionController = new PermissionController<NetworkPermission>();
         var userPermissions = permissionSecurity.GetNetworkPermissions();
+        var permissionChecker = new NetworkPermissionChecker(userPermissions);
 
         foreach (var path in networkPlugin.Configuration.Permissions.NetworkURLs)
         {
-            var normalizedPath = Normalizer.NormalizeUrl(path);
-            if (!userPermissions.TryGetValue(normalizedPath, out var permission))
+            if (permissionChecker.CheckPermissionExists(path, out var permission))
+                permissionController.AddPermission(permission);
+            else
                 logger.InjectionFailed(networkPlugin.Name, networkPlugin.Version, nameof(PluginNetworkService), path);
-            
-            permissionController.AddPermission(permission!);
         }
 
         var service = new PluginNetworkService(permissionController, settings.Network);
