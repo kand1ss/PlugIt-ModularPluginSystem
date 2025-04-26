@@ -1,5 +1,4 @@
 using ModularPluginAPI.Components.Logger;
-using ModularPluginAPI.Services.Interfaces;
 using ModularPluginAPI.Services.Plugin_Configurator.Interfaces;
 using PluginAPI;
 using PluginAPI.Models.Permissions;
@@ -9,7 +8,7 @@ using PluginInfrastructure.Network_Service;
 
 namespace ModularPluginAPI.Components;
 
-public class InjectorService(SecuritySettings settings, IPluginPermissionSecurityService permissionSecurity, PluginLoggingFacade logger) : IInjectorService
+public class InjectorService(SecuritySettingsProvider settingsProvider, PluginLoggingFacade logger) : IInjectorService
 {
     public void Inject(IPlugin plugin)
     {
@@ -26,7 +25,7 @@ public class InjectorService(SecuritySettings settings, IPluginPermissionSecurit
             return;
 
         var permissionController = new PermissionController<FileSystemPermission>();
-        var userPermissions = permissionSecurity.GetFileSystemPermissions();
+        var userPermissions = settingsProvider.Settings.FileSystemPermissions;
         var permissionChecker = new FileSystemPermissionChecker(userPermissions);
 
         foreach (var path in filePlugin.Configuration.Permissions.FileSystemPaths)
@@ -37,7 +36,7 @@ public class InjectorService(SecuritySettings settings, IPluginPermissionSecurit
                 logger.InjectionFailed(filePlugin.Name, filePlugin.Version, nameof(PluginFileSystemService), path);
         }
 
-        var service = new PluginFileSystemService(permissionController, settings.FileSystem);
+        var service = new PluginFileSystemService(permissionController, settingsProvider.Settings.FileSystem);
         filePlugin.InjectService(service);
         logger.PluginServiceInjected(filePlugin.Name, filePlugin.Version, nameof(PluginFileSystemService));
     }
@@ -48,7 +47,7 @@ public class InjectorService(SecuritySettings settings, IPluginPermissionSecurit
             return;
 
         var permissionController = new PermissionController<NetworkPermission>();
-        var userPermissions = permissionSecurity.GetNetworkPermissions();
+        var userPermissions = settingsProvider.Settings.NetworkPermissions;
         var permissionChecker = new NetworkPermissionChecker(userPermissions);
 
         foreach (var path in networkPlugin.Configuration.Permissions.NetworkURLs)
@@ -59,7 +58,7 @@ public class InjectorService(SecuritySettings settings, IPluginPermissionSecurit
                 logger.InjectionFailed(networkPlugin.Name, networkPlugin.Version, nameof(PluginNetworkService), path);
         }
 
-        var service = new PluginNetworkService(permissionController, settings.Network);
+        var service = new PluginNetworkService(permissionController, settingsProvider.Settings.Network);
         networkPlugin.InjectService(service);
         logger.PluginServiceInjected(networkPlugin.Name, networkPlugin.Version,nameof(PluginNetworkService));
     }

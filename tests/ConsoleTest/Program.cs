@@ -6,18 +6,13 @@ class Program
 {
     static async Task Main(string[] args)
     {
-        // var manager = new PluginManager(new PluginManagerSettings
-        // {
-        //     EnableAssemblyTracking = false
-        // });
         var manager = new PluginManager();
-        manager.Security.AddNetworkPermission("https://httpbin.org/get");
-        manager.Security.AddFileSystemPermission(@"C:\Users\kand1s\Desktop\Target.txt");
-
+        manager.Security.ImportJsonConfiguration(@"C:\Users\kand1s\Desktop\C# Projects\ModularPluginSystem\tests\ConsoleTest\SecurityConfig.json");
         manager.RegisterAssembliesFromDirectory(@"C:\Users\kand1s\Desktop\Plugins");
         
         var observerComponent = new Observer();
         manager.Tracker.AddObserver(observerComponent);
+
         manager.ExecutePlugin("ConsolePlugin");
         manager.ExecutePlugin("ConsolePlugin2");
         Console.ReadLine();

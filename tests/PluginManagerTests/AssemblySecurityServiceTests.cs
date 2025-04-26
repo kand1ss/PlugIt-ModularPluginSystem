@@ -1,6 +1,4 @@
 using ModularPluginAPI.Components;
-using ModularPluginAPI.Components.Logger;
-using Moq;
 using PluginManagerTests.Base;
 using Xunit;
 
@@ -9,6 +7,8 @@ namespace PluginManagerTests;
 public class AssemblySecurityServiceTests : TestWhichUsingTestAssembly
 {
     private readonly AssemblySecurityService _service;
+    private readonly SecuritySettingsProvider _settingsProvider = new();
+    private SecuritySettings _settings => _settingsProvider.Settings;
 
     private readonly string _unsafeAssemblyPath;
     private readonly string _safeAssemblyPath;
@@ -18,9 +18,7 @@ public class AssemblySecurityServiceTests : TestWhichUsingTestAssembly
         _unsafeAssemblyPath = GetUnsafeAssemblyPath();
         _safeAssemblyPath = GetSafeAssemblyPath();
 
-        var loggerMock = new Mock<ILoggerService>();
-        var logger = new PluginLoggingFacade(loggerMock.Object);
-        _service = new AssemblySecurityService();
+        _service = new AssemblySecurityService(_settingsProvider);
     }
 
     private string GetSolutionDirectory()
@@ -58,35 +56,6 @@ public class AssemblySecurityServiceTests : TestWhichUsingTestAssembly
     }
 
     [Fact]
-    public void AddBlockedNamespace_CorrectNamespace_ReturnsTrue()
-    {
-        Assert.True(_service.AddBlockedNamespace("System"));
-    }
-
-    [Fact]
-    public void AddBlockedNamespace_IncorrectNamespace_ReturnsFalse()
-    {
-        Assert.False(_service.AddBlockedNamespace("System-IO"));
-        Assert.False(_service.AddBlockedNamespace("System_IO"));
-        Assert.False(_service.AddBlockedNamespace("System.Collections_Generic"));
-        Assert.False(_service.AddBlockedNamespace("123System"));
-        Assert.False(_service.AddBlockedNamespace("System123"));
-    }
-
-    [Fact]
-    public void RemoveBlockedNamespace_CorrectNamespace_ReturnsTrue()
-    {
-        _service.AddBlockedNamespace("System");
-        Assert.True(_service.RemoveBlockedNamespace("System"));
-    }
-
-    [Fact]
-    public void RemoveBlockedNamespace_FakeNamespace_ReturnsFalse()
-    {
-        Assert.False(_service.RemoveBlockedNamespace("System.Namespace"));
-    }
-
-    [Fact]
     public void CheckSafety_UnsafeAssembly_ReturnsFalse()
     {
         Assert.False(_service.CheckSafety(_unsafeAssemblyPath));
@@ -101,14 +70,14 @@ public class AssemblySecurityServiceTests : TestWhichUsingTestAssembly
     [Fact]
     public void CheckSafety_SafeAssemblyNowUnsafe_ReturnsFalse()
     {
-        _service.AddBlockedNamespace("System");
+        _settings.AddBlockedNamespace("System");
         Assert.False(_service.CheckSafety(_safeAssemblyPath));
     }
 
     [Fact]
     public void CheckSafety_UnsafeAssemblyNowSafe_ReturnsTrue()
     {
-        _service.RemoveBlockedNamespace("System.IO");
+        _settings.RemoveBlockedNamespace("System.IO");
         Assert.True(_service.CheckSafety(_unsafeAssemblyPath));
     }
 }

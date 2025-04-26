@@ -1,8 +1,6 @@
 using ModularPluginAPI.Components;
-using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Models;
-using Moq;
-using PluginInfrastructure;
+using PluginAPI.Models.Permissions;
 using Xunit;
 
 namespace PluginManagerTests;
@@ -10,6 +8,9 @@ namespace PluginManagerTests;
 public class PluginPermissionSecurityServiceTests
 {
     private readonly PluginPermissionSecurityService _securityService;
+    private readonly SecuritySettingsProvider _settingsProvider = new();
+    private SecuritySettings _settings => _settingsProvider.Settings;
+    
     private readonly PluginMetadata _metadata = new();
     
     private readonly string _path = Path.Combine("D", "SomePath");
@@ -22,60 +23,7 @@ public class PluginPermissionSecurityServiceTests
     
     public PluginPermissionSecurityServiceTests()
     {
-        var loggerMock = new Mock<ILoggerService>();
-        var logger = new PluginLoggingFacade(loggerMock.Object);
-        _securityService = new(logger);
-    }
-    
-
-    [Fact]
-    public void AddFileSystemPermission_CorrectPath_PermissionAdded()
-    {
-        _securityService.AddFileSystemPermission(_path);
-        
-        Assert.Contains(Normalizer.NormalizeDirectoryPath(_path), _securityService.GetFileSystemPermissions());
-        Assert.Single(_securityService.GetFileSystemPermissions());
-    }
-
-    [Fact]
-    public void AddFileSystemPermission_AlreadyAdded_DuplicatePermissionNotAdded()
-    {
-        _securityService.AddFileSystemPermission(_path);
-        _securityService.AddFileSystemPermission(_path);
-        
-        Assert.Single(_securityService.GetFileSystemPermissions());
-    }
-
-    [Fact]
-    public void AddNetworkPermission_CorrectUrl_PermissionAdded()
-    {
-        _securityService.AddNetworkPermission(_url);
-        
-        Assert.Contains(Normalizer.NormalizeUrl(_url), _securityService.GetNetworkPermissions());
-        Assert.Single(_securityService.GetNetworkPermissions());
-    }
-
-    [Fact]
-    public void AddNetworkPermission_IncorrectUrl_PermissionNotAdded()
-    {
-        var url = "htt://localhost";
-        var url2 = "http:/localhost";
-        var url3 = "http//localhost";
-        
-        Assert.Throws<ArgumentException>(() => _securityService.AddNetworkPermission(url));
-        Assert.Throws<ArgumentException>(() => _securityService.AddNetworkPermission(url2));
-        Assert.Throws<ArgumentException>(() => _securityService.AddNetworkPermission(url3));
-        
-        Assert.Empty(_securityService.GetNetworkPermissions());
-    }
-
-    [Fact]
-    public void AddNetworkPermission_AlreadyAdded_DuplicatePermissionNotAdded()
-    {
-        _securityService.AddNetworkPermission(_url);
-        _securityService.AddNetworkPermission(_url);
-        
-        Assert.Single(_securityService.GetNetworkPermissions());
+        _securityService = new(_settingsProvider);
     }
 
     [Fact]
@@ -83,8 +31,8 @@ public class PluginPermissionSecurityServiceTests
     {
         _metadata.Configuration.Permissions.FileSystemPaths.Add(_path);
         _metadata.Configuration.Permissions.FileSystemPaths.Add(_path2);
-        _securityService.AddFileSystemPermission(_path);
-        _securityService.AddFileSystemPermission(_path2);
+        _settings.AddFileSystemPermission(new FileSystemPermission(_path));
+        _settings.AddFileSystemPermission(new FileSystemPermission(_path2));
         
         Assert.True(_securityService.CheckSafety(_metadata));
     }
@@ -94,8 +42,8 @@ public class PluginPermissionSecurityServiceTests
     {
         _metadata.Configuration.Permissions.NetworkURLs.Add(_url);
         _metadata.Configuration.Permissions.NetworkURLs.Add(_url1);
-        _securityService.AddNetworkPermission(_url);
-        _securityService.AddNetworkPermission(_url1);
+        _settings.AddNetworkPermission(new NetworkPermission(_url));;
+        _settings.AddNetworkPermission(new NetworkPermission(_url1));;
         
         Assert.True(_securityService.CheckSafety(_metadata));
     }
@@ -109,11 +57,11 @@ public class PluginPermissionSecurityServiceTests
         _metadata.Configuration.Permissions.FileSystemPaths.Add(_path1);
         _metadata.Configuration.Permissions.FileSystemPaths.Add(_path2);
         
-        _securityService.AddFileSystemPermission(_path);
-        _securityService.AddFileSystemPermission(_path1);
-        _securityService.AddFileSystemPermission(_path2);
-        _securityService.AddNetworkPermission(_url);
-        _securityService.AddNetworkPermission(_url1);
+        _settings.AddFileSystemPermission(new FileSystemPermission(_path));
+        _settings.AddFileSystemPermission(new FileSystemPermission(_path1));
+        _settings.AddFileSystemPermission(new FileSystemPermission(_path2));
+        _settings.AddNetworkPermission(new NetworkPermission(_url));
+        _settings.AddNetworkPermission(new NetworkPermission(_url1));
         
         Assert.True(_securityService.CheckSafety(_metadata));
     }
@@ -121,7 +69,7 @@ public class PluginPermissionSecurityServiceTests
     [Fact]
     public void CheckSafety_NetworkPermissionNotSafety_ReturnsFalse()
     {
-        _securityService.AddFileSystemPermission(_path);
+        _settings.AddFileSystemPermission(new FileSystemPermission(_path));
         _metadata.Configuration.Permissions.FileSystemPaths.Add(_path);
         _metadata.Configuration.Permissions.NetworkURLs.Add(_url);
         
@@ -131,7 +79,7 @@ public class PluginPermissionSecurityServiceTests
     [Fact]
     public void CheckSafety_FilePermissionNotSafety_ReturnsFalse()
     {
-        _securityService.AddNetworkPermission(_url);
+        _settings.AddNetworkPermission(new NetworkPermission(_url));;
         _metadata.Configuration.Permissions.FileSystemPaths.Add(_path);
         _metadata.Configuration.Permissions.NetworkURLs.Add(_url);
         

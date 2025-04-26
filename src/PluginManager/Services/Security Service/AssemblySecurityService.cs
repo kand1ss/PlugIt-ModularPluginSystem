@@ -1,46 +1,22 @@
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
-using System.Text.RegularExpressions;
 using ModularPluginAPI.Services.Interfaces;
 using Mono.Cecil;
 using PluginAPI.Services.interfaces;
 
 namespace ModularPluginAPI.Components;
 
-public class AssemblySecurityService : IAssemblySecurityService
+public class AssemblySecurityService(SecuritySettingsProvider settingsProvider) : IAssemblySecurityService
 {
-    private readonly HashSet<string> _blockedNamespaces = new()
-    {
-        "System.IO",
-        "System.Reflection.Emit",
-        "System.Reflection",
-        "System.Linq.Expressions",
-        "System.Net"
-    };
-
     private readonly HashSet<string> _trustedTokens = new()
     {
         "b03f5f7f11d50a3a",
         "7cec85d7bea7798e"
     };
-    
     private readonly HashSet<string> _checkedAssemblies = new();
+
     
-    
-    public bool AddBlockedNamespace(string namespaceName)
-    {
-        var regularExpression = new Regex(@"^([A-Za-z]+)(\.([A-Za-z]+))*$", RegexOptions.Compiled);
-        if (!regularExpression.IsMatch(namespaceName))
-            return false;
-        
-        return _blockedNamespaces.Add(namespaceName);
-    }
-
-    public bool RemoveBlockedNamespace(string namespaceName)
-        => _blockedNamespaces.Remove(namespaceName);
-
-
     public bool CheckSafety(string assemblyPath)
     {
         if (!_checkedAssemblies.Add(assemblyPath))
@@ -65,12 +41,13 @@ public class AssemblySecurityService : IAssemblySecurityService
 
     private bool IsTrustedAssembly(AssemblyNameReference reference, string resolvedPath)
     {
-        var name = reference.Name;
         var publicKey = BitConverter.ToString(reference.PublicKeyToken).Replace("-", "").ToLowerInvariant();
+        var name = reference.Name;
 
-        return name == "PluginAPI" 
-                     || _trustedTokens.Contains(publicKey ?? "")
-                     || resolvedPath.StartsWith(RuntimeEnvironment.GetRuntimeDirectory(), StringComparison.OrdinalIgnoreCase);
+        return 
+            name == "PluginAPI" ||
+            _trustedTokens.Contains(publicKey) || 
+            resolvedPath.StartsWith(RuntimeEnvironment.GetRuntimeDirectory(), StringComparison.OrdinalIgnoreCase);
     }
 
 
@@ -90,7 +67,7 @@ public class AssemblySecurityService : IAssemblySecurityService
                         if (instruction.Operand is MethodReference methodRef)
                         {
                             var typeNamespace = methodRef.DeclaringType.Namespace;
-                            if (_blockedNamespaces.Any(banned => typeNamespace.StartsWith(banned)))
+                            if (settingsProvider.Settings.ProhibitedNamespaces.Any(banned => typeNamespace.StartsWith(banned)))
                                 return false;
                         }
                     }

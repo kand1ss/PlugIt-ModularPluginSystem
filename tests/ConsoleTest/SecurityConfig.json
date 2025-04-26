@@ -1,0 +1,33 @@
+{
+  "BlockedNamespaces": [
+    "System.IO",
+    "System.Reflection.Emit",
+    "System.Reflection",
+    "System.Linq.Expressions",
+    "System.Net"
+  ],
+  "NetworkPermissions": [
+    {
+      "Path": "https://httpbin.org/get",
+      "CanGet": true,
+      "CanPost": true
+    }
+  ],
+  "FileSystemPermissions": [
+    {
+      "Path": "C:\\Users\\kand1s\\Desktop",
+      "CanRead": true,
+      "CanWrite": true,
+      "Recursive": false
+    }
+  ],
+  "Network": {
+    "RequestTimeout": "00:00:15",
+    "MaxResponseSizeMb": 30,
+    "MaxRequestRetriesCount": 3,
+    "MaxRedirectionsCount": 2
+  },
+  "FileSystem": {
+    "MaxFileSizeMb": 30
+  }
+}

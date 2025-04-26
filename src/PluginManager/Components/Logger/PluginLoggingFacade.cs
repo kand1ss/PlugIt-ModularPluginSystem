@@ -103,11 +103,11 @@ public class PluginLoggingFacade(ILoggerService logger)
 
     public void TrackerComponentRegistered(IPluginTrackerObserver component)
     {
-        logger.Log(LogSender.PluginManager, LogType.DEBUG, $"(PluginTracker) - Custom component '{component.GetType().Name}' registered.");
+        logger.Log(LogSender.PluginManager, LogType.INFO, $"(PluginTracker) - Custom component '{component.GetType().Name}' registered.");
     }
     public void TrackerComponentRemoved(IPluginTrackerObserver component)
     {
-        logger.Log(LogSender.PluginManager, LogType.DEBUG, $"(PluginTracker) - Custom component '{component.GetType().Name}' removed.");
+        logger.Log(LogSender.PluginManager, LogType.INFO, $"(PluginTracker) - Custom component '{component.GetType().Name}' removed.");
     }
 
     public void SecurityCheckPassed(string assemblyName, Version assemblyVersion)
@@ -120,6 +120,18 @@ public class PluginLoggingFacade(ILoggerService logger)
     {
         logger.Log(LogSender.PluginManager, LogType.INFO, 
             $"(Security) - Assembly: '{assemblyName} v{assemblyVersion}' failed security check.");
+    }
+
+    public void SecuritySettingsImported(string configurationPath)
+    {
+        logger.Log(LogSender.PluginManager, LogType.INFO, 
+            $"The security settings were imported from the configuration file at path: '{configurationPath}'");
+    }
+
+    public void SecuritySettingsNotHasUnrecommendedNamespace(string namespaceName)
+    {
+        logger.Log(LogSender.PluginManager, LogType.WARNING, 
+            $"The imported settings do not contain the recommended namespace prohibition: '{namespaceName}'");
     }
 
 

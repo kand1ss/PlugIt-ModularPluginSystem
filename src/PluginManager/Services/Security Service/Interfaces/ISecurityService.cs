@@ -13,9 +13,20 @@ public interface ISecurityService
     /// Represents the settings used to configure security-related features for plugin management.
     /// Provides access to specific settings for network and file system operations.
     /// </summary>
-    public SecuritySettings Settings { get; }
-    
-    
+    public ISecuritySettings Settings { get; }
+
+
+    /// <summary>
+    /// Imports a JSON configuration file to configure security settings.
+    /// The configuration file is expected to define permissions, blocked namespaces, and other security-related settings.
+    /// </summary>
+    /// <param name="configurationPath">The full file path to the JSON configuration file to import.</param>
+    /// <returns>
+    /// <c>true</c> if the configuration was successfully imported and applied;
+    /// otherwise, <c>false</c> if the process failed, such as due to an invalid file path or format issues.
+    /// </returns>
+    bool ImportJsonConfiguration(string configurationPath);
+
     /// <summary>
     /// Checks the specified assembly (.dll file) for the usage of blocked namespaces.
     /// This static analysis is performed only if security checks are enabled in <see cref="PluginManagerSettings"/>.
