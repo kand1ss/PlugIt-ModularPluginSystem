@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using ModularPluginAPI.Services.Interfaces;
 using Mono.Cecil;
@@ -12,7 +11,8 @@ public class AssemblySecurityService(SecuritySettingsProvider settingsProvider) 
     private readonly HashSet<string> _trustedTokens = new()
     {
         "b03f5f7f11d50a3a",
-        "7cec85d7bea7798e"
+        "7cec85d7bea7798e",
+        "2c2e8d52f28b9f5e"
     };
     private readonly HashSet<string> _checkedAssemblies = new();
 
@@ -42,12 +42,9 @@ public class AssemblySecurityService(SecuritySettingsProvider settingsProvider) 
     private bool IsTrustedAssembly(AssemblyNameReference reference, string resolvedPath)
     {
         var publicKey = BitConverter.ToString(reference.PublicKeyToken).Replace("-", "").ToLowerInvariant();
-        var name = reference.Name;
 
         return 
-            name == "PluginAPI" ||
-            _trustedTokens.Contains(publicKey) || 
-            resolvedPath.StartsWith(RuntimeEnvironment.GetRuntimeDirectory(), StringComparison.OrdinalIgnoreCase);
+            _trustedTokens.Contains(publicKey);
     }
 
 
