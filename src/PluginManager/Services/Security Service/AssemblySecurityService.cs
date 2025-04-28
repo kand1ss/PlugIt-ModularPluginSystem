@@ -29,7 +29,7 @@ public class AssemblySecurityService(SecuritySettingsProvider settingsProvider) 
         foreach (var reference in assembly.MainModule.AssemblyReferences)
         {
             var resolvedPath = resolver.ResolveAssemblyToPath(new AssemblyName(reference.FullName));
-            if (IsTrustedAssembly(reference, resolvedPath ?? ""))
+            if (IsTrustedAssembly(reference))
                 continue;
             
             if (resolvedPath != null)
@@ -39,12 +39,10 @@ public class AssemblySecurityService(SecuritySettingsProvider settingsProvider) 
         return result;
     }
 
-    private bool IsTrustedAssembly(AssemblyNameReference reference, string resolvedPath)
+    private bool IsTrustedAssembly(AssemblyNameReference reference)
     {
         var publicKey = BitConverter.ToString(reference.PublicKeyToken).Replace("-", "").ToLowerInvariant();
-
-        return 
-            _trustedTokens.Contains(publicKey);
+        return _trustedTokens.Contains(publicKey);
     }
 
 
