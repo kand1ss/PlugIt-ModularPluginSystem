@@ -81,8 +81,11 @@ public class FileSystemPermissionCheckerTests
     }
 
     [Fact]
-    public void CheckPermissionAllow_WithMixedCasePath_ShouldIgnoreCase()
+    public void CheckPermissionAllow_WithMixedCasePath_ShouldIgnoreCaseOnWindows()
     {
+        if (!OperatingSystem.IsWindows())
+            return;
+        
         var mixedCasePath = _testDirectory.ToUpper();
         var result = _checker.CheckPermissionExists(mixedCasePath, out var permission);
 
