@@ -15,12 +15,8 @@ public class CrossPlatformPathMapperTests
     [InlineData("/var/log", "C:\\var\\log")]
     public void MapToWindows_WithUnixPaths_MapsCorrectly(string unixPath, string expectedWindowsPath)
     {
-        var systemDrive = Path.GetPathRoot(Environment.SystemDirectory)?.TrimEnd('\\') ?? "C:";
-        var expectedPath = expectedWindowsPath.Replace("C:", systemDrive);
-
         var result = _mapper.MapToWindows(unixPath);
-
-        Assert.Equal(expectedPath, result);
+        Assert.Equal(expectedWindowsPath, result);
     }
 
     [Theory]
@@ -78,13 +74,11 @@ public class CrossPlatformPathMapperTests
     {
         var unixPath = "/home/user/documents";
         var windowsPath = "C:\\Users\\user\\documents";
-        var systemDrive = Path.GetPathRoot(Environment.SystemDirectory)?.TrimEnd('\\') ?? "C:";
-        var expectedPath = windowsPath.Replace("C:", systemDrive);
 
         if (OperatingSystem.IsWindows())
         {
             var result = _mapper.MapToCurrentOS(unixPath);
-            Assert.Equal(expectedPath, result);
+            Assert.Equal(windowsPath, result);
         }
         else
         {
@@ -113,11 +107,9 @@ public class CrossPlatformPathMapperTests
     public void MapToWindows_WithComplexUnixPath_MapsCorrectly()
     {
         var unixPath = "/home/user/documents/usr/bin/app/config";
-        var systemDrive = Path.GetPathRoot(Environment.SystemDirectory)?.TrimEnd('\\') ?? "C:";
-        var expectedPath = $"{systemDrive}\\Users\\user\\documents\\Program Files\\app\\config";
+        var expectedPath = $"C:\\Users\\user\\documents\\Program Files\\app\\config";
 
         var result = _mapper.MapToWindows(unixPath);
-
         Assert.Equal(expectedPath, result);
     }
 
