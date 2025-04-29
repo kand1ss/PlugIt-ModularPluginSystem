@@ -77,10 +77,12 @@ public class CrossPlatformPathMapper
         if (!CheckPathIsWindows(path) || CheckPathIsUnix(path))
             return path;
      
-        var drive = Path.GetPathRoot(path) ?? "";
-        var segments = path.Substring(drive.Length).Split('\\', StringSplitOptions.RemoveEmptyEntries);
+        string trimmedPath = path.Length > 2 && path[1] == ':' && path[2] == '\\'
+            ? path.Substring(3) : path;
+
+        var segments = trimmedPath.Split('\\', StringSplitOptions.RemoveEmptyEntries);
         if (segments.Length == 0)
-            return path;
+            return "/";
     
         for (int i = 0; i < segments.Length; i++)
         {
