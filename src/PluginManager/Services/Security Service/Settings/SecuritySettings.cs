@@ -19,7 +19,8 @@ public class SecuritySettings : ISecuritySettings
         "System.Reflection.Emit",
         "System.Reflection",
         "System.Linq.Expressions",
-        "System.Net"
+        "System.Net",
+        "System.Runtime.InteropServices"
     ];
 
 

@@ -24,7 +24,7 @@ public class AssemblySecurityService(SecuritySettingsProvider settingsProvider) 
 
         var assembly = AssemblyDefinition.ReadAssembly(assemblyPath);
         var resolver = new AssemblyDependencyResolver(assemblyPath);
-        bool result = AnalyzeNamespaces(assembly) && AnalyzeInterfaces(assembly);
+        bool result = AnalyzeMethods(assembly) && AnalyzeInterfaces(assembly);
         
         foreach (var reference in assembly.MainModule.AssemblyReferences)
         {
@@ -46,7 +46,7 @@ public class AssemblySecurityService(SecuritySettingsProvider settingsProvider) 
     }
 
 
-    private bool AnalyzeNamespaces(AssemblyDefinition assembly)
+    private bool AnalyzeMethods(AssemblyDefinition assembly)
     {
         foreach (var module in assembly.Modules)
         {
@@ -57,6 +57,9 @@ public class AssemblySecurityService(SecuritySettingsProvider settingsProvider) 
                     if (!method.HasBody)
                         continue;
 
+                    if (method.IsPInvokeImpl)
+                        return false;
+                    
                     foreach (var instruction in method.Body.Instructions)
                     {
                         if (instruction.Operand is MethodReference methodRef)
