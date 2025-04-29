@@ -66,8 +66,7 @@ public class CrossPlatformPathMapper
             }
         }
 
-        var systemDrive = Path.GetPathRoot(Environment.SystemDirectory)?.TrimEnd('\\') ?? "C:";
-        return systemDrive + "\\" + string.Join("\\", resultSegments);
+        return "C:\\" + string.Join("\\", resultSegments);
     }
 
 
