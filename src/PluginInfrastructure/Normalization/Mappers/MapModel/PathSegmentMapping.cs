@@ -1,13 +1,7 @@
 namespace PluginInfrastructure.Normalization.Mappers.MapModel;
 
-public class PathSegmentMapping
+public class PathSegmentMapping(string windowsSegment, string linuxSegment)
 {
-    public string WindowsSegment { get; }
-    public string LinuxSegment { get; }
-
-    public PathSegmentMapping(string windowsSegment, string linuxSegment)
-    {
-        WindowsSegment = windowsSegment;
-        LinuxSegment = linuxSegment;
-    }
+    public string WindowsSegment { get; } = windowsSegment;
+    public string LinuxSegment { get; } = linuxSegment;
 }

@@ -6,10 +6,14 @@ public class CrossPlatformPathMapper
 {
     private readonly List<PathSegmentMapping> _pathSegmentMaps = [
         new("Users", "home"),
-        new("Administrator", "root"),
+        new("Users\\Administrator", "root"),
+        new("Users\\Public", "usr/share/common"),
+        new("AppData\\Local", ".local/share"),
+        new("AppData\\Roaming", ".config"),
+        new("ProgramData", "etc"),
         new("Program Files", "usr/bin"),
         new("Program Files (x86)", "usr/bin"),
-        new("Temp", "tmp"),
+        new("AppData\\Local\\Temp", ".cache/tmp"),
     ];
     
     public string MapToCurrentOS(string path)
@@ -24,80 +28,105 @@ public class CrossPlatformPathMapper
     
     public string MapToWindows(string path)
     {
-        if (!CheckPathIsUnix(path) || CheckPathIsWindows(path))
+        if (CheckPathIsWindows(path) || string.IsNullOrEmpty(path))
             return path;
 
-        var segments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var pathSegments = path.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        var convertedSegments = MatchCombinationsAndAddSegment(pathSegments,
+            map => map.WindowsSegment,
+            map => map.LinuxSegment.Split('/', StringSplitOptions.RemoveEmptyEntries),
+            map => map.LinuxSegment.Length);
+
+        var systemDrive = Path.GetPathRoot(Environment.SystemDirectory)?.TrimEnd('\\') ?? "C:";
+        return systemDrive + "\\" + string.Join("\\", convertedSegments);
+    }
+
+    public string MapToUnix(string path)
+    {
+        if (CheckPathIsUnix(path) || string.IsNullOrEmpty(path))
+            return path;
+     
+        string trimmedPath = TrimWindowsDriveLetter(path);
+
+        var pathSegments = trimmedPath.Split('\\', StringSplitOptions.RemoveEmptyEntries);
+        var resultSegments = MatchCombinationsAndAddSegment(
+            pathSegments, 
+            map => map.LinuxSegment,
+            map => map.WindowsSegment.Split('\\'),
+            map => map.WindowsSegment.Length);
+        
+        var resultPath = string.Join("/", resultSegments);
+        if (!resultPath.StartsWith("/"))
+            resultPath = "/" + resultPath;
+        
+        return resultPath;
+    }
+
+    private static string TrimWindowsDriveLetter(string path)
+    {
+        return path.Length > 2 && path[1] == ':' && path[2] == '\\'
+            ? path.Substring(3) : path;
+    }
+    
+    private IEnumerable<string> MatchCombinationsAndAddSegment(
+        string[] segments, 
+        Func<PathSegmentMapping, string> mapToSegmentType, // тип сегмента в который преобразовываем исходный сегмент
+        Func<PathSegmentMapping, string[]> splitStrategy, // каким образом сегментировать маппинг
+        Func<PathSegmentMapping, int> sortPredicate) // по какому принципу отсортировать маппинг
+    {
+        var sortedPathsMap = 
+            _pathSegmentMaps.OrderByDescending(sortPredicate).ToList();
+
         var resultSegments = new List<string>();
-        int i = 0;
-
-        while (i < segments.Length)
+        int currentSegmentIndex = 0;
+        
+        while (currentSegmentIndex < segments.Length)
         {
-            bool matched = false;
-            foreach (var map in _pathSegmentMaps)
+            bool matchFound = false;
+            foreach (var map in sortedPathsMap)
             {
-                var linuxParts = map.LinuxSegment.Split('/');
-                if (i + linuxParts.Length > segments.Length)
+                var mapSegments = splitStrategy(map);
+                if (currentSegmentIndex + mapSegments.Length > segments.Length) 
                     continue;
-
-                bool isMatch = true;
-                for (int j = 0; j < linuxParts.Length; j++)
+                
+                bool currentMatch = CheckMapSegments(segments, mapSegments, currentSegmentIndex);
+                if (currentMatch)
                 {
-                    if (!segments[i + j].Equals(linuxParts[j], StringComparison.OrdinalIgnoreCase))
-                    {
-                        isMatch = false;
-                        break;
-                    }
-                }
-
-                if (isMatch)
-                {
-                    resultSegments.Add(map.WindowsSegment);
-                    i += linuxParts.Length;
-                    matched = true;
+                    resultSegments.Add(mapToSegmentType(map));
+                    currentSegmentIndex += mapSegments.Length;
+                    matchFound = true;
                     break;
                 }
             }
 
-            if (!matched)
+            if (!matchFound)
             {
-                resultSegments.Add(segments[i]);
-                i++;
+                resultSegments.Add(segments[currentSegmentIndex]);
+                currentSegmentIndex++;
             }
         }
 
-        var systemDrive = Path.GetPathRoot(Environment.SystemDirectory)?.TrimEnd('\\') ?? "C:";
-        return systemDrive + "\\" + string.Join("\\", resultSegments);
+        return resultSegments;
     }
 
-
-
-    public string MapToUnix(string path)
+    private static bool CheckMapSegments(string[] segments, string[] mapSegments, int currentSegmentIndex)
     {
-        if (!CheckPathIsWindows(path) || CheckPathIsUnix(path))
-            return path;
-     
-        string trimmedPath = path.Length > 2 && path[1] == ':' && path[2] == '\\'
-            ? path.Substring(3) : path;
-
-        var segments = trimmedPath.Split('\\', StringSplitOptions.RemoveEmptyEntries);
-        if (segments.Length == 0)
-            return "/";
-    
-        for (int i = 0; i < segments.Length; i++)
+        bool currentMatch = true;
+        for (int k = 0; k < mapSegments.Length; k++)
         {
-            var mappedSegment = _pathSegmentMaps
-                .FirstOrDefault(x => x.WindowsSegment.Equals(segments[i], StringComparison.OrdinalIgnoreCase));
-            
-            if (mappedSegment != null)
-                segments[i] = mappedSegment.LinuxSegment;
+            if (!segments[currentSegmentIndex + k].Equals(mapSegments[k], StringComparison.OrdinalIgnoreCase))
+            {
+                currentMatch = false;
+                break;
+            }
         }
-    
-        return "/" + string.Join("/", segments);
+
+        return currentMatch;
     }
-    
+
     private bool CheckPathIsUnix(string path)
         => path.StartsWith("/");
+    
     private bool CheckPathIsWindows(string path)
         => path.Length > 3 &&
            char.IsLetter(path[0]) &&
