@@ -16,7 +16,6 @@ public static class PluginMetadataGenerator
             Name = plugin.Name,
             Version = plugin.Version,
             Author = plugin.Author,
-            Description = plugin.Description,
             Configuration = configuration ?? new PluginConfiguration(),
         };
         

@@ -6,7 +6,6 @@ public class NetworkPlugin : PluginBase, INetworkPlugin
 {
     public override string Name => "NetworkPlugin";
     public override Version Version => new(1, 0, 1);
-    public override string Description => "Console plugin";
     public override string Author => "kand2s";
 
 

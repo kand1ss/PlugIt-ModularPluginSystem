@@ -6,7 +6,6 @@ public class ConsolePlugin2 : PluginBase, IExecutablePlugin
 {
     public override string Name => "ConsolePlugin2";
     public override Version Version => new(1, 0, 1);
-    public override string Description => "Console plugin";
     public override string Author => "kand1s";
 
     public void Execute()

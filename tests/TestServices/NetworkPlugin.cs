@@ -6,7 +6,6 @@ public class NetworkPlugin : NetworkPluginBase
 {
     public override string Name { get; } = "NetworkPlugin";
     public override Version Version { get; } = new(1, 0, 0);
-    public override string Description { get; } = "NetworkPlugin";
     public override string Author { get; } = "NetworkPlugin";
     
     

@@ -6,7 +6,6 @@ public class FilePlugin : FilePluginBase
 {
     public override string Name { get; } = "FilePlugin";
     public override Version Version { get; } = new(1,0,0);
-    public override string Description { get; } = "FilePlugin";
     public override string Author { get; } = "FilePlugin";
     
     

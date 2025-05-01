@@ -8,7 +8,6 @@ public abstract class PluginBase : IPluginWithDependencies
     public abstract string Name { get; }
     public abstract Version Version { get; }
     public PluginConfiguration? Configuration { get; private set; }
-    public abstract string Description { get; }
     public abstract string Author { get; }
 
     public void LoadConfiguration(PluginConfiguration? configuration)

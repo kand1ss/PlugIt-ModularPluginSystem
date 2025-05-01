@@ -6,7 +6,6 @@ public class UnsafePlugin : PluginBase, IExecutablePlugin
 {
     public override string Name => "UnsafePlugin";
     public override Version Version => new(1, 0, 0);
-    public override string Description => "UnsafePlugin";
     public override string Author => "kand1s";
     
     
