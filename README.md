@@ -28,12 +28,10 @@ PlugIt will **automatically** generate metadata for all assemblies(.dll), proces
 ## 🧩 Creating a Plugin
 To create a plugin, you can inherit from `PluginBase`. This base class provides built-in functionality, such as dependency support. In order to create a plugin that will interact with the network, you must inherit from `NetworkPluginBase`. If the plugin should interact with the file system - from `FilePluginBase`. Additionally, you can implement interfaces to extend your plugin's capabilities:
 
-• **`IInitialisablePlugin`** – provides initialization logic for plugins.<br>
 • **`IExecutingPlugin`** – allows the plugin to be executed.<br>
-• **`IFinalisablePlugin`** – provides finalization logic for plugins.<br>
+• **`IExtensionPlugin<T>`** – extends the functionality of specific types.<br>
 • **`IConfigurablePlugin`** - provides JSON configuration file support for the plugin.(implemented by `PluginBase`)<br>
 • **`IPluginWithDependencies`** - provides dependency support for other plugins. Implements `IConfigurablePlugin`. If you do not inherit from PluginBase, you must manually implement dependency loading and retrieval logic.(implemented by `PluginBase`)<br>
-• **`IExtensionPlugin<T>`** – extends the functionality of specific types.<br>
 
 ### Example:
 ```csharp
@@ -47,12 +45,8 @@ public class MyPlugin : PluginBase, IExecutingPlugin
 ```
 <br>It is not mandatory to inherit from PluginBase. You can implement only the necessary interfaces if you don't need the additional functionality provided by the base class:<br>
 ```csharp
-public class MyPlugin : IInitialisablePlugin, IExecutingPlugin 
+public class MyPlugin : IExecutingPlugin 
 {
-	public void Initialize()
-	{
-		Console.WriteLine("Initializing");
-	}
 	public void Execute()
 	{
 		Console.WriteLine("My plugin is running!");
