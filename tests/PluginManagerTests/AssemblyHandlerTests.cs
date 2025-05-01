@@ -23,10 +23,10 @@ public class AssemblyHandlerTests : TestWhichUsingTestAssembly
     [Fact]
     public void GetPlugin_CorrectPluginName_ReturnsCorrectPlugin()
     {
-        var plugin = _handler.GetPlugin<IPlugin>(_testAssembly, TestPlugin);
+        var plugin = _handler.GetPlugin<IPluginData>(_testAssembly, TestPlugin);
         
         Assert.NotNull(plugin);
-        Assert.IsAssignableFrom<IPlugin>(plugin);
+        Assert.IsAssignableFrom<IPluginData>(plugin);
         Assert.Equal(TestPlugin, plugin.Name);
     }
 
@@ -34,7 +34,7 @@ public class AssemblyHandlerTests : TestWhichUsingTestAssembly
     public void GetPlugin_InvalidPluginName_ThrowsException()
     {
         Assert.Throws<PluginNotFoundException>(() => 
-            _handler.GetPlugin<IPlugin>(_testAssembly, "InvalidPlugin"));
+            _handler.GetPlugin<IPluginData>(_testAssembly, "InvalidPlugin"));
     }
 
     [Fact]

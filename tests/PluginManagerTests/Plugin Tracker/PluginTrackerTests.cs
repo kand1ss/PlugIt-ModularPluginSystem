@@ -75,7 +75,7 @@ public class PluginTrackerTests
         _observer.AddMetadata(_testMetadata);
         
         Assert.Equal(_testMetadata.Plugins.Count, 
-            _pluginTracker.GetPluginsStatus().Count(x => x.State == PluginState.Unloaded));
+            _pluginTracker.GetPluginsStatus().Count(x => x.CurrentState == PluginState.Unloaded));
     }
 
     [Fact]
@@ -108,14 +108,14 @@ public class PluginTrackerTests
         
         var pluginName = _testMetadata.Plugins.First().Name;
         
-        _pluginTracker.SetPluginState(pluginName, PluginState.Loaded);
-        Assert.Equal(PluginState.Loaded, _pluginTracker.GetPluginStatus(pluginName).State);
+        _pluginTracker.SetPluginStatus(pluginName, PluginState.Loaded, PluginMode.Fixed);
+        Assert.Equal(PluginState.Loaded, _pluginTracker.GetPluginStatus(pluginName).CurrentState);
     }
 
     [Fact]
     public void SetPluginState_FakePluginName_NothingChanged()
     {
-        _pluginTracker.SetPluginState("FakeName", PluginState.Loaded);
+        _pluginTracker.SetPluginStatus("FakeName", PluginState.Loaded, PluginMode.Fixed);
         Assert.Empty(_pluginTracker.GetPluginsStatus());
     }
 }

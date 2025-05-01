@@ -4,5 +4,5 @@ namespace ModularPluginAPI.Components.Observer;
 
 public interface IPluginExecutorObserver
 {
-    void OnPluginStateChanged(PluginInfo plugin);
+    void OnPluginStatusChanged(PluginStatus plugin);
 }

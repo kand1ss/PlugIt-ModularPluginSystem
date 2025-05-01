@@ -9,7 +9,7 @@ namespace ModularPluginAPI.Components;
 public class PluginStartDispatcher(IPluginMetadataService metadataService, IPluginLoaderService loaderService, 
     IPluginExecutor pluginExecutor, IPluginConfiguratorService configuratorService, PluginLoggingFacade logger)
 {
-    private T GetPluginFromAssembly<T>(string pluginName) where T : class, IPlugin
+    private T GetPluginFromAssembly<T>(string pluginName) where T : class, IPluginData
     {
         var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
         var plugin = loaderService.TryGetPlugin<T>(assembly, pluginName);
@@ -26,7 +26,7 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
 
     public void StartPlugin(string pluginName)
     {
-        var plugin = GetPluginFromAssembly<IPlugin>(pluginName);
+        var plugin = GetPluginFromAssembly<IPluginData>(pluginName);
         pluginExecutor.Execute(plugin);
     }
 

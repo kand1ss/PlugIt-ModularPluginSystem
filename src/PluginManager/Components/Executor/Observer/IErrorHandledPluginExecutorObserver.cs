@@ -4,5 +4,5 @@ namespace ModularPluginAPI.Components.Observer;
 
 public interface IErrorHandledPluginExecutorObserver
 {
-    void OnPluginFaulted(PluginInfo plugin, Exception exception);
+    void OnPluginFaulted(PluginStatus plugin, Exception exception);
 }

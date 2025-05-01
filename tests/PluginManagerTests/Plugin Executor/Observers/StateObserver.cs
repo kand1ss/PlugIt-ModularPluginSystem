@@ -7,6 +7,6 @@ public class StateObserver : IPluginExecutorObserver
 {
     public List<PluginState> ReceivedStates = new();
 
-    public void OnPluginStateChanged(PluginInfo plugin)
-        => ReceivedStates.Add(plugin.State);
+    public void OnPluginStatusChanged(PluginStatus plugin)
+        => ReceivedStates.Add(plugin.CurrentState);
 }

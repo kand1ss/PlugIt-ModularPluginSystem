@@ -23,7 +23,7 @@ public class PluginErrorRegistry : IPluginErrorRegistry, IErrorHandledPluginExec
     public void RemoveObserver(IPluginErrorRegistryObserver observer)
         => _observers.Remove(observer);
     
-    public void OnPluginFaulted(PluginInfo plugin, Exception exception)
+    public void OnPluginFaulted(PluginStatus plugin, Exception exception)
     {
         var errorData = ErrorDataMapper.Map(plugin, exception);
         AddError(errorData);

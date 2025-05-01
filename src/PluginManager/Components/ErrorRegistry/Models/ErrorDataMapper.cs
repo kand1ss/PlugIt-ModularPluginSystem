@@ -4,14 +4,15 @@ namespace ModularPluginAPI.Components.ErrorRegistry.Models;
 
 public static class ErrorDataMapper
 {
-    public static ErrorData Map(PluginInfo pluginInfo, Exception exception)
+    public static ErrorData Map(PluginStatus pluginStatus, Exception exception)
         => new()
         {
-            PluginName = pluginInfo.Name,
-            PluginVersion = pluginInfo.Version,
-            StateBeforeError = pluginInfo.State,
+            PluginName = pluginStatus.Name,
+            PluginVersion = pluginStatus.Version.ToString(),
+            StateBeforeError = pluginStatus.CurrentState,
+            ModeBeforeError = pluginStatus.CurrentMode,
             ExceptionType = exception.GetType(),
             ErrorMessage = exception.Message,
-            ErrorStackTrace = exception.StackTrace ?? "",
+            ErrorStackTrace = exception.StackTrace ?? ""
         };
 }

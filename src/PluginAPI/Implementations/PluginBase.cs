@@ -3,7 +3,7 @@ namespace PluginAPI;
 
 public abstract class PluginBase : IPluginWithDependencies
 {
-    public Dictionary<string, IPlugin> LoadedDependencies { get; } = new();
+    public Dictionary<string, IPluginData> LoadedDependencies { get; } = new();
     
     public abstract string Name { get; }
     public abstract Version Version { get; }
@@ -14,16 +14,16 @@ public abstract class PluginBase : IPluginWithDependencies
     public void LoadConfiguration(PluginConfiguration? configuration)
         => Configuration = configuration;
     
-    public void LoadDependency(IPlugin plugin)
+    public void LoadDependency(IPluginData plugin)
         => LoadedDependencies.Add(plugin.Name, plugin);
-    public void LoadDependencies(IEnumerable<IPlugin> plugins)
+    public void LoadDependencies(IEnumerable<IPluginData> plugins)
     {
         foreach(var plugin in plugins)
             LoadDependency(plugin);
     }
-    public T GetDependencyPlugin<T>(string pluginName) where T : IPlugin
+    public T GetDependencyPlugin<T>(string pluginName) where T : IPluginData
     {
-        if(LoadedDependencies.TryGetValue(pluginName, out IPlugin? plugin))
+        if(LoadedDependencies.TryGetValue(pluginName, out IPluginData? plugin))
         {
             if (plugin is T typedPlugin)
                 return typedPlugin;

@@ -1,6 +1,6 @@
 namespace PluginAPI;
 
-public interface IExecutablePlugin : IPlugin
+public interface IExecutablePlugin : IPluginData
 {
     void Execute();
 }

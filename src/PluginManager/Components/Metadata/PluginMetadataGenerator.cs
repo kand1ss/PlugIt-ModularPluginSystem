@@ -5,7 +5,7 @@ namespace ModularPluginAPI.Components;
 
 public static class PluginMetadataGenerator
 {
-    public static PluginMetadata Generate(IPlugin plugin)
+    public static PluginMetadata Generate(IPluginData plugin)
     {
         PluginConfiguration? configuration = null;
         if (plugin is IConfigurablePlugin configurable)
@@ -23,6 +23,6 @@ public static class PluginMetadataGenerator
         return metadata;
     }
     
-    public static IEnumerable<PluginMetadata> Generate(IEnumerable<IPlugin> plugins)
+    public static IEnumerable<PluginMetadata> Generate(IEnumerable<IPluginData> plugins)
         => plugins.Select(Generate);
 }

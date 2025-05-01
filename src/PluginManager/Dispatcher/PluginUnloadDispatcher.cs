@@ -12,7 +12,7 @@ public class PluginUnloadDispatcher(IPluginMetadataService metadataService, IAss
         var pluginNames = metadataService.GetPluginNamesFromMetadata(metadata);
         
         loader.UnloadAssembly(assemblyPath);
-        tracker.SetPluginsState(pluginNames, PluginState.Unloaded);
+        tracker.SetPluginsStatus(pluginNames, PluginState.Unloaded, PluginMode.Idle);
     }
     
     public void UnloadAssemblyByPluginName(string pluginName)

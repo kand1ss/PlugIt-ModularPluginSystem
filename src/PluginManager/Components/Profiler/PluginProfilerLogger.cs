@@ -17,7 +17,7 @@ public class PluginProfilerLogger
 
     private string ConstructMessage(ProfiledData data)
     {
-        var message = $"({data.Created}) [{data.PluginName}]";
+        var message = $"({data.Created}) -> [{data.PluginName}] Mode: {data.PluginMode} |";
         
         if(data.ItWasExecuted)
             message += $" Running time: {data.ExecutingTimeMs}ms |";

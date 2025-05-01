@@ -46,27 +46,15 @@ public class PluginLoggingFacade(ILoggerService logger)
         logger.Log(LogSender.Plugin, LogType.INFO, 
             $"Executing extension plugin '{pluginName} v{pluginVersion}'.");
     }
-    public void NetworkPluginExecuting(string pluginName, Version pluginVersion, bool isSendMode)
+    public void NetworkPluginExecuting(string pluginName, Version pluginVersion, PluginMode mode)
     {
-        string message = $"Executing network plugin '{pluginName} v{pluginVersion}' | Mode: ";
-
-        if (isSendMode)
-            message += "Send.";
-        else
-            message += "Receive.";
-        
+        string message = $"Executing network plugin '{pluginName} v{pluginVersion}' | Mode: {mode}.";
         logger.Log(LogSender.Plugin, LogType.INFO, message);
     }
 
-    public void FilePluginExecuting(string pluginName, Version pluginVersion, bool isWriteMode)
+    public void FilePluginExecuting(string pluginName, Version pluginVersion, PluginMode mode)
     {
-        string message = $"Executing file plugin '{pluginName} v{pluginVersion}' | Mode: ";
-
-        if (isWriteMode)
-            message += "Write.";
-        else
-            message += "Read.";
-        
+        string message = $"Executing file plugin '{pluginName} v{pluginVersion}' | Mode: {mode}.";
         logger.Log(LogSender.Plugin, LogType.INFO, message);
     }
     

@@ -4,6 +4,6 @@ namespace ModularPluginAPI.Components;
 
 public interface IDependencyResolverService
 {
-    void Resolve(IPlugin plugin);
-    IEnumerable<IPlugin> ResolveWithResult(IPlugin plugin);
+    void Resolve(IPluginData plugin);
+    IEnumerable<IPluginData> ResolveWithResult(IPluginData plugin);
 }

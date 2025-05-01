@@ -7,6 +7,6 @@ public class ExceptionObserver : IErrorHandledPluginExecutorObserver
 {
     public List<string> AddedErrors = new();
     
-    public void OnPluginFaulted(PluginInfo plugin, Exception exception)
+    public void OnPluginFaulted(PluginStatus plugin, Exception exception)
         => AddedErrors.Add(plugin.Name);
 }

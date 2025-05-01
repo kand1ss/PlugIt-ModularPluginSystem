@@ -12,14 +12,14 @@ public class ErrorHandlingPluginExecutor(IPluginExecutor pluginExecutor, IPlugin
 {
     private readonly List<IErrorHandledPluginExecutorObserver> _errorObservers = new();
     
-    private void NotifyObservers(IPlugin plugin, Exception exception)
+    private void NotifyObservers(IPluginData plugin, Exception exception)
     {
         var metadata = PluginMetadataGenerator.Generate(plugin);
-        var pluginInfo = PluginInfoMapper.Map(metadata);
+        var pluginInfo = PluginStatusMapper.Map(metadata);
         
         var pluginStateFromTracker = pluginTracker.GetPluginStatus(plugin.Name);
         if(pluginStateFromTracker is not null)
-            pluginInfo.State = pluginStateFromTracker.State;
+            pluginInfo.CurrentState = pluginStateFromTracker.CurrentState;
         
         foreach(var observer in _errorObservers)
             observer.OnPluginFaulted(pluginInfo, exception);
@@ -29,7 +29,7 @@ public class ErrorHandlingPluginExecutor(IPluginExecutor pluginExecutor, IPlugin
     public void RemoveObserver(IErrorHandledPluginExecutorObserver observer)
         => _errorObservers.Remove(observer);
 
-    public void Execute(IPlugin plugin)
+    public void Execute(IPluginData plugin)
     {
         try
         {

@@ -18,7 +18,7 @@ public class PluginLoaderService(PluginMetadataService metadataService, IAssembl
         return loader.LoadAssembly(metadata.Path);
     }
 
-    public T TryGetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin
+    public T TryGetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPluginData
         => handler.GetPlugin<T>(assembly, pluginName)
            ?? throw new PluginNotFoundException(pluginName);
 }

@@ -1,7 +1,7 @@
 
 namespace PluginAPI;
 
-public interface IPlugin
+public interface IPluginData
 {
     string Name { get; }
     Version Version { get; }

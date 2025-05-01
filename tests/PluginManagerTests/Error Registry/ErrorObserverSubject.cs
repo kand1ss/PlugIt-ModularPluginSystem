@@ -17,13 +17,13 @@ public class ErrorObserverSubject : IObservableErrorHandledPluginExecutor
         => _observers.Remove(observer);
 
 
-    public void AddError(IPlugin plugin)
+    public void AddError(IPluginData plugin)
         => AddError(plugin, new Exception());
 
-    public void AddError(IPlugin plugin, Exception exception)
+    public void AddError(IPluginData plugin, Exception exception)
     {
         var metadata = PluginMetadataGenerator.Generate(plugin);
-        var pluginInfo = PluginInfoMapper.Map(metadata);
+        var pluginInfo = PluginStatusMapper.Map(metadata);
         
         foreach(var observer in _observers)
             observer.OnPluginFaulted(pluginInfo, exception);

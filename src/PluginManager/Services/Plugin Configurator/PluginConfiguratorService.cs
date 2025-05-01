@@ -7,7 +7,7 @@ namespace ModularPluginAPI.Components.Plugin_Configurator;
 public class PluginConfiguratorService(IDependencyResolverService dependencyResolver, IInjectorService injectorService) 
     : IPluginConfiguratorService
 {
-    public void Configure(IPlugin plugin)
+    public void Configure(IPluginData plugin)
     {
         var resolvedPlugins = dependencyResolver.ResolveWithResult(plugin);
         injectorService.Inject(plugin);

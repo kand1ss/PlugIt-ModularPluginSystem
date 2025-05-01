@@ -25,7 +25,7 @@ class Program
         manager.ExportProfilerLogs(new FileLogExporter(@"C:\Users\kand1s\Desktop\Logs", "ProfilerLog_1"));
         
         foreach(var info in manager.Tracker.GetPluginsStatus())
-            Console.WriteLine($"{info.Name} : {info.Author} - {info.Version} = {info.State}");
+            Console.WriteLine($"{info.Name} : {info.Author} - {info.Version} = {info.CurrentState}");
         
         Console.WriteLine();
         

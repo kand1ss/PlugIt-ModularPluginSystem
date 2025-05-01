@@ -9,7 +9,7 @@ public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker,
     IErrorHandledPluginExecutorObserver, IMetadataRepositoryObserver, IPluginExecutorObserver
 {
     private readonly List<IPluginTrackerObserver> _observers = new();
-    private readonly Dictionary<string, PluginInfo> _plugins = new();
+    private readonly Dictionary<string, PluginStatus> _plugins = new();
     
     private void NotifyObservers(Action<IPluginTrackerObserver> action)
     {
@@ -41,16 +41,16 @@ public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker,
         RemovePlugins(pluginNames);
     }
 
-    public void OnPluginStateChanged(PluginInfo plugin)
-        => SetPluginState(plugin.Name, plugin.State);
-    public void OnPluginFaulted(PluginInfo plugin, Exception exception)
-        => SetPluginState(plugin.Name, PluginState.Faulted);
+    public void OnPluginStatusChanged(PluginStatus plugin)
+        => SetPluginStatus(plugin.Name, plugin.CurrentState, plugin.CurrentMode);
+    public void OnPluginFaulted(PluginStatus plugin, Exception exception)
+        => SetPluginStatus(plugin.Name, PluginState.Faulted, plugin.CurrentMode);
 
     
     
     public void RegisterPlugin(PluginMetadata plugin)
     {
-        var pluginInfo = PluginInfoMapper.Map(plugin);
+        var pluginInfo = PluginStatusMapper.Map(plugin);
         if(_plugins.TryAdd(plugin.Name, pluginInfo))
             NotifyObservers(o => o.OnPluginRegistered(pluginInfo));
     }
@@ -78,23 +78,24 @@ public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker,
     public void Clear() => _plugins.Clear();
 
 
-    public void SetPluginState(string pluginName, PluginState state)
+    public void SetPluginStatus(string pluginName, PluginState state, PluginMode mode)
     {
-        if (_plugins.TryGetValue(pluginName, out var info) && info.State != state)
+        if (_plugins.TryGetValue(pluginName, out var info) && info.CurrentState != state)
         {
-            info.State = state;
-            NotifyObservers(o => o.OnPluginStateChanged(info));
+            info.CurrentState = state;
+            info.CurrentMode = mode;
+            NotifyObservers(o => o.OnPluginStatusChanged(info));
             logger.PluginStateChanged(pluginName, state);
         }
     }
 
-    public void SetPluginsState(IEnumerable<string> pluginNames, PluginState state)
-        => pluginNames.ToList().ForEach(n => SetPluginState(n, state));
+    public void SetPluginsStatus(IEnumerable<string> pluginNames, PluginState state, PluginMode mode)
+        => pluginNames.ToList().ForEach(n => SetPluginStatus(n, state, mode));
 
 
-    public IEnumerable<PluginInfo> GetPluginsStatus()
+    public IEnumerable<PluginStatus> GetPluginsStatus()
         => _plugins.Values;
 
-    public PluginInfo GetPluginStatus(string plugin)
+    public PluginStatus GetPluginStatus(string plugin)
         => _plugins[plugin];
 }

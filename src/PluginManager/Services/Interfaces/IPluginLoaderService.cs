@@ -7,5 +7,5 @@ public interface IPluginLoaderService
 {
     Assembly LoadAssembly(string assemblyName);
     Assembly LoadAssemblyByPluginName(string pluginName);
-    T TryGetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin;
+    T TryGetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPluginData;
 }

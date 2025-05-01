@@ -3,8 +3,8 @@ namespace PluginAPI;
 
 public interface IPluginWithDependencies : IConfigurablePlugin
 {
-    Dictionary<string, IPlugin> LoadedDependencies { get; }
-    void LoadDependency(IPlugin plugin);
-    void LoadDependencies(IEnumerable<IPlugin> plugins);
-    T GetDependencyPlugin<T>(string pluginName) where T : IPlugin;
+    Dictionary<string, IPluginData> LoadedDependencies { get; }
+    void LoadDependency(IPluginData plugin);
+    void LoadDependencies(IEnumerable<IPluginData> plugins);
+    T GetDependencyPlugin<T>(string pluginName) where T : IPluginData;
 }

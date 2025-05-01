@@ -7,14 +7,14 @@ namespace ModularPluginAPI.Components;
 
 public class AssemblyHandler : IAssemblyHandler
 {
-    private static bool ValidateType<T>(Type type) where T : class, IPlugin
+    private static bool ValidateType<T>(Type type) where T : class, IPluginData
         => type.IsClass 
                && !type.IsAbstract 
                && !type.IsGenericType 
                && typeof(T).IsAssignableFrom(type) 
                && type.GetConstructor(Type.EmptyTypes) is not null;
 
-    private static T? CreateInstance<T>(Type type) where T : class, IPlugin
+    private static T? CreateInstance<T>(Type type) where T : class, IPluginData
     {
         try
         {
@@ -26,9 +26,9 @@ public class AssemblyHandler : IAssemblyHandler
         }
     }
 
-    private static T? HandleType<T>(Type type) where T : class, IPlugin
+    private static T? HandleType<T>(Type type) where T : class, IPluginData
         => ValidateType<T>(type) ? CreateInstance<T>(type) : null;
-    private static IEnumerable<T> HandleTypes<T>(IEnumerable<Type> types) where T : class, IPlugin
+    private static IEnumerable<T> HandleTypes<T>(IEnumerable<Type> types) where T : class, IPluginData
         => types.Select(HandleType<T>).OfType<T>();
 
 
@@ -43,11 +43,11 @@ public class AssemblyHandler : IAssemblyHandler
         return assembly.GetManifestResourceStream(configFileName);
     }
 
-    private static T FindPlugin<T>(IEnumerable<T> plugins, string pluginName) where T : class, IPlugin
+    private static T FindPlugin<T>(IEnumerable<T> plugins, string pluginName) where T : class, IPluginData
         => plugins.FirstOrDefault(p => p.Name == pluginName)
             ?? throw new PluginNotFoundException(pluginName);
 
-    private static Stream? TryGetPluginConfiguration<T>(Assembly assembly, T plugin) where T : class, IPlugin
+    private static Stream? TryGetPluginConfiguration<T>(Assembly assembly, T plugin) where T : class, IPluginData
     {
         var allConfigurations = assembly.GetManifestResourceNames();
         var pluginName = plugin.GetType().FullName ?? "null";
@@ -56,7 +56,7 @@ public class AssemblyHandler : IAssemblyHandler
         return GetConfiguration(assembly, configName);
     }
 
-    private static void TryLoadPluginConfiguration<T>(Stream? configurationStream, T plugin) where T : class, IPlugin
+    private static void TryLoadPluginConfiguration<T>(Stream? configurationStream, T plugin) where T : class, IPluginData
     {
         if (configurationStream is null || plugin is not IConfigurablePlugin configurable) 
             return;
@@ -76,19 +76,19 @@ public class AssemblyHandler : IAssemblyHandler
     }
 
 
-    private IEnumerable<T> GetPlugins<T>(Assembly assembly) where T : class, IPlugin
+    private IEnumerable<T> GetPlugins<T>(Assembly assembly) where T : class, IPluginData
     {
         var assemblyTypes = assembly.DefinedTypes;
         return HandleTypes<T>(assemblyTypes);
     }
 
-    private void GetAndLoadPluginConfiguration(Assembly assembly, IPlugin plugin)
+    private void GetAndLoadPluginConfiguration(Assembly assembly, IPluginData plugin)
     {
         var pluginConfiguration = TryGetPluginConfiguration(assembly, plugin);
         TryLoadPluginConfiguration(pluginConfiguration, plugin);
     }
 
-    public T GetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPlugin
+    public T GetPlugin<T>(Assembly assembly, string pluginName) where T : class, IPluginData
     {
         var pluginsFromAssembly = GetPlugins<T>(assembly);
         var plugin = FindPlugin(pluginsFromAssembly, pluginName);
@@ -97,9 +97,9 @@ public class AssemblyHandler : IAssemblyHandler
         return plugin;
     }
 
-    public IEnumerable<IPlugin> GetAllPlugins(Assembly assembly)
+    public IEnumerable<IPluginData> GetAllPlugins(Assembly assembly)
     {
-        var plugins = GetPlugins<IPlugin>(assembly).ToList();
+        var plugins = GetPlugins<IPluginData>(assembly).ToList();
         foreach (var plugin in plugins)
             GetAndLoadPluginConfiguration(assembly, plugin);
         

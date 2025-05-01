@@ -16,7 +16,7 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler,
     public void ExportProfilerLogs(ILogExporter exporter)
         => _logger.Export(exporter);
 
-    private void CompleteDataAndCreateLog(PluginInfo plugin)
+    private void CompleteDataAndCreateLog(PluginStatus plugin)
     {
         if (!_profiledData.TryGetValue(plugin.Name, out var data))
             return;
@@ -25,18 +25,18 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler,
         _profiledData.Remove(plugin.Name);
     }
     
-    public void OnPluginFaulted(PluginInfo plugin, Exception exception)
+    public void OnPluginFaulted(PluginStatus plugin, Exception exception)
     {
         SetValueFromTimer(plugin);
         CompleteDataAndCreateLog(plugin);
     }
 
-    public void OnPluginStateChanged(PluginInfo plugin)
+    public void OnPluginStatusChanged(PluginStatus plugin)
     {
         CheckProfiledDataExists(plugin);
         SetValueFromTimer(plugin);
 
-        if (plugin.State == PluginState.Completed)
+        if (plugin.CurrentState == PluginState.Completed)
         {
             CompleteDataAndCreateLog(plugin);
             return;
@@ -45,26 +45,30 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler,
         CreateNewTimer(plugin);
     }
 
-    private void CheckProfiledDataExists(PluginInfo plugin)
+    private void CheckProfiledDataExists(PluginStatus plugin)
     {
         if (!_profiledData.ContainsKey(plugin.Name))
-            _profiledData[plugin.Name] = new ProfiledData { PluginName = plugin.Name };
+            _profiledData[plugin.Name] = new ProfiledData
+            {
+                PluginName = plugin.Name,
+                PluginMode = plugin.CurrentMode
+            };
     }
 
-    private void SetValueFromTimer(PluginInfo plugin)
+    private void SetValueFromTimer(PluginStatus plugin)
     {
         SetExecutingTime(plugin);
         _timers.Remove(plugin.Name);
     }
 
-    private void CreateNewTimer(PluginInfo plugin)
+    private void CreateNewTimer(PluginStatus plugin)
     {
         var newTimer = new Stopwatch();
         _timers.Add(plugin.Name, newTimer);
         newTimer.Start();
     }
 
-    private void SetExecutingTime(PluginInfo plugin)
+    private void SetExecutingTime(PluginStatus plugin)
     {
         if (!_timers.TryGetValue(plugin.Name, out var timer))
             return;

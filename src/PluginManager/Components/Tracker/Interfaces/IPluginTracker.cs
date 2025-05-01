@@ -11,6 +11,6 @@ public interface IPluginTracker : IPluginTrackerPublic
     void Clear();
 
     
-    void SetPluginState(string pluginName, PluginState state);
-    void SetPluginsState(IEnumerable<string> pluginNames, PluginState state);
+    void SetPluginStatus(string pluginName, PluginState state, PluginMode mode);
+    void SetPluginsStatus(IEnumerable<string> pluginNames, PluginState state, PluginMode mode);
 }

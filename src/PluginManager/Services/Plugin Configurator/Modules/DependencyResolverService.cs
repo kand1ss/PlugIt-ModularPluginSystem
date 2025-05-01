@@ -12,11 +12,11 @@ public class DependencyResolverService(IPluginLoaderService loader, IPluginMetad
 {
     private readonly HashSet<string> _loadingPlugins = new();
 
-    private void TryGetDependency(string pluginName, List<IPlugin> loadedDependencies)
+    private void TryGetDependency(string pluginName, List<IPluginData> loadedDependencies)
     {
         var metadata = metadataService.GetMetadataByPluginName(pluginName);
         var assembly = loader.LoadAssemblyByPluginName(pluginName);
-        var plugin = loader.TryGetPlugin<IPlugin>(assembly, pluginName);
+        var plugin = loader.TryGetPlugin<IPluginData>(assembly, pluginName);
         
         loadedDependencies.Add(plugin);
         logger.DependencyLoaded(plugin.Name, plugin.Version, metadata.Name, metadata.Version);
@@ -28,10 +28,10 @@ public class DependencyResolverService(IPluginLoaderService loader, IPluginMetad
     private static bool CheckDependencyIsValid(PluginMetadata? pluginFromList, Version pluginVersion)
         => pluginFromList is not null && pluginFromList.Version >= pluginVersion;
 
-    private List<IPlugin> FindDependencies(IEnumerable<DependencyInfo> requiredDependencies)
+    private List<IPluginData> FindDependencies(IEnumerable<DependencyInfo> requiredDependencies)
     {
         var allPlugins = metadataService.GetAllPluginsMetadata();
-        var loadedDependencies = new List<IPlugin>();
+        var loadedDependencies = new List<IPluginData>();
         
         foreach (var dependency in requiredDependencies)
         {
@@ -47,7 +47,7 @@ public class DependencyResolverService(IPluginLoaderService loader, IPluginMetad
         return loadedDependencies;
     }
 
-    private void CheckCyclicDependency(IPlugin plugin)
+    private void CheckCyclicDependency(IPluginData plugin)
     {
         if (!_loadingPlugins.Add(plugin.Name))
         {
@@ -57,10 +57,10 @@ public class DependencyResolverService(IPluginLoaderService loader, IPluginMetad
         }
     }
 
-    public void Resolve(IPlugin plugin)
+    public void Resolve(IPluginData plugin)
         => ResolveWithResult(plugin);
 
-    public IEnumerable<IPlugin> ResolveWithResult(IPlugin plugin)
+    public IEnumerable<IPluginData> ResolveWithResult(IPluginData plugin)
     {
         if (plugin is not IPluginWithDependencies configurable || configurable.Configuration is null)
             return [];
@@ -68,7 +68,7 @@ public class DependencyResolverService(IPluginLoaderService loader, IPluginMetad
         CheckCyclicDependency(plugin);
         var dependencies = configurable.Configuration.Dependencies;
         var loadedDependencies = FindDependencies(dependencies);
-        var totalLoadedDependencies = new List<IPlugin>(loadedDependencies);
+        var totalLoadedDependencies = new List<IPluginData>(loadedDependencies);
         
         foreach (var dependency in loadedDependencies)
         {
