@@ -19,12 +19,8 @@ public class PluginProfilerLogger
     {
         var message = $"({data.Created}) [{data.PluginName}]";
         
-        if(data.ItWasInitialized)
-            message += $" Initializing time: {data.InitializingTimeMs}ms |";
         if(data.ItWasExecuted)
-            message += $" Executing time: {data.ExecutingTimeMs}ms |";
-        if(data.ItWasFinalized)
-            message += $" Finalizing time: {data.FinalizingTimeMs}ms |";
+            message += $" Running time: {data.ExecutingTimeMs}ms |";
 
         return message.TrimEnd('|');
     }

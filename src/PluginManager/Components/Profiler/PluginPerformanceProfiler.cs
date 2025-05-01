@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger.Interfaces;
 using ModularPluginAPI.Components.Observer;
@@ -8,14 +9,14 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler,
     IPluginExecutorObserver, IErrorHandledPluginExecutorObserver
 {
     private readonly Dictionary<string, ProfiledData> _profiledData = new();
-    private readonly Dictionary<string, PluginStateDurationTimer> _timers = new();
+    private readonly Dictionary<string, Stopwatch> _timers = new();
 
     private readonly PluginProfilerLogger _logger = new();
 
     public void ExportProfilerLogs(ILogExporter exporter)
         => _logger.Export(exporter);
 
-    private void CreateLog(PluginInfo plugin)
+    private void CompleteDataAndCreateLog(PluginInfo plugin)
     {
         if (!_profiledData.TryGetValue(plugin.Name, out var data))
             return;
@@ -27,7 +28,7 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler,
     public void OnPluginFaulted(PluginInfo plugin, Exception exception)
     {
         SetValueFromTimer(plugin);
-        CreateLog(plugin);
+        CompleteDataAndCreateLog(plugin);
     }
 
     public void OnPluginStateChanged(PluginInfo plugin)
@@ -35,8 +36,11 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler,
         CheckProfiledDataExists(plugin);
         SetValueFromTimer(plugin);
 
-        if (CheckPluginIsCompleted(plugin)) 
+        if (plugin.State == PluginState.Completed)
+        {
+            CompleteDataAndCreateLog(plugin);
             return;
+        }
         
         CreateNewTimer(plugin);
     }
@@ -49,59 +53,24 @@ public class PluginPerformanceProfiler : IPluginPerformanceProfiler,
 
     private void SetValueFromTimer(PluginInfo plugin)
     {
-        if (_timers.TryGetValue(plugin.Name, out var timer))
-        {
-            timer.StopTimer();
-            TrySetInitializingTime(plugin, timer);
-            TrySetExecutingTime(plugin, timer);
-            TrySetFinalizingTime(plugin, timer);
-            _timers.Remove(plugin.Name);
-        }
-    }
-
-    private bool CheckPluginIsCompleted(PluginInfo plugin)
-    {
-        if (plugin.State == PluginState.Completed)
-        {
-            CreateLog(plugin);
-            return true;
-        }
-
-        return false;
+        SetExecutingTime(plugin);
+        _timers.Remove(plugin.Name);
     }
 
     private void CreateNewTimer(PluginInfo plugin)
     {
-        var newTimer = new PluginStateDurationTimer();
-        newTimer.PluginState = plugin.State;
+        var newTimer = new Stopwatch();
         _timers.Add(plugin.Name, newTimer);
-        newTimer.StartTimer();
+        newTimer.Start();
     }
 
-    private void TrySetInitializingTime(PluginInfo plugin, PluginStateDurationTimer timer)
+    private void SetExecutingTime(PluginInfo plugin)
     {
-        if (timer.PluginState == PluginState.Initializing)
-        {
-            _profiledData[plugin.Name].ItWasInitialized = true;
-            _profiledData[plugin.Name].InitializingTimeMs = timer.GetDuration();
-        }
-    }
-
-    private void TrySetExecutingTime(PluginInfo plugin, PluginStateDurationTimer timer)
-    {
-        if (timer.PluginState == PluginState.Running)
-        {
-            _profiledData[plugin.Name].ItWasExecuted = true;
-            _profiledData[plugin.Name].ExecutingTimeMs = timer.GetDuration();
-        }
-    }
-
-    private void TrySetFinalizingTime(PluginInfo plugin, PluginStateDurationTimer timer)
-    {
-        if (timer.PluginState == PluginState.Finalizing)
-        {
-            _profiledData[plugin.Name].ItWasFinalized = true;
-            _profiledData[plugin.Name].FinalizingTimeMs = timer.GetDuration();
-        }
+        if (!_timers.TryGetValue(plugin.Name, out var timer))
+            return;
+        
+        timer.Stop();
+        _profiledData[plugin.Name].ItWasExecuted = true;
+        _profiledData[plugin.Name].ExecutingTimeMs = timer.ElapsedMilliseconds;
     }
 }

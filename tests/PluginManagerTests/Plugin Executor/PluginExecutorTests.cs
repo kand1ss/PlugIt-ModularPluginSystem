@@ -27,15 +27,10 @@ public class PluginExecutorTests
         var plugin = new TestFullPlugin();
         _pluginExecutor.Execute(plugin);
         
-        Assert.True(plugin.IsInitialized);
         Assert.True(plugin.IsExecuted);
-        Assert.True(plugin.IsFinalized);
-        
         Assert.Equal(new[]
         {
-            PluginState.Initializing,
             PluginState.Running,
-            PluginState.Finalizing,
             PluginState.Completed
         }, _executorObserver.ReceivedStates);
     }
@@ -47,15 +42,10 @@ public class PluginExecutorTests
         var data = "data";
         _pluginExecutor.ExecuteExtensionPlugin(ref data, plugin);
         
-        Assert.True(plugin.IsInitialized);
         Assert.True(plugin.IsExecuted);
-        Assert.True(plugin.IsFinalized);
-        
         Assert.Equal(new[]
         {
-            PluginState.Initializing,
             PluginState.Running,
-            PluginState.Finalizing,
             PluginState.Completed
         }, _executorObserver.ReceivedStates);
     }
