@@ -8,6 +8,7 @@ using ModularPluginAPI.Components.Lifecycle;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Logger.Components;
 using ModularPluginAPI.Components.Logger.Interfaces;
+using ModularPluginAPI.Components.Modules;
 using ModularPluginAPI.Components.Plugin_Configurator;
 using ModularPluginAPI.Components.Plugin_Configurator.Interfaces;
 using ModularPluginAPI.Components.Profiler;
@@ -78,7 +79,9 @@ public class PluginManager
 
         var securitySettingsProvider = new SecuritySettingsProvider();
         var permissionSecurity = new PluginPermissionSecurityService(securitySettingsProvider);
-        var assemblySecurity = new AssemblySecurityService(securitySettingsProvider);
+
+        var assemblyAnalyzer = new AssemblyAnalyzer(securitySettingsProvider);
+        var assemblySecurity = new AssemblySecurityService(assemblyAnalyzer);
         var securityService = new SecurityService(securitySettingsProvider, assemblySecurity, permissionSecurity, 
             assemblyLoader, assemblyHandler, loggerFacade);
         

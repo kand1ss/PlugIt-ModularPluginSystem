@@ -1,24 +1,25 @@
 using ModularPluginAPI.Components;
-using PluginManagerTests.Base;
+using ModularPluginAPI.Components.Modules;
+using Mono.Cecil;
 using Xunit;
 
 namespace PluginManagerTests;
 
-public class AssemblySecurityServiceTests : TestWhichUsingTestAssembly
+public class AssemblyAnalyzerTests
 {
-    private readonly AssemblySecurityService _service;
+    private readonly AssemblyAnalyzer _analyzer;
     private readonly SecuritySettingsProvider _settingsProvider = new();
     private SecuritySettings _settings => _settingsProvider.Settings;
 
     private readonly string _unsafeAssemblyPath;
     private readonly string _safeAssemblyPath;
 
-    public AssemblySecurityServiceTests()
+    public AssemblyAnalyzerTests()
     {
         _unsafeAssemblyPath = GetUnsafeAssemblyPath();
         _safeAssemblyPath = GetSafeAssemblyPath();
 
-        _service = new AssemblySecurityService(_settingsProvider);
+        _analyzer = new AssemblyAnalyzer(_settingsProvider);
     }
 
     private string GetSolutionDirectory()
@@ -56,28 +57,34 @@ public class AssemblySecurityServiceTests : TestWhichUsingTestAssembly
     }
 
     [Fact]
-    public void CheckSafety_UnsafeAssembly_ReturnsFalse()
+    public void Analyze_UnsafeAssembly_ReturnsFalse()
     {
-        Assert.False(_service.CheckSafety(_unsafeAssemblyPath));
+        var assembly = AssemblyDefinition.ReadAssembly(_unsafeAssemblyPath);
+        Assert.False(_analyzer.Analyze(assembly));
     }
 
     [Fact]
-    public void CheckSafety_SafeAssembly_ReturnsTrue()
+    public void Analyze_SafeAssembly_ReturnsTrue()
     {
-        Assert.True(_service.CheckSafety(_safeAssemblyPath));
+        var assembly = AssemblyDefinition.ReadAssembly(_safeAssemblyPath);
+        Assert.True(_analyzer.Analyze(assembly));
     }
 
     [Fact]
-    public void CheckSafety_SafeAssemblyNowUnsafe_ReturnsFalse()
+    public void Analyze_SafeAssemblyNowUnsafe_ReturnsFalse()
     {
         _settings.AddBlockedNamespace("System");
-        Assert.False(_service.CheckSafety(_safeAssemblyPath));
+        var assembly = AssemblyDefinition.ReadAssembly(_safeAssemblyPath);
+        
+        Assert.False(_analyzer.Analyze(assembly));
     }
 
     [Fact]
-    public void CheckSafety_UnsafeAssemblyNowSafe_ReturnsTrue()
+    public void Analyze_UnsafeAssemblyNowSafe_ReturnsTrue()
     {
         _settings.RemoveBlockedNamespace("System.IO");
-        Assert.True(_service.CheckSafety(_unsafeAssemblyPath));
+        var assembly = AssemblyDefinition.ReadAssembly(_unsafeAssemblyPath);
+        
+        Assert.True(_analyzer.Analyze(assembly));
     }
 }
