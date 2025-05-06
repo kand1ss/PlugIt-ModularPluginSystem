@@ -9,7 +9,7 @@ namespace ModularPluginAPI.Components;
 public class PluginStartDispatcher(IPluginMetadataService metadataService, IPluginLoaderService loaderService, 
     IPluginExecutor pluginExecutor, IPluginConfiguratorService configuratorService, PluginLoggingFacade logger)
 {
-    private T GetPluginFromAssembly<T>(string pluginName) where T : class, IPluginData
+    private T GetCompletePlugin<T>(string pluginName) where T : class, IPluginData
     {
         var assembly = loaderService.LoadAssemblyByPluginName(pluginName);
         var plugin = loaderService.TryGetPlugin<T>(assembly, pluginName);
@@ -26,7 +26,7 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
 
     public void StartPlugin(string pluginName)
     {
-        var plugin = GetPluginFromAssembly<IPluginData>(pluginName);
+        var plugin = GetCompletePlugin<IPluginData>(pluginName);
         pluginExecutor.Execute(plugin);
     }
 
@@ -39,9 +39,8 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
     public void StartAllPluginsFromAssembly(string assemblyPath)
     {
         var metadata = metadataService.GetMetadata(assemblyPath);
-        MetadataValidator.Validate(metadata);
-        
         var plugins = metadataService.GetPluginNamesFromMetadata(metadata);
+        
         StartPlugins(plugins);
     }
     
@@ -53,32 +52,32 @@ public class PluginStartDispatcher(IPluginMetadataService metadataService, IPlug
     
     public void StartExtensionPlugin<T>(ref T data, string pluginName)
     {
-        var plugin = GetPluginFromAssembly<IExtensionPlugin<T>>(pluginName);
+        var plugin = GetCompletePlugin<IExtensionPlugin<T>>(pluginName);
         pluginExecutor.ExecuteExtensionPlugin(ref data, plugin);
     }
     
     
     public async Task<byte[]> ReceiveNetworkPluginAsync(string pluginName)
     {
-        var plugin = GetPluginFromAssembly<INetworkPlugin>(pluginName);
+        var plugin = GetCompletePlugin<INetworkPlugin>(pluginName);
         return await pluginExecutor.ExecuteNetworkPluginReceiveAsync(plugin);
     }
     
     public async Task SendNetworkPluginAsync(string pluginName, byte[] data)
     {
-        var plugin = GetPluginFromAssembly<INetworkPlugin>(pluginName);
+        var plugin = GetCompletePlugin<INetworkPlugin>(pluginName);
         await pluginExecutor.ExecuteNetworkPluginSendAsync(data, plugin);
     }
 
     public async Task<byte[]> ReadFilePluginAsync(string pluginName)
     {
-        var plugin = GetPluginFromAssembly<IFilePlugin>(pluginName);
+        var plugin = GetCompletePlugin<IFilePlugin>(pluginName);
         return await pluginExecutor.ExecuteFilePluginReadAsync(plugin);
     }
 
     public async Task WriteFilePluginAsync(string pluginName, byte[] data)
     {
-        var plugin = GetPluginFromAssembly<IFilePlugin>(pluginName);
+        var plugin = GetCompletePlugin<IFilePlugin>(pluginName);
         await pluginExecutor.ExecuteFilePluginWriteAsync(data, plugin);
     }
 }

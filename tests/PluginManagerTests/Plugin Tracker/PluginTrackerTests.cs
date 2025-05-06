@@ -1,5 +1,6 @@
 using ModularPluginAPI.Components;
 using ModularPluginAPI.Components.Lifecycle;
+using ModularPluginAPI.Components.Lifecycle.Modules;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Models;
 using Moq;
@@ -21,7 +22,8 @@ public class PluginTrackerTests
         var logger = new PluginLoggingFacade(loggerMock.Object);
         
         _pluginTracker = new PluginTracker(logger);
-        _observer.AddObserver(_pluginTracker);
+        var pluginTrackerObserver = new PluginTrackerObserver(_pluginTracker);
+        _observer.AddObserver(pluginTrackerObserver);
 
         _testMetadata = new()
         {

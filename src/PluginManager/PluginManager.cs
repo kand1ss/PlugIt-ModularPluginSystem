@@ -5,6 +5,7 @@ using ModularPluginAPI.Components.ErrorRegistry;
 using ModularPluginAPI.Components.ErrorRegistry.Interfaces;
 using ModularPluginAPI.Components.Interfaces.Services;
 using ModularPluginAPI.Components.Lifecycle;
+using ModularPluginAPI.Components.Lifecycle.Modules;
 using ModularPluginAPI.Components.Logger;
 using ModularPluginAPI.Components.Logger.Components;
 using ModularPluginAPI.Components.Logger.Interfaces;
@@ -69,8 +70,9 @@ public class PluginManager
         var logRepository = new LogRepository();
         _logger = new PluginLoggerService(logRepository);
         var loggerFacade = new PluginLoggingFacade(_logger);
-        
+
         var pluginTracker = new PluginTracker(loggerFacade);
+        var pluginTrackerObserver = new PluginTrackerObserver(pluginTracker);
         _tracker = pluginTracker;
         
         var assemblyHandler = new AssemblyHandler();
@@ -86,12 +88,12 @@ public class PluginManager
             assemblyLoader, assemblyHandler, loggerFacade);
         
         Security = securityService;
-        repository.AddObserver(pluginTracker);
+        repository.AddObserver(pluginTrackerObserver);
         if (settings.EnableSecurity)
             repository.AddObserver(securityService);
         
         var pluginExecutor = new PluginExecutor(loggerFacade);
-        pluginExecutor.AddObserver(pluginTracker);
+        pluginExecutor.AddObserver(pluginTrackerObserver);
         
         var pluginProfiler = new PluginPerformanceProfiler();
         _profiler = pluginProfiler;
@@ -103,11 +105,12 @@ public class PluginManager
         var errorHandledPluginExecutor = new ErrorHandlingPluginExecutor(pluginExecutor, _tracker, loggerFacade);
         if (settings.EnableErrorRegistry)
             errorHandledPluginExecutor.AddObserver(errorRegistry);
-        errorHandledPluginExecutor.AddObserver(pluginTracker);
+        errorHandledPluginExecutor.AddObserver(pluginTrackerObserver);
         errorHandledPluginExecutor.AddObserver(pluginProfiler);
 
         var metadataService = new PluginMetadataService(repository);
         var loaderService = new PluginLoaderService(metadataService, assemblyLoader, assemblyHandler);
+        loaderService.AddObserver(pluginTrackerObserver);
         
         var dependencyResolver = new DependencyResolverService(loaderService, metadataService, loggerFacade);
         var injectorService = new InjectorService(securitySettingsProvider, loggerFacade);

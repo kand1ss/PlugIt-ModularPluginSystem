@@ -24,7 +24,7 @@ public class PluginDispatcher : IAssemblyWatcherObserver
         _assemblyWatcher = assemblyWatcher;
         
         Starter = new(metadataService, loaderService, pluginExecutor, configuratorService, logger);
-        Unloader = new(metadataService, loader, tracker);
+        Unloader = new(metadataService, loaderService);
     }
     
     

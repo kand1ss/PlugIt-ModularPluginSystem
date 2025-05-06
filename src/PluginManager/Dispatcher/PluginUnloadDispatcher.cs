@@ -1,19 +1,11 @@
 using ModularPluginAPI.Components.Interfaces.Services;
-using ModularPluginAPI.Components.Lifecycle;
 
 namespace ModularPluginAPI.Components;
 
-public class PluginUnloadDispatcher(IPluginMetadataService metadataService, IAssemblyLoader loader, 
-    IPluginTracker tracker)
+public class PluginUnloadDispatcher(IPluginMetadataService metadataService, IPluginLoaderService loader)
 {
     public void UnloadAssembly(string assemblyPath)
-    {
-        var metadata = metadataService.GetMetadata(assemblyPath);
-        var pluginNames = metadataService.GetPluginNamesFromMetadata(metadata);
-        
-        loader.UnloadAssembly(assemblyPath);
-        tracker.SetPluginsStatus(pluginNames, PluginState.Unloaded, PluginMode.Idle);
-    }
+        => loader.UnloadAssembly(assemblyPath);
     
     public void UnloadAssemblyByPluginName(string pluginName)
     {

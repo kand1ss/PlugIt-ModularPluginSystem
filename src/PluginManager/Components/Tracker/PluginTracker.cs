@@ -1,12 +1,10 @@
 using ModularPluginAPI.Components.Lifecycle.Observer;
 using ModularPluginAPI.Components.Logger;
-using ModularPluginAPI.Components.Observer;
 using ModularPluginAPI.Models;
 
 namespace ModularPluginAPI.Components.Lifecycle;
 
-public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker, 
-    IErrorHandledPluginExecutorObserver, IMetadataRepositoryObserver, IPluginExecutorObserver
+public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker
 {
     private readonly List<IPluginTrackerObserver> _observers = new();
     private readonly Dictionary<string, PluginStatus> _plugins = new();
@@ -28,25 +26,6 @@ public class PluginTracker(PluginLoggingFacade logger) : IPluginTracker,
         _observers.Remove(observer);
         logger.TrackerComponentRemoved(observer);
     }
-
-    public void OnMetadataAdded(AssemblyMetadata assemblyMetadata)
-    {
-        var plugins = assemblyMetadata.Plugins;
-        RegisterPlugins(plugins);
-    }
-
-    public void OnMetadataRemoved(AssemblyMetadata assemblyMetadata)
-    {
-        var pluginNames = assemblyMetadata.Plugins.Select(x => x.Name);
-        RemovePlugins(pluginNames);
-    }
-
-    public void OnPluginStatusChanged(PluginStatus plugin)
-        => SetPluginStatus(plugin.Name, plugin.CurrentState, plugin.CurrentMode);
-    public void OnPluginFaulted(PluginStatus plugin, Exception exception)
-        => SetPluginStatus(plugin.Name, PluginState.Faulted, plugin.CurrentMode);
-
-    
     
     public void RegisterPlugin(PluginMetadata plugin)
     {
